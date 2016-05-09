@@ -1,0 +1,29 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<!--<ItemGroup>
+		<ClInclude Include="OpenVXWrapper\*.h" />
+	</ItemGroup>
+	<ItemGroup>
+		<ClCompile Include="OpenVXWrapper\*.cpp" />
+	</ItemGroup>-->
+	<PropertyGroup>
+		<OutDir>$(MSBuildStartupDirectory)\OutDir\</OutDir>
+		<SolutionProperties>
+					Platform=x64;
+					Configuration=Debug
+		</SolutionProperties>
+   </PropertyGroup>
+	<ItemGroup>
+		<Solution Include="OpenVXWrapper.sln">
+			<Properties>
+				$(SolutionProperties)
+			</Properties>
+		</Solution>
+	</ItemGroup>
+	<Target Name="Build">
+		<MSBuild Projects="@(Solution)"/>
+	</Target>
+	
+	<Target Name="Build">
+		<MSBuild Projects="@(Solution)"/>
+	</Target>
+</Project>
