@@ -15,18 +15,18 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="moc_Interface.cpp">
+    <ClCompile Include="moc_AbstractModuleFactory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="moc_AbstractModuleFactory.cpp">
+    <ClCompile Include="moc_AbstractModule.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Interface.hpp">
+    <ClInclude Include="AbstractModuleFactory.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AbstractModuleFactory.hpp">
+    <ClInclude Include="AbstractModule.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

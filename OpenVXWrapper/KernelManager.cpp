@@ -7,8 +7,9 @@ namespace RW
 {
     namespace CORE
     {
-        KernelManager::KernelManager(Context *CurrentContext) 
-            : m_Context((*CurrentContext)())
+        KernelManager::KernelManager(Context *CurrentContext, std::shared_ptr<spdlog::logger> Logger)
+            : m_Context((*CurrentContext)()),
+            m_Logger(Logger)
         {
         }
 
@@ -23,9 +24,10 @@ namespace RW
             vx_status status = vxAddParameterToKernel((*KernelToAddParam)(), Index, (int)Direction, VX_TYPE_ARRAY, VX_PARAMETER_STATE_REQUIRED);
             if (status != VX_SUCCESS)
             {
-                //TODO error Log
+                m_Logger->error("Couldn't add parameter to kernel... ") << "Index: " << Index;
                 return tenStatus::nenError;
             }
+            m_Logger->debug("Parameter added to Kernel (Index: ") << Index << ")";
             return tenStatus::nenSuccess;
         }
 
@@ -37,7 +39,7 @@ namespace RW
             vx_status status = vxLoadKernels(m_Context, KernelToLoad->KernelName().c_str());
             if (status != VX_SUCCESS)
             {
-                //TODO error Log
+                m_Logger->error("Couldn't load kerlen");
                 return tenStatus::nenError;
             }
             return tenStatus::nenSuccess;
@@ -55,7 +57,7 @@ namespace RW
             vx_status status = vxFinalizeKernel((*KernelToLoad)());
             if (status != VX_SUCCESS)
             {
-                //TODO error Log
+                m_Logger->error("Couldn't finilize kernel");
                 return tenStatus::nenError;
             }
             return tenStatus::nenSuccess;
@@ -76,7 +78,7 @@ namespace RW
             vx_status status = vxRemoveKernel((*KernelToRemove)());
             if (status != VX_SUCCESS)
             {
-                //TODO error Log
+                m_Logger->error("Couldn't remove kernel");
                 return tenStatus::nenError;
             }
             return tenStatus::nenSuccess;

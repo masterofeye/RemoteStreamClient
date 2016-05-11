@@ -5,9 +5,12 @@ extern "C"{
 
 #include "Utils.h"
 #include "Node.h"
+#include "spdlog\spdlog.h"
 
 namespace RW{
 	namespace CORE{
+        
+    
 
         class REMOTE_API Graph
 		{
@@ -17,9 +20,9 @@ namespace RW{
 			bool			m_Initialize;
 			int				m_NumOfNodes;
 			tstPerfomance	m_Performance;
-
+            std::shared_ptr<spdlog::logger> m_Logger;
 		public:
-            Graph(Context *Context);
+            Graph(Context *Context, std::shared_ptr<spdlog::logger> Logger);
 			~Graph();
 
 			vx_graph operator()() const

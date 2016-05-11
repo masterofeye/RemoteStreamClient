@@ -1,6 +1,6 @@
 #pragma once
 #include <QtCore>
-
+#include "spdlog\spdlog.h"
 namespace RW{
 	namespace CORE{
 		class AbstractModule;
@@ -8,8 +8,10 @@ namespace RW{
 		class ModuleLoader : public QObject
 		{
 			Q_OBJECT
+        private:
+            std::shared_ptr<spdlog::logger> m_Logger;
 		public:
-			ModuleLoader();
+            ModuleLoader(std::shared_ptr<spdlog::logger> Logger);
 			~ModuleLoader();
 
 			void LoadPlugins(QList<AbstractModule const*> *Pluginlist);

@@ -1,13 +1,14 @@
 #include "ModuleLoader.hpp"
 #include "AbstractModuleFactory.hpp"
-#include "Interface.hpp"
+#include "AbstractModule.hpp"
 
 #include <QList>
 #include <QDebug>
 
 namespace RW{
 	namespace CORE{
-		ModuleLoader::ModuleLoader()
+        ModuleLoader::ModuleLoader(std::shared_ptr<spdlog::logger> Logger)
+            : m_Logger(Logger)
 		{
 		}
 
@@ -49,7 +50,7 @@ namespace RW{
                         plugin2 = qobject_cast <AbstractModuleFactory*>(plugin);
                         if (plugin2 != NULL)
                         {
-
+                            plugin2->SetLogger(m_Logger);
                             AbstractModule * module2 = plugin2->Module(tenSubModule::nenVideoGrabber_SIMU);
                             Pluginlist->append(module2);
                         }

@@ -4,6 +4,7 @@ extern "C"{
 #include "rwvx.h"
 }
 #include "Utils.h"
+#include "spdlog\spdlog.h"
 
 namespace RW
 {
@@ -21,8 +22,9 @@ namespace RW
             uint64_t        m_KernelEnum;
             uint8_t         m_CurrentParameterIndex;
             AbstractModule*  m_AbstractModule;
+            std::shared_ptr<spdlog::logger> m_Logger;
 		public:
-            Kernel(Context *CurrentContext, std::string KernelName, uint64_t KernelEnum, AbstractModule const *Module);
+            Kernel(Context *CurrentContext, std::string KernelName, uint64_t KernelEnum,  uint8_t ParameterAmount, AbstractModule const *Module, std::shared_ptr<spdlog::logger> Logger);
 			~Kernel();
 
 
@@ -41,19 +43,19 @@ namespace RW
 
 
 			static vx_status KernelInitializeCB(vx_node Node, const vx_reference* Parameter, vx_uint32 NumberOfParameter);
-            RW::tenStatus KernelInitialize(void* ControlStruct);
+            RW::tenStatus KernelInitialize(void* InitializeControlStruct);
 
             static vx_status KernelDeinitializeCB(vx_node Node, const vx_reference* Parameter, vx_uint32 NumberOfParameter);
-			RW::tenStatus KernelDeinitialize();
+            RW::tenStatus KernelDeinitialize(void* DeinitializeControlStruct);
 
             static vx_status KernelInputValidateCB(vx_node Node, vx_uint32  Index);
 
             static vx_status KernelOutputValidateCB(vx_node Node, vx_uint32  Index, vx_meta_format Meta);
 
             static vx_status KernelFncCB(vx_node Node, const vx_reference* Parameter, vx_uint32 NumberOfParameter);
-			RW::tenStatus KernelFnc();
+            RW::tenStatus KernelFnc(void* ControlStruct);
         private:
-            tenStatus Kernel::AddKernel();
+            tenStatus AddKernel(uint8_t ParamterAmount);
 		};
 
 	}

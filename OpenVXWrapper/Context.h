@@ -4,6 +4,8 @@ extern "C"{
 #include "rwvx.h"
 }
 #include "Utils.h"
+#include "spdlog\spdlog.h"
+#include "spdlog\spdlog.h"
 
 namespace RW
 {
@@ -16,11 +18,12 @@ namespace RW
 			vx_context  m_Context;
 			bool		m_Initialize;
 			vx_status   m_LastStatus;
+            std::shared_ptr<spdlog::logger> m_Logger;
 		public:
-			Context();
+            Context(std::shared_ptr<spdlog::logger> Logger);
 			~Context();
 
-			vx_context operator() () const
+            vx_context operator() () const
 			{
 				if (m_Initialize)
 					return m_Context;

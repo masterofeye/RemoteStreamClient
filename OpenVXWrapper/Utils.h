@@ -2,6 +2,7 @@
 
 #include <string>
 #include <stdint.h>
+#include <windows.h>
 
 #ifdef REMOTE_EXPORT
 #define REMOTE_API __declspec(dllexport)
@@ -101,7 +102,16 @@ namespace RW{
 			uint64_t max;
 		}tstPerfomance;
 
-
-
+        class Util
+        {
+        public: 
+            static std::string getexepath()
+            {
+                TCHAR NPath[MAX_PATH];
+                GetModuleFileName(NULL, NPath, MAX_PATH);
+                std::wstring wstring(NPath);
+                return std::string (wstring.begin(), wstring.end());
+            }
+        };
 	}
 }

@@ -20,7 +20,7 @@ namespace RW{
 			switch (enModule)
 			{
 			case CORE::tenSubModule::nenVideoGrabber_SIMU:
-			    Module = new VG::Plugin1();
+			    Module = new VG::Plugin1(m_Logger);
 				if (Module != nullptr)
 					status = tenStatus::nenSuccess;
 				break;

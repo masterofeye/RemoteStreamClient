@@ -5,15 +5,16 @@ namespace RW
 {
 	namespace CORE
 	{
-        Kernel::Kernel(Context *CurrentContext, std::string KernelName, uint64_t KernelEnum, AbstractModule const* Module)
+        Kernel::Kernel(Context *CurrentContext, std::string KernelName, uint64_t KernelEnum,uint8_t ParameterAmount, AbstractModule const* Module, std::shared_ptr<spdlog::logger> Logger)
             : m_KernelName(KernelName),
             m_KernelEnum(KernelEnum),
             m_Initialize(false),
-            m_Context((*CurrentContext)())
+            m_Context((*CurrentContext)()),
+            m_Logger(Logger)
 		{
 
             m_AbstractModule = const_cast<AbstractModule*> (Module);
-            AddKernel();
+            AddKernel(ParameterAmount);
 		}
 
 
@@ -26,37 +27,39 @@ namespace RW
         vx_status VX_CALLBACK Kernel::KernelInitializeCB(vx_node Node, const vx_reference* Parameter, vx_uint32 NumberOfParameter)
         {
             vx_status status = VX_FAILURE;
-            vx_array data;
+            vx_array kernenArray, controlStructArray;
             vx_parameter param[] = { vxGetParameterByIndex(Node, 0), vxGetParameterByIndex(Node, 1) };
-            status = vxQueryParameter((vx_parameter)param[0], VX_PARAMETER_ATTRIBUTE_REF, &data, sizeof(data));
+            status = vxQueryParameter((vx_parameter)param[0], VX_PARAMETER_ATTRIBUTE_REF, &kernenArray, sizeof(kernenArray));
             if (status != VX_SUCCESS)
             {
-                //TODO log error and specific return value
                 return VX_FAILURE;
             }
             vx_size size;
-            RW::VG::tstMyInitialiseControlStruct *test = nullptr;
-            vxAccessArrayRange(data, 0, 1, &size, (void**)&test, VX_READ_AND_WRITE);
 
-            status = vxQueryParameter((vx_parameter)param[1], VX_PARAMETER_ATTRIBUTE_REF, &data, sizeof(data));
+            Kernel *kernel = nullptr;
+            vxAccessArrayRange(kernenArray, 0, 1, &size, (void**)&kernel, VX_READ_AND_WRITE);
+
+            status = vxQueryParameter((vx_parameter)param[1], VX_PARAMETER_ATTRIBUTE_REF, &controlStructArray, sizeof(controlStructArray));
+            RW::VG::tstMyInitialiseControlStruct *controlStruct = nullptr;
+            vxAccessArrayRange(controlStructArray, 0, 1, &size, (void**)&controlStruct, VX_READ_AND_WRITE);
+
+
             if (status != VX_SUCCESS)
             {
                 //TODO log error and specific return value
                 return VX_FAILURE;
             }
-            Kernel *kernel = nullptr;
-            vxAccessArrayRange(data, 0, 1, &size, (void**)&kernel, VX_READ_AND_WRITE);
+            
 
             //Kernel* kernel = reinterpret_cast<Kernel*>(data.ptr);
             try
             {
                 if (kernel != nullptr)
                 {
-                    kernel->KernelInitialize((RW::CORE::tstInitialiseControlStruct*) test);
+                    kernel->KernelInitialize((RW::CORE::tstInitialiseControlStruct*) controlStruct);
                 }
                 else
                 {
-                    //TODO log error and specific return value
                     return VX_FAILURE;
                 }
             }
@@ -64,38 +67,54 @@ namespace RW
             {
                 //Todo Error log
             }
+            vxCommitArrayRange(kernenArray, 0, 1, kernel);
+            vxCommitArrayRange(controlStructArray, 0, 1, controlStruct);
 
             return status;
         }
 
-        RW::tenStatus Kernel::KernelInitialize(void* ControlStruct)
+        RW::tenStatus Kernel::KernelInitialize(void* InitialiseControlStruct)
         {
             tenStatus status = tenStatus::nenError;
-            m_AbstractModule->Initialise((tstInitialiseControlStruct*)ControlStruct);
+            status = m_AbstractModule->Initialise((tstInitialiseControlStruct*)InitialiseControlStruct);
+            m_Logger->debug("Initialise kernel");
             return status;
         }
 
         vx_status  VX_CALLBACK Kernel::KernelDeinitializeCB(vx_node Node, const vx_reference* Parameter, vx_uint32 NumberOfParameter)
         {
             vx_status status = VX_FAILURE;
-            rwvx_callback *data = 0;
-            
-            status = vxQueryParameter((vx_parameter)Parameter, VX_PARAMETER_ATTRIBUTE_REF, &data, sizeof(data));
+            vx_array kernenArray, controlStructArray;
+            vx_parameter param[] = { vxGetParameterByIndex(Node, 0), vxGetParameterByIndex(Node, 3) };
+            vx_size size = 0;
+
+            /*Query the vx_array for the kernel parameter*/
+            status = vxQueryParameter((vx_parameter)param[0], VX_PARAMETER_ATTRIBUTE_REF, &kernenArray, sizeof(kernenArray));
             if (status != VX_SUCCESS)
             {
                 //TODO log error and specific return value
                 return VX_FAILURE;
             }
-            Kernel* kernel = reinterpret_cast<Kernel*>(data->ptr);
+            Kernel *kernel = nullptr;
+            vxAccessArrayRange(kernenArray, 0, 1, &size, (void**)&kernel, VX_READ_AND_WRITE);
+
+            /*Query the vx_array for the controlstruct parameter*/
+            status = vxQueryParameter((vx_parameter)param[1], VX_PARAMETER_ATTRIBUTE_REF, &controlStructArray, sizeof(controlStructArray));
+            if (status != VX_SUCCESS)
+            {
+                return VX_FAILURE;
+            }
+            RW::VG::tstMyDeinitialiseControlStruct *controlStruct = nullptr;
+            vxAccessArrayRange(controlStructArray, 0, 1, &size, (void**)&controlStruct, VX_READ_AND_WRITE);
+
             try
             {
-                if (kernel != nullptr)
+                if (kernel != nullptr && controlStruct != nullptr)
                 {
-                    kernel->KernelDeinitialize();
+                    kernel->KernelDeinitialize((RW::CORE::tstDeinitialiseControlStruct*) controlStruct);
                 }
                 else
                 {
-                    //TODO log error and specific return value
                     return VX_FAILURE;
                 }
             }
@@ -103,14 +122,19 @@ namespace RW
             {
                 //Todo Error log
             }
-
+            vxCommitArrayRange(kernenArray, 0, 1, kernel);
+            vxCommitArrayRange(controlStructArray, 0, 1, controlStruct);
             return status;
         }
         
-        RW::tenStatus Kernel::KernelDeinitialize()
+        RW::tenStatus Kernel::KernelDeinitialize(void* DeinitializeControlStruct)
         {
             tenStatus status = tenStatus::nenError;
-
+            m_Logger->debug("Deinitialize kernel");
+            if (m_AbstractModule!= nullptr && m_AbstractModule->Deinitialise((tstDeinitialiseControlStruct*)DeinitializeControlStruct) != tenStatus::nenSuccess)
+            {
+                m_Logger->debug("Deinitialize kernel");
+            }
             return status;
         }
 
@@ -131,21 +155,35 @@ namespace RW
         vx_status VX_CALLBACK Kernel::KernelFncCB(vx_node Node, const vx_reference* Parameter, vx_uint32 NumberOfParameter)
         {
             vx_status status = VX_FAILURE;
-            rwvx_callback *data = 0;
-
-            status = vxQueryParameter((vx_parameter)Parameter, VX_PARAMETER_ATTRIBUTE_REF, &data, sizeof(data));
+            vx_array kernenArray, controlStructArray;
+            vx_parameter param[] = { vxGetParameterByIndex(Node, 0), vxGetParameterByIndex(Node, 2) };
+            status = vxQueryParameter((vx_parameter)param[0], VX_PARAMETER_ATTRIBUTE_REF, &kernenArray, sizeof(kernenArray));
             if (status != VX_SUCCESS)
             {
-                //TODO log error and specific return value
                 return VX_FAILURE;
             }
+            vx_size size;
 
-            Kernel* kernel = reinterpret_cast<Kernel*>(data->ptr);
+            Kernel *kernel = nullptr;
+            vxAccessArrayRange(kernenArray, 0, 1, &size, (void**)&kernel, VX_READ_AND_WRITE);
+
+            
+            status = vxQueryParameter((vx_parameter)param[1], VX_PARAMETER_ATTRIBUTE_REF, &controlStructArray, sizeof(controlStructArray));
+            if (status != VX_SUCCESS)
+            {
+                return VX_FAILURE;
+            }
+            
+            RW::VG::tstMyControlStruct *controlStruct = nullptr;
+            vxAccessArrayRange(controlStructArray, 0, 1, &size, (void**)&controlStruct, VX_READ_AND_WRITE);
+
+
+
             try
             {
                 if (kernel != nullptr)
                 {
-                    kernel->KernelFnc();
+                    kernel->KernelFnc((RW::CORE::tstControlStruct*)controlStruct);
                 }
                 else
                 {
@@ -157,18 +195,22 @@ namespace RW
             {
                 //Todo Error log
             }
+            vxCommitArrayRange(kernenArray, 0, 1, kernel);
+            vxCommitArrayRange(controlStructArray, 0, 1, controlStruct);
+
 
             return status;
         }
 
-        tenStatus Kernel::KernelFnc()
+        tenStatus Kernel::KernelFnc(void* ControlStruct)
         {
             tenStatus status = tenStatus::nenError;
-
+            status = m_AbstractModule->DoRender((tstControlStruct*)ControlStruct);
+            m_Logger->debug("DoRender kernel");
             return status;
         }
 
-        tenStatus Kernel::AddKernel()
+        tenStatus Kernel::AddKernel(uint8_t ParamterAmount)
         {
             if (m_Context == nullptr)
             {
@@ -176,7 +218,7 @@ namespace RW
                 return tenStatus::nenError;
             }
 
-            vx_kernel kernel = vxAddKernel(m_Context, this->KernelName().c_str(), this->KernelEnum(), this->KernelFncCB, 2, this->KernelInputValidateCB, this->KernelOutputValidateCB, this->KernelInitializeCB, this->KernelDeinitializeCB);
+            vx_kernel kernel = vxAddKernel(m_Context, this->KernelName().c_str(), this->KernelEnum(), this->KernelFncCB, ParamterAmount, this->KernelInputValidateCB, this->KernelOutputValidateCB, this->KernelInitializeCB, this->KernelDeinitializeCB);
 
             vxGetKernelByEnum(m_Context, this->KernelEnum());
 

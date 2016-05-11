@@ -4,6 +4,7 @@ extern "C"{
 }
 #include <vector>
 #include "Utils.h"
+#include "spdlog\spdlog.h"
 
 namespace RW
 {
@@ -22,10 +23,10 @@ namespace RW
             vx_graph m_Graph;
             vx_kernel m_Kernel;
             std::vector<vx_reference> m_ListOfReferences;
-            
+            std::shared_ptr<spdlog::logger> m_Logger;
 
 		public:
-			Node(Graph const *CurrentGraph,Kernel const *Kernel2Connect);
+            Node(Graph const *CurrentGraph, Kernel const *Kernel2Connect, std::shared_ptr<spdlog::logger> Logger);
 			~Node();
 
             inline bool IsInitialized() const { return m_Initialize; }

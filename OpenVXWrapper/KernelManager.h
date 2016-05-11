@@ -4,6 +4,7 @@ extern "C"{
 #include "rwvx.h"
 }
 #include "Utils.h"
+#include "spdlog\spdlog.h"
 
 namespace RW
 {
@@ -15,9 +16,10 @@ namespace RW
         class REMOTE_API KernelManager
         {
             vx_context      m_Context;
+            std::shared_ptr<spdlog::logger> m_Logger;
 
         public:
-            KernelManager(Context *CurrentContext);
+            KernelManager(Context *CurrentContext, std::shared_ptr<spdlog::logger> Logger);
             ~KernelManager();
 
             tenStatus AddParameterToKernel(Kernel* KernelToAddParam, tenDir Direction, int Index);

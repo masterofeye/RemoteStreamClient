@@ -7,10 +7,11 @@ namespace RW
 {
 	namespace CORE
 	{
-        Node::Node(Graph const *CurrentGraph, Kernel const *Kernel2Connect) : 
+        Node::Node(Graph const *CurrentGraph, Kernel const *Kernel2Connect, std::shared_ptr<spdlog::logger> Logger) :
             m_Graph((*CurrentGraph)()),
             m_Kernel((*Kernel2Connect)()),
-            m_Initialize(false)
+            m_Initialize(false),
+            m_Logger(Logger)
 		{
             CreateNode();
 		}
@@ -47,8 +48,9 @@ namespace RW
 				vx_status currentStat = vxReleaseNode(&m_Node);
 				if (currentStat != VX_SUCCESS)
 				{
-					//TODO error log
+                    m_Logger->error("Couldn't release Node.");
 				}
+                m_Logger->debug("Node released.");
 			}
 		}
 
@@ -133,6 +135,7 @@ namespace RW
 			}
 		
 		}
+
 		size_t Node::LocalDataSize(){
             //TODO implemantation
             return 0;
@@ -151,13 +154,18 @@ namespace RW
         {
             if (CurrentContext == nullptr)
             {
-                //TODO LOG
+                m_Logger->alert("No valid context");
                 return tenStatus::nenError;
             }
             vx_enum en = vxRegisterUserStruct((*CurrentContext)(), StructSize);
             vx_array testArray = vxCreateArray((*CurrentContext)(), en, 1);
             vxAddArrayItems(testArray, 1, Value, StructSize);
-            vx_status test = vxSetParameterByIndex(m_Node, Index, (vx_reference)testArray);
+            if (vxSetParameterByIndex(m_Node, Index, (vx_reference)testArray) != VX_SUCCESS)
+            {
+                m_Logger->error("Couldn't add parameter to Node. ") << "Index: " << Index;
+                return tenStatus::nenError;
+            }
+            m_Logger->debug("Parameter added to Node (Index: ") << Index << ")";
             return tenStatus::nenSuccess;
         }
 
@@ -165,19 +173,23 @@ namespace RW
         {
             if (CurrentContext == nullptr)
             {
-                //TODO LOG
+                m_Logger->alert("No valid context");
                 return tenStatus::nenError;
             }
 
             vx_scalar scalar = vxCreateScalar((*CurrentContext)(), VX_TYPE_UINT8, &Value);
             if (scalar == nullptr)
             {
-                //TODO LOG
+                m_Logger->error("Couldn't create scalar");
                 return tenStatus::nenError;
             }
             m_ListOfReferences.push_back((vx_reference)scalar);
 
-            vxSetParameterByIndex(m_Node, Index, (vx_reference)scalar);
+            if(vxSetParameterByIndex(m_Node, Index, (vx_reference)scalar) == VX_SUCCESS)
+            {
+                m_Logger->error("Couldn't add paraemter to node.");
+                return tenStatus::nenError;
+            }
             return tenStatus::nenSuccess;
         }
 
@@ -185,19 +197,23 @@ namespace RW
         {
             if (CurrentContext == nullptr)
             {
-                //TODO LOG
+                m_Logger->alert("No valid context");
                 return tenStatus::nenError;
             }
 
             vx_scalar scalar = vxCreateScalar((*CurrentContext)(), VX_TYPE_UINT8, &Value);
             if (scalar == nullptr)
             {
-                //TODO LOG
+                m_Logger->error("Couldn't create scalar");
                 return tenStatus::nenError;
             }
             m_ListOfReferences.push_back((vx_reference)scalar);
 
-            vxSetParameterByIndex(m_Node, Index, (vx_reference)scalar);
+            if (vxSetParameterByIndex(m_Node, Index, (vx_reference)scalar) == VX_SUCCESS)
+            {
+                m_Logger->error("Couldn't add paraemter to node.");
+                return tenStatus::nenError;
+            }
             return tenStatus::nenSuccess;
         }
 
@@ -208,12 +224,13 @@ namespace RW
             vx_status vxStatus = vxGetStatus((vx_reference)m_Node);
             if (vxStatus == VX_SUCCESS)
             {
-                //TODO ERROR LOG
+                m_Logger->debug("Node created.");
                 m_Initialize = true;
                 return status;
             }
             else
             {
+                m_Logger->error("Couldn't create Node.");
                 m_Initialize = false;
                 return tenStatus::nenSuccess;
             }
@@ -224,7 +241,7 @@ namespace RW
             vx_status status = vxAssignNodeCallback(m_Node, NodeCallback);
             if (status != VX_SUCCESS)
             {
-                //Todo Error Log
+                m_Logger->error("Assign node callback failed");
                 return tenStatus::nenError;
             }
             return tenStatus::nenSuccess;

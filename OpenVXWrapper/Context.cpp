@@ -4,8 +4,10 @@ namespace RW
 {
 	namespace CORE
 	{
-		Context::Context() :
-			m_Initialize(false)
+        Context::Context(std::shared_ptr<spdlog::logger> Logger) :
+			m_Initialize(false),
+            m_LastStatus(VX_SUCCESS),
+            m_Logger(Logger)
 		{
             CreateContext();
 		}
@@ -17,8 +19,9 @@ namespace RW
 				m_LastStatus = vxReleaseContext(&m_Context);
 				if (m_LastStatus != VX_SUCCESS)
 				{
-					//TODO Error
+                    m_Logger->error("Couldn't release Context");
 				}
+                m_Logger->debug("Context released");
 			}
 		}
 
@@ -32,12 +35,13 @@ namespace RW
 			if (m_LastStatus == VX_SUCCESS)
 			{ 
 				res = tenStatus::nenSuccess;
+                m_Logger->debug("Context created");
 				m_Initialize = true;
 				return res;
 			}
 			else
 			{
-				//Error log
+                m_Logger->error("Context couldn't created");
 				m_Initialize = false;
 			    return res;
 			}
@@ -48,7 +52,7 @@ namespace RW
 		{
 			if (m_Initialize && m_Context)
 			{
-				//TODO Error report
+                m_Logger->alert("Context not created or initialized");
 				return 0;
 			}
 			else
@@ -61,7 +65,7 @@ namespace RW
 				}
 				else
 				{
-					//TODO Error report
+                    m_Logger->error("Couldn't query vendor id");
 					return 0;
 				}
 			}
@@ -71,7 +75,7 @@ namespace RW
 		{
 			if (m_Initialize && m_Context)
 			{
-				//TODO Error report
+                m_Logger->alert("Context not created or initialized");
 				return 0;
 			}
 			else
@@ -84,7 +88,7 @@ namespace RW
 				}
 				else
 				{
-					//TODO Error report
+                    m_Logger->error("Couldn't query version id");
 					return 0;
 				}
 			}
@@ -97,7 +101,7 @@ namespace RW
 		{
 			if (m_Initialize && m_Context)
 			{
-				//TODO Error report
+                m_Logger->alert("Context not created or initialized");
 				return 0;
 			}
 			else
@@ -110,7 +114,7 @@ namespace RW
 				}
 				else
 				{
-					//TODO Error report
+                    m_Logger->error("Couldn't query unique kernels amount");
 					return 0;
 				}
 			}
@@ -123,7 +127,7 @@ namespace RW
 		{
 			if (m_Initialize && m_Context)
 			{
-				//TODO Error report
+                m_Logger->alert("Context not created or initialized");
 				return nullptr;
 			}
 			else
@@ -137,7 +141,7 @@ namespace RW
 				}
 				else
 				{
-					//TODO Error report
+                    m_Logger->error("Couldn't query unique kernels");
 					return nullptr;
 				}
 			}
@@ -147,7 +151,7 @@ namespace RW
 		{
 			if (m_Initialize && m_Context)
 			{
-				//TODO Error report
+                m_Logger->alert("Context not created or initialized");
 				return 0;
 			}
 			else
@@ -160,7 +164,7 @@ namespace RW
 				}
 				else
 				{
-					//TODO Error report
+                    m_Logger->error("Couldn't query modules amount");
 					return 0;
 				}
 			}
@@ -170,7 +174,7 @@ namespace RW
 		{
 			if (m_Initialize && m_Context)
 			{
-				//TODO Error report
+                m_Logger->alert("Context not created or initialized");
 				return 0;
 			}
 			else
@@ -183,7 +187,7 @@ namespace RW
 				}
 				else
 				{
-					//TODO Error report
+                    m_Logger->error("Couldn't query references amount");
 					return 0;
 				}
 			}
@@ -194,7 +198,7 @@ namespace RW
 		{
 			if (m_Initialize && m_Context)
 			{
-				//TODO Error report
+                m_Logger->alert("Context not created or initialized");
 				return "";
 			}
 			else
@@ -209,7 +213,7 @@ namespace RW
 				}
 				else
 				{
-					//TODO Error report
+                    m_Logger->error("Couldn't query implementatio name");
 					return "";
 				}
 			}
@@ -219,7 +223,7 @@ namespace RW
 		{
 			if (m_Initialize && m_Context)
 			{
-				//TODO Error report
+                m_Logger->alert("Context not created or initialized");
 				return 0;
 			}
 			else
@@ -232,7 +236,7 @@ namespace RW
 				}
 				else
 				{
-					//TODO Error report
+                    m_Logger->error("Couldn't query extention size");
 					return 0;
 				}
 			}
@@ -242,7 +246,7 @@ namespace RW
 		{
 			if (m_Initialize && m_Context)
 			{
-				//TODO Error report
+                m_Logger->alert("Context not created or initialized");
 				return "";
 			}
 			else
@@ -257,7 +261,7 @@ namespace RW
 				}
 				else
 				{
-					//TODO Error report
+                    m_Logger->error("Couldn't query extention name");
 					return "";
 				}
 			}

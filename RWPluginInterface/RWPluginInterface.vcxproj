@@ -153,11 +153,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AbstractModuleFactory.hpp" />
-    <ClInclude Include="Interface.hpp" />
+    <ClInclude Include="AbstractModule.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="moc_AbstractModule.cpp" />
     <ClCompile Include="moc_AbstractModuleFactory.cpp" />
-    <ClCompile Include="moc_Interface.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\OpenVXWrapper\OpenVXWrapper.vcxproj">
