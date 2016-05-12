@@ -34,6 +34,11 @@ namespace RW{
             return Module;
 
 		}
+
+        CORE::tenModule ModuleFactory::ModuleType()
+        {
+            return CORE::tenModule::enVideoGrabber;
+        }
 	}
 }
 

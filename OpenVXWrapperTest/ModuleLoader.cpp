@@ -19,40 +19,58 @@ namespace RW{
 
 		void ModuleLoader::LoadPlugins(QList<AbstractModule const*> *Pluginlist)
 		{
+            //TODO Dynamic Link
+            QDir pluginsDir = QDir("C:\\Projekte\\RemoteRepros\\RemoteStreamClient\\build\\x64\\Debug");
 
-            QDir pluginsDir = QDir("C:\\Projekte\\RemoteRepros\\RemoteStreamClient\\build\\x64");
-
-            qDebug() << pluginsDir.dirName();
-#if defined(Q_OS_WIN)
-			if (pluginsDir.dirName().toLower() == "debug" || pluginsDir.dirName().toLower() == "release")
-				pluginsDir.cdUp();
-#elif defined(Q_OS_MAC)
-			if (pluginsDir.dirName() == "MacOS") {
-				pluginsDir.cdUp();
-				pluginsDir.cdUp();
-				pluginsDir.cdUp();
-			}
-#endif
-			pluginsDir.cd("plugins");
-
+			pluginsDir.cd("Plugins");
 			foreach(QString fileName, pluginsDir.entryList(QDir::Files)) {
                 qDebug() << fileName;
 				QPluginLoader loader(pluginsDir.absoluteFilePath(fileName));
                 if (loader.load())
                 {
-                    //auto t1 = HighResClock::now();
                     QObject *plugin = loader.instance();
-                    //auto t2 = HighResClock::now();
-                    //auto t3 = HighResClock::diff_milli(t1, t2);
-                    //qDebug() << t3.count();
                     if (plugin != NULL) {
-                        AbstractModuleFactory *plugin2 = NULL;
-                        plugin2 = qobject_cast <AbstractModuleFactory*>(plugin);
-                        if (plugin2 != NULL)
+                        AbstractModuleFactory *moduleFactory = NULL;
+                        moduleFactory = qobject_cast <AbstractModuleFactory*>(plugin);
+                        if (moduleFactory != NULL)
                         {
-                            plugin2->SetLogger(m_Logger);
-                            AbstractModule * module2 = plugin2->Module(tenSubModule::nenVideoGrabber_SIMU);
-                            Pluginlist->append(module2);
+                            moduleFactory->SetLogger(m_Logger);
+                            AbstractModule *module = nullptr;
+                            switch (moduleFactory->ModuleType())
+                            {
+
+                            case tenModule::enVideoGrabber:
+                                module = moduleFactory->Module(tenSubModule::nenVideoGrabber_SIMU);
+                                if (module == nullptr)
+                                    m_Logger->error("Virtual video source module coudn't load correct.");
+                                break;
+                            case tenModule::enEncoder:
+                                module = moduleFactory->Module(tenSubModule::nenEncode_NVIDIA);
+                                if (module == nullptr)
+                                    m_Logger->error("NVIDIA encoder module coudn't load correct.");
+                                break;
+                            case tenModule::enGraphic:
+                                module = moduleFactory->Module(tenSubModule::nenGraphic_Color);
+                                if (module == nullptr)
+                                    m_Logger->error("Colorspace conversion module coudn't load correct.");
+                                break;
+                            case tenModule::enDecoder:
+                                module = moduleFactory->Module(tenSubModule::nenDecoder_INTEL);
+                                if (module == nullptr)
+                                    m_Logger->error("Intel Decode module coudn't load correct.");
+                                break;
+                            case tenModule::enPlayback:
+                                module = moduleFactory->Module(tenSubModule::nenPlayback_Simple);
+                                if (module == nullptr)
+                                    m_Logger->error("Qt Playback module coudn't load correct.");
+                                break;
+                            default:
+                                m_Logger->alert("No module found.");
+                                break;
+
+                            }
+
+                            Pluginlist->append(module);
                         }
                     }
                 }

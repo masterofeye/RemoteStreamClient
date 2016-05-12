@@ -17,6 +17,7 @@ namespace RW
             std::shared_ptr<spdlog::logger> m_Logger;
 		public:
 			virtual ~AbstractModuleFactory(){}
+            virtual CORE::tenModule ModuleType() = 0;
             virtual CORE::AbstractModule* Module(CORE::tenSubModule enModule) = 0;
             inline void SetLogger(std::shared_ptr<spdlog::logger> Logger){ m_Logger = Logger;}
 

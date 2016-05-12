@@ -13,6 +13,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Plugin1", "Plugin1\Plugin1.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HighResolution", "..\RemoteUtil\thirdparty\HighResolution\HighResolution.vcxproj", "{E698783E-4BD7-47AA-95F4-340C8ABFF830}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RWUnitTest", "RWUnitTest\RWUnitTest.vcxproj", "{B5D2B888-D738-48DF-9DA7-990D0B7C15E3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -84,6 +86,17 @@ Global
 		{E698783E-4BD7-47AA-95F4-340C8ABFF830}.Release|Win32.Build.0 = Release|Win32
 		{E698783E-4BD7-47AA-95F4-340C8ABFF830}.Release|x64.ActiveCfg = Release|x64
 		{E698783E-4BD7-47AA-95F4-340C8ABFF830}.Release|x64.Build.0 = Release|x64
+		{B5D2B888-D738-48DF-9DA7-990D0B7C15E3}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{B5D2B888-D738-48DF-9DA7-990D0B7C15E3}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{B5D2B888-D738-48DF-9DA7-990D0B7C15E3}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B5D2B888-D738-48DF-9DA7-990D0B7C15E3}.Debug|Win32.Build.0 = Debug|Win32
+		{B5D2B888-D738-48DF-9DA7-990D0B7C15E3}.Debug|x64.ActiveCfg = Debug|x64
+		{B5D2B888-D738-48DF-9DA7-990D0B7C15E3}.Debug|x64.Build.0 = Debug|x64
+		{B5D2B888-D738-48DF-9DA7-990D0B7C15E3}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{B5D2B888-D738-48DF-9DA7-990D0B7C15E3}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{B5D2B888-D738-48DF-9DA7-990D0B7C15E3}.Release|Win32.ActiveCfg = Release|Win32
+		{B5D2B888-D738-48DF-9DA7-990D0B7C15E3}.Release|Win32.Build.0 = Release|Win32
+		{B5D2B888-D738-48DF-9DA7-990D0B7C15E3}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

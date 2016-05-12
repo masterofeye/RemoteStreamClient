@@ -50,7 +50,7 @@ namespace RW
 
 		uint64_t Context::Vendor()
 		{
-			if (m_Initialize && m_Context)
+            if (!m_Initialize && m_Context != nullptr)
 			{
                 m_Logger->alert("Context not created or initialized");
 				return 0;
@@ -73,7 +73,7 @@ namespace RW
 
         uint64_t Context::Version()
 		{
-			if (m_Initialize && m_Context)
+            if (!m_Initialize && m_Context != nullptr)
 			{
                 m_Logger->alert("Context not created or initialized");
 				return 0;
@@ -99,7 +99,7 @@ namespace RW
 		*/
 		uint32_t Context::UniqueKernels()
 		{
-			if (m_Initialize && m_Context)
+			if (!m_Initialize && m_Context != nullptr)
 			{
                 m_Logger->alert("Context not created or initialized");
 				return 0;
@@ -125,7 +125,7 @@ namespace RW
 		*/
 		tstKernelInfo* Context::UniqueKernelTable(uint32_t AmountOfKernel)
 		{
-			if (m_Initialize && m_Context)
+            if (!m_Initialize && m_Context != nullptr)
 			{
                 m_Logger->alert("Context not created or initialized");
 				return nullptr;
@@ -149,7 +149,7 @@ namespace RW
 
 		uint32_t Context::ActiveModules()
 		{
-			if (m_Initialize && m_Context)
+            if (!m_Initialize && m_Context != nullptr)
 			{
                 m_Logger->alert("Context not created or initialized");
 				return 0;
@@ -172,7 +172,7 @@ namespace RW
 
 		uint32_t Context::ActiveReferences()
 		{
-			if (m_Initialize && m_Context)
+            if (!m_Initialize && m_Context != nullptr)
 			{
                 m_Logger->alert("Context not created or initialized");
 				return 0;
@@ -196,7 +196,7 @@ namespace RW
 
 		std::string Context::ImplementationName()
 		{
-			if (m_Initialize && m_Context)
+            if (!m_Initialize && m_Context != nullptr)
 			{
                 m_Logger->alert("Context not created or initialized");
 				return "";
@@ -221,7 +221,7 @@ namespace RW
 
 		size_t Context::ExtentionSize()
 		{
-			if (m_Initialize && m_Context)
+            if (!m_Initialize && m_Context != nullptr)
 			{
                 m_Logger->alert("Context not created or initialized");
 				return 0;
@@ -244,7 +244,7 @@ namespace RW
 
 		const std::string Context::Extentions(size_t ExtentionSize)
 		{
-			if (m_Initialize && m_Context)
+            if (!m_Initialize && m_Context != nullptr)
 			{
                 m_Logger->alert("Context not created or initialized");
 				return "";

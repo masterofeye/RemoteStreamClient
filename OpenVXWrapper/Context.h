@@ -5,7 +5,6 @@ extern "C"{
 }
 #include "Utils.h"
 #include "spdlog\spdlog.h"
-#include "spdlog\spdlog.h"
 
 namespace RW
 {

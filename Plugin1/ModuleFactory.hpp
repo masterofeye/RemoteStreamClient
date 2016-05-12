@@ -23,6 +23,7 @@ namespace RW
 			ModuleFactory();
 			~ModuleFactory();
             CORE::AbstractModule* Module(CORE::tenSubModule enModule);
+            CORE::tenModule ModuleType();
 		};
 	}
 }
