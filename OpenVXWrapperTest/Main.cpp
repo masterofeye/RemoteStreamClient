@@ -36,6 +36,8 @@ int main(int argc, const char* argv[])
     RW::CORE::HighResClock::time_point t1 = res.now();
 #endif
     RW::CORE::ModuleLoader ml(file_logger);
+
+    /*Load Plugins*/
 	QList<RW::CORE::AbstractModule const*> list;
 	ml.LoadPlugins(&list);
 #ifdef PERFORMANCE_TEST
