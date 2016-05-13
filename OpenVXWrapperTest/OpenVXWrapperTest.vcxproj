@@ -76,7 +76,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>C:\tool\RemotePkg\OpenVX\include;$(QTDIR)\mkspecs\winrt-x64-msvc2013;$(QTDIR)\include\QtCore;$(QTDIR)\include;..\RWPluginInterface;$(IncludePath)</IncludePath>
-    <LibraryPath>$(QTDIR)\lib;C:\Projekte\RemoteRepros\RemoteStreamClient\build\x64\Debug;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(QTDIR)\lib;..\build\x64\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -153,6 +153,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="GraphBuilder.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="moc_ModuleLoader.cpp" />
     <ClCompile Include="ModuleLoader.cpp" />
@@ -163,6 +164,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="GraphBuilder.h" />
     <ClInclude Include="ModuleLoader.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
