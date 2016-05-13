@@ -1,33 +1,30 @@
-#include "IMP_ConvColorFrames.h"
-#include "opencv2/opencv.hpp"
-//#include "opencv2/core/cuda.hpp"
-#include "opencv2/cudev/common.hpp"
-#include "opencv2/cudaimgproc.hpp"
+#include "IMP_CropFrames.hpp"
+
 
 namespace RW{
 	namespace IMP{
 
-		IMP_ConvColorFrames::IMP_ConvColorFrames(std::shared_ptr<spdlog::logger> Logger) :
+		IMP_CropFrames::IMP_CropFrames(std::shared_ptr<spdlog::logger> Logger) :
 			RW::CORE::AbstractModule(Logger)
 		{
 			}
 
 
-		IMP_ConvColorFrames::~IMP_ConvColorFrames()
+		IMP_CropFrames::~IMP_CropFrames()
 		{
 		}
 
-		CORE::tstModuleVersion IMP_ConvColorFrames::ModulVersion() {
+		CORE::tstModuleVersion IMP_CropFrames::ModulVersion() {
 			CORE::tstModuleVersion version = { 0, 1 };
 			return version;
 		}
 
-		CORE::tenSubModule IMP_ConvColorFrames::SubModulType()
+		CORE::tenSubModule IMP_CropFrames::SubModulType()
 		{
-			return CORE::tenSubModule::nenGraphic_Color;
+			return CORE::tenSubModule::nenGraphic_Crop;
 		}
 
-		tenStatus IMP_ConvColorFrames::Initialise(CORE::tstInitialiseControlStruct * InitialiseControlStruct)
+		tenStatus IMP_CropFrames::Initialise(CORE::tstInitialiseControlStruct * InitialiseControlStruct)
 		{
 			tenStatus enStatus = tenStatus::nenSuccess;
 			stMyInitialiseControlStruct* data = static_cast<stMyInitialiseControlStruct*>(InitialiseControlStruct);
@@ -50,17 +47,27 @@ namespace RW{
 			return enStatus;
 		}
 
-		tenStatus IMP_ConvColorFrames::DoRender(CORE::tstControlStruct * ControlStruct)
+		tenStatus IMP_CropFrames::DoRender(CORE::tstControlStruct * ControlStruct)
 		{
 			tenStatus enStatus = tenStatus::nenSuccess;
 			stMyControlStruct* data = static_cast<stMyControlStruct*>(ControlStruct);
 
-			cv::cuda::cvtColor(m_cuMat, m_cuMat, cv::COLOR_RGB2YUV);
+			if (data->stFrameRect.iWidth > m_cuMat.cols || data->stFrameRect.iHeight > m_cuMat.rows
+				|| data->stFrameRect.iWidth == 0 || data->stFrameRect.iHeight == 0)
+			{
+				enStatus = tenStatus::nenError;
+			}
+			else if (data->stFrameRect.iWidth < m_cuMat.cols || data->stFrameRect.iHeight < m_cuMat.rows)
+			{
+				cv::Rect rect(data->stFrameRect.iPosX, data->stFrameRect.iPosY, data->stFrameRect.iWidth, data->stFrameRect.iHeight);
+				m_cuMat = m_cuMat(rect);
+			}
 
 			m_Logger->debug("DoRender");
 			return enStatus;
 		}
-		tenStatus IMP_ConvColorFrames::Deinitialise(CORE::tstDeinitialiseControlStruct *DeinitialiseControlStruct)
+
+		tenStatus IMP_CropFrames::Deinitialise(CORE::tstDeinitialiseControlStruct *DeinitialiseControlStruct)
 		{
 			tenStatus enStatus = tenStatus::nenSuccess;
 			stMyDeinitialiseControlStruct* data = static_cast<stMyDeinitialiseControlStruct*>(DeinitialiseControlStruct);

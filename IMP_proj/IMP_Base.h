@@ -29,6 +29,7 @@ namespace RW
 
 		class cInputBase{
 		public:
+			cInputBase(){};
 			cInputBase(tstInputParams stInput){ _stParams = stInput; };
 			cInputBase(cv::cuda::GpuMat gMat){ _gMat = gMat; };
 			tstInputParams _stParams;
@@ -37,6 +38,7 @@ namespace RW
 
 		class cOutputBase{
 		public:
+			cOutputBase(){};
 			cOutputBase(cv::cuda::GpuMat *pgMat){ _pgMat = pgMat; };
 			cOutputBase(cudaArray *pcuArray){ _pcuArray = pcuArray; };
 			cv::cuda::GpuMat *_pgMat;

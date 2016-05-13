@@ -1,4 +1,4 @@
-#include "IMP_MergeFrames.h"
+#include "IMP_MergeFrames.hpp"
 #include "opencv2/opencv.hpp"
 #include "opencv2/cudev/common.hpp"
 
@@ -8,7 +8,7 @@ namespace RW{
 		IMP_MergeFrames::IMP_MergeFrames(std::shared_ptr<spdlog::logger> Logger) :
 			RW::CORE::AbstractModule(Logger)
 		{
-			}
+		}
 
 
 		IMP_MergeFrames::~IMP_MergeFrames()
