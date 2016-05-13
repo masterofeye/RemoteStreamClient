@@ -13,9 +13,9 @@ namespace RW
         {
         }
 
-
         KernelManager::~KernelManager()
         {
+            m_Logger->debug("Destroy KernelManager");
         }
 
         tenStatus  KernelManager::AddParameterToKernel(Kernel* const KernelToAddParam, tenDir Direction, int Index )
@@ -27,6 +27,7 @@ namespace RW
                 m_Logger->error("Couldn't add parameter to kernel... ") << "Index: " << Index;
                 return tenStatus::nenError;
             }
+            m_KernelList.push_back(KernelToAddParam);
             m_Logger->debug("Parameter added to Kernel (Index: ") << Index << ")";
             return tenStatus::nenSuccess;
         }

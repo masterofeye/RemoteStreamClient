@@ -24,9 +24,15 @@
     <ClCompile Include="moc_ModuleLoader.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="GraphBuilder.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ModuleLoader.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphBuilder.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

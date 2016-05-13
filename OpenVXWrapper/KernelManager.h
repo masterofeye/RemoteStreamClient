@@ -17,7 +17,7 @@ namespace RW
         {
             vx_context      m_Context;
             std::shared_ptr<spdlog::logger> m_Logger;
-
+            std::vector<Kernel*> m_KernelList;
         public:
             KernelManager(Context *CurrentContext, std::shared_ptr<spdlog::logger> Logger);
             ~KernelManager();
