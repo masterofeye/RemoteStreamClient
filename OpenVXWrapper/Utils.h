@@ -41,6 +41,8 @@ namespace RW{
 			nenVideoGrabber_FG_PCI,
 			nenVideoGrabber_SIMU,
 			nenGraphic_Color,
+			nenGraphic_Crop,
+			nenGraphic_Merge,
 			nenEncode_NVIDIA,
 			nenEncode_INTEL,
 			nenDecoder_NVIDIA,
