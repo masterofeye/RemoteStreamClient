@@ -46,14 +46,13 @@ typedef struct _EncodeConfig
     int              bitrate;
     int              vbvMaxBitrate;
     int              vbvSize;
-    int              rcMode;
+    int              rcMode;	// possible values: NV_ENC_PARAMS_RC_CONSTQP NV_ENC_PARAMS_RC_VBR NV_ENC_PARAMS_RC_CBR NV_ENC_PARAMS_RC_VBR_MINQP NV_ENC_PARAMS_RC_2_PASS_QUALITY NV_ENC_PARAMS_RC_2_PASS_FRAMESIZE_CAP NV_ENC_PARAMS_RC_2_PASS_VBR
     int              qp;
     float            i_quant_factor;
     float            b_quant_factor;
     float            i_quant_offset;
     float            b_quant_offset;
     GUID             presetGUID;
-    FILE            *fOutput;
     int              codec;
     int              invalidateRefFramesEnableFlag;
     int              intraRefreshEnableFlag;
@@ -68,13 +67,13 @@ typedef struct _EncodeConfig
     int              deviceID;
     int              isYuv444;
     char            *qpDeltaMapFile;
-    char* inputFileName;
-    char* outputFileName;
-    char* encoderPreset;
-    char* inputFilePath;
-    char *encCmdFileName;
+    //char* inputFileName;	// PTX file. Fixed path in ./data/
+    //char* outputFileName;	// PTX file
+    char* encoderPreset;	// possible values: "hq" "lowLatencyHP" "lowLatencyHQ" "lossless"
+    //char* inputFilePath;	// not being used. 
+    //char *encCmdFileName;	// not being used
     int  enableMEOnly;
-    int  preloadedFrameCount;
+    //int  preloadedFrameCount; // not being used
 }EncodeConfig;
 
 typedef struct _EncodeInputBuffer
@@ -211,11 +210,10 @@ public:
                                                                           int8_t *qpDeltaMapArray = NULL, uint32_t qpDeltaMapArraySize = 0);
     NVENCSTATUS                                          CreateEncoder(const EncodeConfig *pEncCfg);
     GUID                                                 GetPresetGUID(char* encoderPreset, int codec);
-    NVENCSTATUS                                          ProcessOutput(const EncodeBuffer *pEncodeBuffer);
+	NVENCSTATUS                                          ProcessOutput(const EncodeBuffer *pEncodeBuffer, NV_ENC_LOCK_BITSTREAM *pstBitstreamData);
     NVENCSTATUS                                          FlushEncoder();
     NVENCSTATUS                                          ValidateEncodeGUID(GUID inputCodecGuid);
     NVENCSTATUS                                          ValidatePresetGUID(GUID presetCodecGuid, GUID inputCodecGuid);
-    static NVENCSTATUS                                   ParseArguments(EncodeConfig *encodeConfig, int argc, char *argv[]);
 };
 
 typedef NVENCSTATUS (NVENCAPI *MYPROC)(NV_ENCODE_API_FUNCTION_LIST*); 

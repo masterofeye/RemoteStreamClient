@@ -21,9 +21,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="enc\ENC_CudaInterop.cpp">
-      <Filter>enc</Filter>
-    </ClCompile>
     <ClCompile Include="common\src\NvHWEncoder.cpp">
       <Filter>common</Filter>
     </ClCompile>
@@ -33,19 +30,31 @@
     <ClCompile Include="common\src\dynlink_cuda.cpp">
       <Filter>common</Filter>
     </ClCompile>
+    <ClCompile Include="ENC_CudaInterop.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="moc_ENC_CudaAutoLock.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="moc_ENC_CudaInterop.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="moc_ENC_Queue.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="enc\ENC_CudaAutoLock.h">
-      <Filter>enc</Filter>
-    </ClInclude>
-    <ClInclude Include="enc\ENC_CudaInterop.h">
-      <Filter>enc</Filter>
-    </ClInclude>
-    <ClInclude Include="enc\ENC_Queue.h">
-      <Filter>enc</Filter>
-    </ClInclude>
     <ClInclude Include="common\inc\cudaModuleMgr.h">
       <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="ENC_CudaInterop.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="ENC_Queue.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="ENC_CudaAutoLock.h">
+      <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

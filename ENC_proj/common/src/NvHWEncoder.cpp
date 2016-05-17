@@ -237,20 +237,20 @@ NVENCSTATUS CNvHWEncoder::NvRunMotionEstimationOnly(EncodeBuffer *pEncodeBuffer[
     stMEOnlyParams.outputMV = pEncodeBuffer[0]->stOutputBfr.hBitstreamBuffer;
     nvStatus = m_pEncodeAPI->nvEncRunMotionEstimationOnly(m_hEncoder, &stMEOnlyParams);
 
-    if (m_fOutput)
-    {
-        unsigned int numMBs = ((m_uMaxWidth +15) >> 4) * ((m_uMaxHeight + 15) >> 4);
-        fprintf(m_fOutput,"Motion Vectors for input frame = %d, reference frame = %d\n", pMEOnly->inputFrameIndex, pMEOnly->referenceFrameIndex);
-        NV_ENC_H264_MV_DATA *outputMV = (NV_ENC_H264_MV_DATA *)stMEOnlyParams.outputMV;
-        for (unsigned int i = 0; i < numMBs; i++)
-        {
-            fprintf(m_fOutput, "block = %d, mb_type = %d, partitionType = %d, MV[0].x = %d, MV[0].y = %d, MV[1].x = %d, MV[1].y = %d, MV[2].x = %d, MV[2].y = %d, MV[3].x = %d, MV[3].y = %d, cost=%d ", \
-                i, outputMV[i].mb_type, outputMV[i].partitionType, outputMV[i].MV[0].mvx, outputMV[i].MV[0].mvy, outputMV[i].MV[1].mvx, outputMV[i].MV[1].mvy, \
-                outputMV[i].MV[2].mvx, outputMV[i].MV[2].mvy, outputMV[i].MV[3].mvx, outputMV[i].MV[3].mvy, outputMV[i].MBCost);
-            fprintf(m_fOutput, "\n");
-        }
-        fprintf(m_fOutput, "\n");
-    }
+
+        //unsigned int numMBs = ((m_uMaxWidth +15) >> 4) * ((m_uMaxHeight + 15) >> 4);
+        //fprintf(m_fOutput,"Motion Vectors for input frame = %d, reference frame = %d\n", pMEOnly->inputFrameIndex, pMEOnly->referenceFrameIndex);
+        //NV_ENC_H264_MV_DATA *outputMV = (NV_ENC_H264_MV_DATA *)stMEOnlyParams.outputMV;
+        //for (unsigned int i = 0; i < numMBs; i++)
+        //{
+        //    fprintf(m_fOutput, "block = %d, mb_type = %d, partitionType = %d, MV[0].x = %d, MV[0].y = %d, MV[1].x = %d, MV[1].y = %d, MV[2].x = %d, MV[2].y = %d, MV[3].x = %d, MV[3].y = %d, cost=%d ", \
+        //        i, outputMV[i].mb_type, outputMV[i].partitionType, outputMV[i].MV[0].mvx, outputMV[i].MV[0].mvy, outputMV[i].MV[1].mvx, outputMV[i].MV[1].mvy, \
+        //        outputMV[i].MV[2].mvx, outputMV[i].MV[2].mvy, outputMV[i].MV[3].mvx, outputMV[i].MV[3].mvy, outputMV[i].MBCost);
+        //    fprintf(m_fOutput, "\n");
+        //}
+        //fprintf(m_fOutput, "\n");
+
+
     return nvStatus;
 }
 
@@ -598,7 +598,6 @@ CNvHWEncoder::CNvHWEncoder()
     m_bEncoderInitialized = false;
     m_pEncodeAPI = NULL;
     m_hinstLib = NULL;
-    m_fOutput = NULL;
     m_EncodeIdx = 0;
     m_uCurWidth = 0;
     m_uCurHeight = 0;
@@ -742,9 +741,8 @@ NVENCSTATUS CNvHWEncoder::CreateEncoder(const EncodeConfig *pEncCfg)
         return NV_ENC_ERR_INVALID_PARAM;
     }
 
-    m_fOutput = pEncCfg->fOutput;
 
-    if (!pEncCfg->width || !pEncCfg->height /*|| !m_fOutput*/)
+    if (!pEncCfg->width || !pEncCfg->height )
     {
         return NV_ENC_ERR_INVALID_PARAM;
     }
@@ -980,7 +978,7 @@ GUID CNvHWEncoder::GetPresetGUID(char* encoderPreset, int codec)
     return presetGUID;
 }
 
-NVENCSTATUS CNvHWEncoder::ProcessOutput(const EncodeBuffer *pEncodeBuffer)
+NVENCSTATUS CNvHWEncoder::ProcessOutput(const EncodeBuffer *pEncodeBuffer, NV_ENC_LOCK_BITSTREAM *pstBitstreamData)
 {
     NVENCSTATUS nvStatus = NV_ENC_SUCCESS;
 
@@ -1013,6 +1011,7 @@ NVENCSTATUS CNvHWEncoder::ProcessOutput(const EncodeBuffer *pEncodeBuffer)
     nvStatus = m_pEncodeAPI->nvEncLockBitstream(m_hEncoder, &lockBitstreamData);
     if (nvStatus == NV_ENC_SUCCESS)
     {
+		*pstBitstreamData = lockBitstreamData;
         //fwrite(lockBitstreamData.bitstreamBufferPtr, 1, lockBitstreamData.bitstreamSizeInBytes, m_fOutput);
         nvStatus = m_pEncodeAPI->nvEncUnlockBitstream(m_hEncoder, pEncodeBuffer->stOutputBfr.hBitstreamBuffer);
     }
@@ -1077,7 +1076,6 @@ NVENCSTATUS CNvHWEncoder::NvEncEncodeFrame(EncodeBuffer *pEncodeBuffer, NvEncPic
     memset(&encPicParams, 0, sizeof(encPicParams));
     SET_VER(encPicParams, NV_ENC_PIC_PARAMS);
 
-
     encPicParams.inputBuffer = pEncodeBuffer->stInputBfr.hInputSurface;
     encPicParams.bufferFmt = pEncodeBuffer->stInputBfr.bufferFmt;
     encPicParams.inputWidth = width;
@@ -1088,7 +1086,6 @@ NVENCSTATUS CNvHWEncoder::NvEncEncodeFrame(EncodeBuffer *pEncodeBuffer, NvEncPic
     encPicParams.pictureStruct = ePicStruct;
     encPicParams.qpDeltaMap = qpDeltaMapArray;
     encPicParams.qpDeltaMapSize = qpDeltaMapArraySize;
-
 
     if (encPicCommand)
     {
@@ -1116,7 +1113,7 @@ NVENCSTATUS CNvHWEncoder::NvEncEncodeFrame(EncodeBuffer *pEncodeBuffer, NvEncPic
         assert(0);
         return nvStatus;
     }
-
+	
     m_EncodeIdx++;
 
     return NV_ENC_SUCCESS;
@@ -1138,304 +1135,3 @@ NVENCSTATUS CNvHWEncoder::NvEncFlushEncoderQueue(void *hEOSEvent)
     return nvStatus;
 }
 
-NVENCSTATUS CNvHWEncoder::ParseArguments(EncodeConfig *encodeConfig, int argc, char *argv[])
-{
-    for (int i = 1; i < argc; i++)
-    {
-        if (stricmp(argv[i], "-bmpfilePath") == 0)
-        {
-            if (++i >= argc)
-            {
-                PRINTERR("invalid parameter for %s\n", argv[i - 1]);
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
-            encodeConfig->inputFilePath = argv[i];
-        }
-        else if (stricmp(argv[i], "-i") == 0)
-        {
-            if (++i >= argc)
-            {
-                PRINTERR("invalid parameter for %s\n", argv[i - 1]);
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
-            encodeConfig->inputFileName = argv[i];
-        }
-        else if (stricmp(argv[i], "-o") == 0)
-        {
-            if (++i >= argc)
-            {
-                PRINTERR("invalid parameter for %s\n", argv[i - 1]);
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
-            encodeConfig->outputFileName = argv[i];
-        }
-        else if (stricmp(argv[i], "-size") == 0)
-        {
-            if (++i >= argc || sscanf(argv[i], "%d", &encodeConfig->width) != 1)
-            {
-                PRINTERR("invalid parameter for %s\n", argv[i - 1]);
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
-
-            if (++i >= argc || sscanf(argv[i], "%d", &encodeConfig->height) != 1)
-            {
-                PRINTERR("invalid parameter for %s\n", argv[i - 2]);
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
-        }
-        else if (stricmp(argv[i], "-maxSize") == 0)
-        {
-            if (++i >= argc || sscanf(argv[i], "%d", &encodeConfig->maxWidth) != 1)
-            {
-                PRINTERR("invalid parameter for %s\n", argv[i - 1]);
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
-
-            if (++i >= argc || sscanf(argv[i], "%d", &encodeConfig->maxHeight) != 1)
-            {
-                PRINTERR("invalid parameter for %s\n", argv[i - 2]);
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
-        }
-        else if (stricmp(argv[i], "-bitrate") == 0)
-        {
-            if (++i >= argc || sscanf(argv[i], "%d", &encodeConfig->bitrate) != 1)
-            {
-                PRINTERR("invalid parameter for %s\n", argv[i - 1]);
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
-        }
-        else if (stricmp(argv[i], "-vbvMaxBitrate") == 0)
-        {
-            if (++i >= argc || sscanf(argv[i], "%d", &encodeConfig->vbvMaxBitrate) != 1)
-            {
-                PRINTERR("invalid parameter for %s\n", argv[i - 1]);
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
-        }
-        else if (stricmp(argv[i], "-vbvSize") == 0)
-        {
-            if (++i >= argc || sscanf(argv[i], "%d", &encodeConfig->vbvSize) != 1)
-            {
-                PRINTERR("invalid parameter for %s\n", argv[i - 1]);
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
-        }
-        else if (stricmp(argv[i], "-fps") == 0)
-        {
-            if (++i >= argc || sscanf(argv[i], "%d", &encodeConfig->fps) != 1)
-            {
-                PRINTERR("invalid parameter for %s\n", argv[i - 1]);
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
-        }
-        else if (stricmp(argv[i], "-startf") == 0)
-        {
-            if (++i >= argc || sscanf(argv[i], "%d", &encodeConfig->startFrameIdx) != 1)
-            {
-                PRINTERR("invalid parameter for %s\n", argv[i - 1]);
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
-        }
-        else if (stricmp(argv[i], "-endf") == 0)
-        {
-            if (++i >= argc || sscanf(argv[i], "%d", &encodeConfig->endFrameIdx) != 1)
-            {
-                PRINTERR("invalid parameter for %s\n", argv[i - 1]);
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
-        }
-        else if (stricmp(argv[i], "-rcmode") == 0)
-        {
-            if (++i >= argc || sscanf(argv[i], "%d", &encodeConfig->rcMode) != 1)
-            {
-                PRINTERR("invalid parameter for %s\n", argv[i - 1]);
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
-        }
-        else if (stricmp(argv[i], "-goplength") == 0)
-        {
-            if (++i >= argc || sscanf(argv[i], "%d", &encodeConfig->gopLength) != 1)
-            {
-                PRINTERR("invalid parameter for %s\n", argv[i - 1]);
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
-        }
-        else if (stricmp(argv[i], "-numB") == 0)
-        {
-            if (++i >= argc || sscanf(argv[i], "%d", &encodeConfig->numB) != 1)
-            {
-                PRINTERR("invalid parameter for %s\n", argv[i - 1]);
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
-        }
-        else if (stricmp(argv[i], "-qp") == 0)
-        {
-            if (++i >= argc || sscanf(argv[i], "%d", &encodeConfig->qp) != 1)
-            {
-                PRINTERR("invalid parameter for %s\n", argv[i - 1]);
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
-        }
-        else if (stricmp(argv[i], "-i_qfactor") == 0)
-        {
-            if (++i >= argc || sscanf(argv[i], "%f", &encodeConfig->i_quant_factor) != 1)
-            {
-                PRINTERR("invalid parameter for %s\n", argv[i - 1]);
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
-        }
-        else if (stricmp(argv[i], "-b_qfactor") == 0)
-        {
-            if (++i >= argc || sscanf(argv[i], "%f", &encodeConfig->b_quant_factor) != 1)
-            {
-                PRINTERR("invalid parameter for %s\n", argv[i - 1]);
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
-        }
-        else if (stricmp(argv[i], "-i_qoffset") == 0)
-        {
-            if (++i >= argc || sscanf(argv[i], "%f", &encodeConfig->i_quant_offset) != 1)
-            {
-                PRINTERR("invalid parameter for %s\n", argv[i - 1]);
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
-        }
-        else if (stricmp(argv[i], "-b_qoffset") == 0)
-        {
-            if (++i >= argc || sscanf(argv[i], "%f", &encodeConfig->b_quant_offset) != 1)
-            {
-                PRINTERR("invalid parameter for %s\n", argv[i - 1]);
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
-        }
-        else if (stricmp(argv[i], "-preset") == 0)
-        {
-            if (++i >= argc)
-            {
-                PRINTERR("invalid parameter for %s\n", argv[i - 1]);
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
-            encodeConfig->encoderPreset = argv[i];
-        }
-        else if (stricmp(argv[i], "-devicetype") == 0)
-        {
-            if (++i >= argc || sscanf(argv[i], "%d", &encodeConfig->deviceType) != 1)
-            {
-                PRINTERR("invalid parameter for %s\n", argv[i - 1]);
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
-        }
-        else if (stricmp(argv[i], "-codec") == 0)
-        {
-            if (++i >= argc || sscanf(argv[i], "%d", &encodeConfig->codec) != 1)
-            {
-                PRINTERR("invalid parameter for %s\n", argv[i - 1]);
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
-        }
-        else if (stricmp(argv[i], "-encCmdFile") == 0)
-        {
-            if (++i >= argc)
-            {
-                PRINTERR("invalid parameter for %s\n", argv[i - 1]);
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
-            encodeConfig->encCmdFileName = argv[i];
-        }
-        else if (stricmp(argv[i], "-intraRefresh") == 0)
-        {
-            if (++i >= argc || sscanf(argv[i], "%d", &encodeConfig->intraRefreshEnableFlag) != 1)
-            {
-                PRINTERR("invalid parameter for %s\n", argv[i - 1]);
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
-        }
-        else if (stricmp(argv[i], "-intraRefreshPeriod") == 0)
-        {
-            if (++i >= argc || sscanf(argv[i], "%d", &encodeConfig->intraRefreshPeriod) != 1)
-            {
-                PRINTERR("invalid parameter for %s\n", argv[i - 1]);
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
-        }
-        else if (stricmp(argv[i], "-intraRefreshDuration") == 0)
-        {
-            if (++i >= argc || sscanf(argv[i], "%d", &encodeConfig->intraRefreshDuration) != 1)
-            {
-                PRINTERR("invalid parameter for %s\n", argv[i - 1]);
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
-        }
-        else if (stricmp(argv[i], "-picStruct") == 0)
-        {
-            if (++i >= argc || sscanf(argv[i], "%d", &encodeConfig->pictureStruct) != 1)
-            {
-                PRINTERR("invalid parameter for %s\n", argv[i - 1]);
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
-        }
-        else if (stricmp(argv[i], "-deviceID") == 0)
-        {
-            if (++i >= argc || sscanf(argv[i], "%d", &encodeConfig->deviceID) != 1)
-            {
-                PRINTERR("invalid parameter for %s\n", argv[i - 1]);
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
-        }
-        else if (stricmp(argv[i], "-yuv444") == 0)
-        {
-            if (++i >= argc || sscanf(argv[i], "%d", &encodeConfig->isYuv444) != 1)
-            {
-                PRINTERR("invalid parameter for %s\n", argv[i - 1]);
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
-        }
-        else if (stricmp(argv[i], "-qpDeltaMapFile") == 0)
-        {
-            if (++i >= argc)
-            {
-                PRINTERR("invalid parameter for %s\n", argv[i - 1]);
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
-            encodeConfig->qpDeltaMapFile = argv[i];
-        }
-        else if (stricmp(argv[i], "-meonly") == 0)
-        {
-            if (++i >= argc || sscanf(argv[i], "%d", &encodeConfig->enableMEOnly) != 1)
-            {
-                PRINTERR("invalid parameter for %s\n", argv[i - 1]);
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
-            if (encodeConfig->enableMEOnly != 1 && encodeConfig->enableMEOnly != 2)
-            {
-                PRINTERR("invalid enableMEOnly value = %d (permissive value 1 and 2)\n", encodeConfig->enableMEOnly);
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
-        }
-        else if (stricmp(argv[i], "-preloadedFrameCount") == 0)
-        {
-            if (++i >= argc || sscanf(argv[i], "%d", &encodeConfig->preloadedFrameCount) != 1)
-            {
-                PRINTERR("invalid parameter for %s\n", argv[i - 1]);
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
-            if (encodeConfig->preloadedFrameCount <= 1)
-            {
-                PRINTERR("invalid preloadedFrameQueueSize value = %d (permissive value 2 and above)\n", encodeConfig->preloadedFrameCount);
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
-        }
-        else if (stricmp(argv[i], "-help") == 0)
-        {
-            return NV_ENC_ERR_INVALID_PARAM;
-        }
-        else
-        {
-            PRINTERR("invalid parameter  %s\n", argv[i++]);
-            return NV_ENC_ERR_INVALID_PARAM;
-        }
-    }
-
-    return NV_ENC_SUCCESS;
-}

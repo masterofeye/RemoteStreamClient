@@ -1,12 +1,16 @@
 #pragma once
 
 #include "common/inc/NvHWEncoder.h"
-#include "ENC_Queue.hpp"
-#include "ENC_CudaAutoLock.hpp"
+#include "ENC_Queue.h"
+#include "ENC_CudaAutoLock.h"
 #include <QtCore>
 #include <QtPlugin>
 #include "AbstractModule.hpp"
 #include "Utils.h"
+
+#ifdef TRACE_PERFORMANCE
+#include "HighResolution\HighResClock.h"
+#endif
 
 #define MAX_ENCODE_QUEUE 32
 #define NV_ENC_CUDA 2
@@ -22,14 +26,21 @@ namespace RW{
 			uint32_t height;
 		}EncodeFrameConfig;
 
+		typedef struct _EncodedBitStream
+		{
+			void *pBitStreamBuffer;
+			uint32_t u32BitStreamSizeInBytes;
+		}EncodedBitStream;
+
 		typedef struct stMyInitialiseControlStruct : public CORE::tstInitialiseControlStruct
 		{
-			CUarray cuYUVArray;
 			EncodeConfig encodeConfig;
 		}tstMyInitialiseControlStruct;
 
 		typedef struct stMyControlStruct : public CORE::tstControlStruct
 		{
+			CUarray cuYUVArray;
+			EncodedBitStream stBitStream;			
 		}tstMyControlStruct;
 
 		typedef struct stMyDeinitialiseControlStruct : public CORE::tstDeinitialiseControlStruct
@@ -65,6 +76,10 @@ namespace RW{
 			EncodeOutputBuffer                                  m_stEOSOutputBfr;
 			CUarray                                             m_cuYUVArray;
 			EncodeConfig										m_encodeConfig;
+			uint32_t											m_u32NumFramesEncoded;
+#ifdef TRACE_PERFORMANCE
+			RW::CORE::HighResClock::time_point					m_tStart;
+#endif
 
 			NVENCSTATUS                                         CuDestroy();
 			NVENCSTATUS                                         InitCuda(uint32_t deviceID);

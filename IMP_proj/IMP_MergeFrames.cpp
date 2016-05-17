@@ -30,6 +30,13 @@ namespace RW{
 			tenStatus enStatus = tenStatus::nenSuccess;
 			stMyInitialiseControlStruct* data = static_cast<stMyInitialiseControlStruct*>(InitialiseControlStruct);
 
+			if (data == NULL)
+			{
+				m_Logger->error("Initialise: Data of tstMyInitialiseControlStruct is empty!");
+				enStatus = tenStatus::nenError;
+				return enStatus;
+			}
+
 			cInputBase input1 = data->cInput1;
 			cInputBase input2 = data->cInput2;
 
@@ -37,12 +44,22 @@ namespace RW{
 			{
 				IMP_Base impBase1 = IMP_Base();
 				enStatus = impBase1.Initialise(&input1);
+				if (enStatus != tenStatus::nenSuccess)
+				{
+					m_Logger->error("Initialise: impBase.Initialise did not succeed!");
+				}
+
 				m_cuMat1 = impBase1.cuGetGpuMat();
 
 				if (enStatus == tenStatus::nenSuccess)
 				{
 					IMP_Base impBase2 = IMP_Base();
 					enStatus = impBase2.Initialise(&input1);
+					if (enStatus != tenStatus::nenSuccess)
+					{
+						m_Logger->error("Initialise: impBase.Initialise did not succeed!");
+					}
+
 					m_cuMat2 = impBase2.cuGetGpuMat();
 				}
 			}
@@ -50,6 +67,11 @@ namespace RW{
 			{
 				m_cuMat1 = input1._gMat;
 				m_cuMat2 = input2._gMat;
+			}
+
+			if (m_cuMat1.data == NULL || m_cuMat2.data == NULL)
+			{
+				m_Logger->error("Initialise: Data of cuMat is empty! Initialise failed!");
 			}
 
 			m_Logger->debug("Initialise");
@@ -61,7 +83,24 @@ namespace RW{
 			tenStatus enStatus = tenStatus::nenSuccess;
 			stMyControlStruct* data = static_cast<stMyControlStruct*>(ControlStruct);
 
-			ApplyMerge(m_cuMat1, m_cuMat2, &m_cuMat1);
+			if (data == NULL)
+			{
+				m_Logger->error("DoRender: Data of stMyControlStruct is empty!");
+				enStatus = tenStatus::nenError;
+				return enStatus;
+			}
+			if (m_cuMat1.data == NULL || m_cuMat2.data == NULL)
+			{
+				m_Logger->error("DoRender: Data of cuMat is empty!");
+				enStatus = tenStatus::nenError;
+				return enStatus;
+			}
+
+			enStatus = ApplyMerge(m_cuMat1, m_cuMat2, &m_cuMat1);
+			if (enStatus != tenStatus::nenSuccess || m_cuMat1.data == NULL)
+			{
+				m_Logger->error("DoRender: ApplyMerge did not succeed!");
+			}
 
 			m_Logger->debug("DoRender");
 			return enStatus;
@@ -71,6 +110,20 @@ namespace RW{
 		{
 			tenStatus enStatus = tenStatus::nenSuccess;
 			stMyDeinitialiseControlStruct* data = static_cast<stMyDeinitialiseControlStruct*>(DeinitialiseControlStruct);
+
+			if (data == NULL)
+			{
+				m_Logger->error("Deinitialise: Data of stMyDeinitialiseControlStruct is empty!");
+				enStatus = tenStatus::nenError;
+				return enStatus;
+			}
+			if (m_cuMat1.data == NULL)
+			{
+				m_Logger->error("Deinitialise: Data of cuMat is empty!");
+				enStatus = tenStatus::nenError;
+				return enStatus;
+			}
+
 			cOutputBase output = data->cOutput;
 
 			if (data->bNeedConversion)
@@ -78,6 +131,10 @@ namespace RW{
 				IMP_Base impBase = IMP_Base();
 				impBase.vSetGpuMat(m_cuMat1);
 				enStatus = impBase.Deinitialise(&output);
+				if (enStatus != tenStatus::nenSuccess || output._pcuArray == NULL)
+				{
+					m_Logger->error("Deinitialise: impBase.Deinitialise did not succeed!");
+				}
 			}
 			else
 			{
@@ -96,6 +153,7 @@ namespace RW{
 				|| gMat1.cols <= 0 || gMat1.rows <= 0)
 			{
 				enStatus = tenStatus::nenError;
+				m_Logger->error("ApplyMerge: Invalid frame parameters (size or type)!");
 			}
 
 			int iRows = (gMat1.rows > gMat2.rows ? gMat1.rows : gMat2.rows);
@@ -109,6 +167,11 @@ namespace RW{
 			gMat(rect1) = gMat1;
 			gMat(rect2) = gMat2;
 			*pgMat = gMat(rect);
+			if (pgMat == NULL)
+			{
+				enStatus = tenStatus::nenError;
+				m_Logger->error("ApplyMerge: pgMat is empty!");
+			}
 
 			return enStatus;
 		}

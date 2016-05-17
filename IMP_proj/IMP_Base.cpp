@@ -12,6 +12,11 @@ namespace RW{
 			int iHeight = pInput->_stParams.iWidth;
 			void* pvImg = pInput->_stParams.pvImg;
 
+			if (iWidth == 0 || iHeight == 0)
+			{
+				enStatus = tenStatus::nenError;
+			}
+
 			if (pvImg != NULL)
 			{
 				enStatus = tensConvertArrayToGpuMat(iWidth, iHeight, pvImg, &m_cuGpuMat);
@@ -49,14 +54,14 @@ namespace RW{
 		{
 			tenStatus enStatus = tenStatus::nenSuccess;
 			cudaArray *pcuArr = NULL;
-			cudaMemcpy2DToArray(pcuArr, 0, 0, m_cuGpuMat.data, m_cuGpuMat.step * sizeof(size_t), m_cuGpuMat.cols*sizeof(int), m_cuGpuMat.rows*sizeof(int), cudaMemcpyDeviceToDevice);
-			if (pcuArr != NULL)
+			cudaError cuErr = cudaMemcpy2DToArray(pcuArr, 0, 0, m_cuGpuMat.data, m_cuGpuMat.step * sizeof(size_t), m_cuGpuMat.cols*sizeof(int), m_cuGpuMat.rows*sizeof(int), cudaMemcpyDeviceToDevice);
+			if (pcuArr == NULL || cuErr != cudaSuccess)
 			{
-				pOutput->_pcuArray = pcuArr;
+				enStatus = tenStatus::nenError;
 			}
 			else
 			{
-				enStatus = tenStatus::nenError;
+				pOutput->_pcuArray = pcuArr;
 			}
 			return enStatus;
 		}
