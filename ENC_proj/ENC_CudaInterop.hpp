@@ -45,6 +45,7 @@ namespace RW{
 
 		typedef struct stMyDeinitialiseControlStruct : public CORE::tstDeinitialiseControlStruct
 		{
+			EncodedBitStream stBitStream;
 		}tstMyDeinitialiseControlStruct;
 
 		class ENC_CudaInterop : public RW::CORE::AbstractModule
@@ -85,7 +86,7 @@ namespace RW{
 			NVENCSTATUS                                         InitCuda(uint32_t deviceID);
 			NVENCSTATUS                                         AllocateIOBuffers(uint32_t uInputWidth, uint32_t uInputHeight);
 			NVENCSTATUS                                         ReleaseIOBuffers();
-			NVENCSTATUS                                         FlushEncoder();
+			NVENCSTATUS                                         FlushEncoder(NV_ENC_LOCK_BITSTREAM *pstBitStreamData);
 			NVENCSTATUS                                         ConvertYUVToNV12(EncodeBuffer *pEncodeBuffer, CUarray cuArray, int width, int height);
 			NVENCSTATUS											PreparePreProcCuda();
 

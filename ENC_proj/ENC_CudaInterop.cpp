@@ -276,7 +276,7 @@ namespace RW{
 			return NV_ENC_SUCCESS;
 		}
 
-		NVENCSTATUS ENC_CudaInterop::FlushEncoder()
+		NVENCSTATUS ENC_CudaInterop::FlushEncoder(NV_ENC_LOCK_BITSTREAM *pstBitStreamData)
 		{
 			NVENCSTATUS nvStatus = m_pNvHWEncoder->NvEncFlushEncoderQueue(m_stEOSOutputBfr.hOutputEvent);
 			if (nvStatus != NV_ENC_SUCCESS)
@@ -288,8 +288,12 @@ namespace RW{
 			EncodeBuffer *pEncodeBuffer = m_EncodeBufferQueue.GetPending();
 			while (pEncodeBuffer)
 			{
+				nvStatus = m_pNvHWEncoder->ProcessOutput(pEncodeBuffer, pstBitStreamData);
+				if (nvStatus != NV_ENC_SUCCESS)
+				{
+					m_Logger->error("FlushEncoder: m_pNvHWEncoder->ProcessOutput did not succeed!");
+				}
 
-				//m_pNvHWEncoder->ProcessOutput(pEncodeBuffer);  // Already done in DoRender
 				pEncodeBuffer = m_EncodeBufferQueue.GetPending();
 
 				// UnMap the input buffer after frame is done
@@ -487,7 +491,17 @@ namespace RW{
 			if (!pEncodeBuffer)
 			{
 				pEncodeBuffer = m_EncodeBufferQueue.GetPending();
-				//m_pNvHWEncoder->ProcessOutput(pEncodeBuffer);		// this is done at the end of DoRender
+
+				NV_ENC_LOCK_BITSTREAM stBitStreamData;
+				nvStatus = m_pNvHWEncoder->ProcessOutput(pEncodeBuffer, &stBitStreamData);
+				if (nvStatus != NV_ENC_SUCCESS)
+				{
+					enStatus = tenStatus::nenError;
+					m_Logger->error("DoRender: m_pNvHWEncoder->ProcessOutput did not succeed!");
+					return enStatus;
+				}
+				data->stBitStream.pBitStreamBuffer = stBitStreamData.bitstreamBufferPtr;
+				data->stBitStream.u32BitStreamSizeInBytes = stBitStreamData.bitstreamSizeInBytes;
 
 				// UnMap the input buffer after frame done
 				if (pEncodeBuffer->stInputBfr.hInputSurface)
@@ -529,17 +543,6 @@ namespace RW{
 				return enStatus;
 			}
 
-			NV_ENC_LOCK_BITSTREAM stBitStreamData;
-			nvStatus = m_pNvHWEncoder->ProcessOutput(pEncodeBuffer, &stBitStreamData);
-			if (nvStatus != NV_ENC_SUCCESS)
-			{
-				enStatus = tenStatus::nenError;
-				m_Logger->error("DoRender: m_pNvHWEncoder->ProcessOutput did not succeed!");
-				return enStatus;
-			}
-
-			data->stBitStream.pBitStreamBuffer = stBitStreamData.bitstreamBufferPtr;
-			data->stBitStream.u32BitStreamSizeInBytes = stBitStreamData.bitstreamSizeInBytes;
 			m_u32NumFramesEncoded++;
 
 #ifdef TRACE_PERFORMANCE
@@ -561,12 +564,24 @@ namespace RW{
 		tenStatus ENC_CudaInterop::Deinitialise(CORE::tstDeinitialiseControlStruct *DeinitialiseControlStruct)
 		{
 			tenStatus enStatus = tenStatus::nenSuccess;
-			NVENCSTATUS nvStatus = FlushEncoder();
+			stMyDeinitialiseControlStruct* data = static_cast<stMyDeinitialiseControlStruct*>(DeinitialiseControlStruct);
+
+			if (data == NULL)
+			{
+				m_Logger->error("Deinitialise: Data of stMyDeinitialiseControlStruct is empty!");
+				enStatus = tenStatus::nenError;
+				return enStatus;
+			}
+
+			NV_ENC_LOCK_BITSTREAM stBitStreamData;
+			NVENCSTATUS nvStatus = FlushEncoder(&stBitStreamData);
 			if (nvStatus != NV_ENC_SUCCESS)
 			{
 				enStatus = tenStatus::nenError;
 				m_Logger->error("DeInitialise: FlushEncoder did not succeed!");
 			}
+			data->stBitStream.pBitStreamBuffer = stBitStreamData.bitstreamBufferPtr;
+			data->stBitStream.u32BitStreamSizeInBytes = stBitStreamData.bitstreamSizeInBytes;
 
 			nvStatus = ReleaseIOBuffers();
 			if (nvStatus != NV_ENC_SUCCESS)
