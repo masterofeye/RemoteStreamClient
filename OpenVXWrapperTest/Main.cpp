@@ -6,7 +6,7 @@
 #include "spdlog\spdlog.h"
 
 #define TRACE 1
-#define PERFORMANCE_TEST
+#define TRACE_PERFORMANCE
 
 void logtest()
 {
@@ -26,24 +26,24 @@ int main(int argc, const char* argv[])
     spdlog::set_level(spdlog::level::info);
 #endif
 
-    RW::CORE::HighResClock res;
+    
     auto file_logger = spdlog::rotating_logger_mt("file_logger",RW::CORE::Util::getexepath(), 1048576 * 5, 3);
     file_logger->debug("******************");
     file_logger->debug("*Applicationstart*");
     file_logger->debug("******************");
     RW::tenStatus status = RW::tenStatus::nenError;
-#ifdef PERFORMANCE_TEST
-    RW::CORE::HighResClock::time_point t1 = res.now();
+#ifdef TRACE_PERFORMANCE
+     RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
 #endif
     RW::CORE::ModuleLoader ml(file_logger);
 
     /*Load Plugins*/
 	QList<RW::CORE::AbstractModule const*> list;
 	ml.LoadPlugins(&list);
-#ifdef PERFORMANCE_TEST
-    RW::CORE::HighResClock::time_point t2 = res.now();
-    file_logger->trace() << "Time to load Plugins: " << res.diffMilli(t1, t2).count() << "ms.";
-    t1 = res.now();
+#ifdef TRACE_PERFORMANCE
+    RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
+    file_logger->trace() << "Time to load Plugins: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+    t1 = RW::CORE::HighResClock::now();
 #endif
     RW::CORE::Context context(file_logger);
     if (context.IsInitialized())
@@ -86,21 +86,18 @@ int main(int argc, const char* argv[])
                 file_logger->debug("******************");
                 file_logger->debug("*Graph excecution*");
                 file_logger->debug("******************");
-#ifdef PERFORMANCE_TEST
-                t2 = res.now();
-                file_logger->trace() << "Prepare Graph: " << res.diffMilli(t1, t2).count() << "ms.";
-                t1 = res.now();
+#ifdef TRACE_PERFORMANCE
+                t2 = RW::CORE::HighResClock::now();
+                file_logger->trace() << "Prepare Graph: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+                t1 = RW::CORE::HighResClock::now();
 #endif
                 graph.WaitGraph();
-#ifdef PERFORMANCE_TEST
-                t2 = res.now();
-                file_logger->trace() << "Graph execution: " << res.diffMilli(t1, t2).count() << "ms.";
+#ifdef TRACE_PERFORMANCE
+                t2 = RW::CORE::HighResClock::now();
+                file_logger->trace() << "Graph execution: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
             }
         }
     }
-
-
-    exit:
     return 0;
 }
