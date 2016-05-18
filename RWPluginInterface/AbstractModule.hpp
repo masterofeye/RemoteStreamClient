@@ -8,13 +8,32 @@
 
 namespace RW{
 	namespace CORE{
+		typedef enum tenColorSpace
+		{
+			nenRGB,
+			nenUnknown
+		};
 
         typedef struct stInitialiseControlStruct
 		{
+			int nFrameWidth;
+			int nFrameHeight;
+			int nFPS;
+			int nNumberOfFrames;
+			tenColorSpace enColorSpace;
         }tstInitialiseControlStruct;
 
-        typedef struct stControlStruct
+		typedef enum tenControlCommands
+		{
+			tenGrabCommand,
+			tenInvalidCommand
+		};
+
+		typedef struct stControlStruct
         {
+			tenControlCommands enCommand;
+			void *pData;
+			size_t nDataLength;
         }tstControlStruct;
 
         typedef struct stDeinitialiseControlStruct
