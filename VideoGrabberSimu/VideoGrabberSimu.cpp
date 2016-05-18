@@ -32,15 +32,18 @@ namespace RW
 				return tenStatus::nenError;
 			}
 
+			auto pControlStruct = (stVideoGrabberInitialiseControlStruct*)pInitialiseControlStruct;
+			auto sFileName = pControlStruct->sFileName;
 			m_videoCapture.open(sFileName);
 			if (m_videoCapture.isOpened())
 			{
 				m_Logger->info("The " + sFileName + " was opened succesfully");
-				pInitialiseControlStruct->nFPS = m_videoCapture.get(CAP_PROP_FPS);
-				pInitialiseControlStruct->nFrameHeight = m_videoCapture.get(CAP_PROP_FRAME_HEIGHT);
-				pInitialiseControlStruct->nFrameWidth = m_videoCapture.get(CAP_PROP_FRAME_WIDTH);
-				pInitialiseControlStruct->nNumberOfFrames = m_videoCapture.get(CAP_PROP_FRAME_COUNT);
-				pInitialiseControlStruct->enColorSpace = CORE::nenRGB;
+				pControlStruct->nFPS = m_videoCapture.get(CAP_PROP_FPS);
+				pControlStruct->nFrameHeight = m_videoCapture.get(CAP_PROP_FRAME_HEIGHT);
+				pControlStruct->nFrameWidth = m_videoCapture.get(CAP_PROP_FRAME_WIDTH);
+				pControlStruct->nNumberOfFrames = m_videoCapture.get(CAP_PROP_FRAME_COUNT);
+				pControlStruct->enColorSpace = nenRGB;
+				m_nFrameCounter = 0;
 				return tenStatus::nenSuccess;
 			}
 			else
@@ -58,11 +61,7 @@ namespace RW
 				return tenStatus::nenError;
 			}
 
-			if (pControlStruct->enCommand != CORE::tenGrabCommand)
-			{
-				m_Logger->error("VideoGrabberSimu::DoRender - wrong command");
-				return tenStatus::nenError;
-			}
+			auto pControl = (stVideoGrabberControlStruct*)pControlStruct;
 
 			if (!m_videoCapture.isOpened())
 			{
@@ -76,7 +75,7 @@ namespace RW
 				m_Logger->info("VideoGrabberSimu::DoRender - end of the file");
 				return tenStatus::nenSuccess;
 			}
-			else if (pControlStruct->pData == NULL || pControlStruct->nDataLength == 0)
+			else if (pControl->pData == NULL || pControl->nDataLength == 0)
 			{
 				m_Logger->critical("VideoGrabberSimu::DoRender - pControlStruct->pData is NULL or pControlStruct->nDataLength is 0");
 				return tenStatus::nenError;
@@ -86,12 +85,14 @@ namespace RW
 				Mat rgbFrame;
 				cvtColor(rawFrame, rgbFrame, CV_BGR2RGB);
 				size_t nFrameSize = rgbFrame.total() * rgbFrame.elemSize();
-				size_t nActualDataLength = min(nFrameSize, pControlStruct->nDataLength);
+				size_t nActualDataLength = min(nFrameSize, pControl->nDataLength);
 				if (nActualDataLength < nFrameSize)
 				{
 					m_Logger->alert("VideoGrabberSimu::DoRender - requested data length is greater than the destination array size");
 				}
-				memcpy(pControlStruct->pData, rgbFrame.data, nActualDataLength);
+				memcpy(pControl->pData, rgbFrame.data, nActualDataLength);
+				pControl->nCurrentFrameNumber = m_nFrameCounter++;
+				pControl->nCurrentPositionMSec = m_videoCapture.get(CV_CAP_PROP_POS_MSEC);
 				return tenStatus::nenSuccess;
 			}
             m_Logger->debug("DoRender");

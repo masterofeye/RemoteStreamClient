@@ -7,12 +7,36 @@ namespace RW
 {
 	namespace VG
 	{
+		typedef enum tenColorSpace
+		{
+			nenRGB,
+			nenUnknown
+		};
+
+		struct stVideoGrabberInitialiseControlStruct : public CORE::stInitialiseControlStruct
+		{
+			int nFrameWidth;
+			int nFrameHeight;
+			int nFPS;
+			int nNumberOfFrames;
+			tenColorSpace enColorSpace;
+			std::string sFileName;
+		};
+
+		struct stVideoGrabberControlStruct : public CORE::tstControlStruct
+		{			
+			void *pData;
+			size_t nDataLength;
+			int nCurrentFrameNumber;
+			int nCurrentPositionMSec;
+		};
+
 		class VideoGrabberSimu : public RW::CORE::AbstractModule
 		{
 			Q_OBJECT
 		private:
-			const std::string sFileName = "BR213_24bbp_10.avi";		//TODO: clarify how the input file name shall be provided
 			cv::VideoCapture m_videoCapture;
+			int m_nFrameCounter;
 		public:
             explicit VideoGrabberSimu(std::shared_ptr<spdlog::logger> Logger);
 			~VideoGrabberSimu();
