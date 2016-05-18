@@ -19,6 +19,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IMP_proj", "IMP_proj\IMP_pr
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ENC_proj", "ENC_proj\ENC_proj.vcxproj", "{6147A18E-0828-4379-9575-D9FAFC9B68D7}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "videowidget", "videowidget\videowidget.vcxproj", "{ED3ABCA4-9FED-3F47-A258-F1A95D446720}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -58,6 +60,10 @@ Global
 		{6147A18E-0828-4379-9575-D9FAFC9B68D7}.Debug|x64.Build.0 = Debug|x64
 		{6147A18E-0828-4379-9575-D9FAFC9B68D7}.Release|x64.ActiveCfg = Release|x64
 		{6147A18E-0828-4379-9575-D9FAFC9B68D7}.Release|x64.Build.0 = Release|x64
+		{ED3ABCA4-9FED-3F47-A258-F1A95D446720}.Debug|x64.ActiveCfg = Debug|x64
+		{ED3ABCA4-9FED-3F47-A258-F1A95D446720}.Debug|x64.Build.0 = Debug|x64
+		{ED3ABCA4-9FED-3F47-A258-F1A95D446720}.Release|x64.ActiveCfg = Release|x64
+		{ED3ABCA4-9FED-3F47-A258-F1A95D446720}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

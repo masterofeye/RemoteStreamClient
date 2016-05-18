@@ -374,7 +374,7 @@ namespace RW{
 
 			if (data == NULL)
 			{
-				m_Logger->error("DoRender: Data of tstMyInitialiseControlStruct is empty!");
+				m_Logger->error("Initialise: Data of tstMyInitialiseControlStruct is empty!");
 				enStatus = tenStatus::nenError;
 				return enStatus;
 			}
