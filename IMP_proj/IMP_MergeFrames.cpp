@@ -37,8 +37,8 @@ namespace RW{
 				return enStatus;
 			}
 
-			cInputBase input1 = data->cInput1;
-			cInputBase input2 = data->cInput2;
+			cInputBase input1 = *(data->cInput._pInput1);
+			cInputBase input2 = *(data->cInput._pInput2);
 
 			if (data->bNeedConversion)
 			{

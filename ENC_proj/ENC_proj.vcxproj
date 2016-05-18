@@ -141,12 +141,15 @@
     <ClCompile Include="moc_ENC_CudaAutoLock.cpp" />
     <ClCompile Include="moc_ENC_CudaInterop.cpp" />
     <ClCompile Include="moc_ENC_Queue.cpp" />
+    <ClCompile Include="moc_ModuleFactory.cpp" />
+    <ClCompile Include="ModuleFactory.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common\inc\cudaModuleMgr.h" />
     <ClInclude Include="ENC_CudaAutoLock.h" />
     <ClInclude Include="ENC_CudaInterop.hpp" />
     <ClInclude Include="ENC_Queue.h" />
+    <ClInclude Include="ModuleFactory.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\RWPluginInterface\RWPluginInterface.vcxproj">
