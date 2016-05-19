@@ -3,12 +3,11 @@
 #include <qmediaplayer.h>
 
 #include <QtGui/QMovie>
-#include <QtWidgets/QWidget>
 #include <QtCore>
 #include <QtPlugin>
 #include "AbstractModule.hpp"
 #include "Utils.h"
-#include <QtWidgets>
+#include "VideoPlayerHelper.h"
 
 QT_BEGIN_NAMESPACE
 class QAbstractButton;
@@ -38,13 +37,7 @@ namespace RW{
         {
         }tstMyDeinitialiseControlStruct;
 
-        class VideoPlayerHelper : public QWidget
-        {
-        public:
-            inline QIcon getQIcon(){ return style()->standardIcon(QStyle::SP_MediaPlay); }
-        };
-
-        class VideoPlayer : public RW::CORE::AbstractModule
+       class VideoPlayer : public RW::CORE::AbstractModule
         {
             Q_OBJECT
 

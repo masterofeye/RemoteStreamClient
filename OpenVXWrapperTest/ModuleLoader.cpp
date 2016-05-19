@@ -52,31 +52,20 @@ namespace RW{
 										m_Logger->error("NVIDIA encoder module coudn't load correct.");
                                     break; 
 								case tenModule::enGraphic:
-                                    module = moduleFactory->Module(tenModule::enGraphic);
+                                    module = moduleFactory->Module(tenSubModule::nenGraphic_Color);
                                     if (module == nullptr)
-                                        m_Logger->error("NVIDIA encoder module coudn't load correct.");
-
-                                    switch (module->SubModulType())
-                                    {
-                                    case tenSubModule::nenGraphic_Color:
-                                        module = moduleFactory->Module(tenSubModule::nenGraphic_Color);
-                                        if (module == nullptr)
-                                            m_Logger->error("Colorspace conversion module coudn't load correct.");
-                                        break;
-                                    case tenSubModule::nenGraphic_Crop:
-                                        module = moduleFactory->Module(tenSubModule::nenGraphic_Crop);
-                                        if (module == nullptr)
-                                            m_Logger->error("Colorspace conversion module coudn't load correct.");
-                                        break;
-                                    case tenSubModule::nenGraphic_Merge:
-                                        module = moduleFactory->Module(tenSubModule::nenGraphic_Merge);
-                                        if (module == nullptr)
-                                            m_Logger->error("Colorspace conversion module coudn't load correct.");
-                                        break;
-                                    default:
-                                        m_Logger->alert("No module found.");
-                                        break;
-                                    }
+                                        m_Logger->error("Graphic Colorspace conversion module coudn't load correct.");
+                                    else
+                                        Pluginlist->append(module);
+                                    module = moduleFactory->Module(tenSubModule::nenGraphic_Crop);
+                                    if (module == nullptr)
+                                        m_Logger->error("Graphic Cropping frame module coudn't load correct.");
+                                    else
+                                        Pluginlist->append(module);
+                                    module = moduleFactory->Module(tenSubModule::nenGraphic_Merge);
+                                    if (module == nullptr)
+                                        m_Logger->error("Graphic Merging frames module coudn't load correct.");
+                                    break;
 								case tenModule::enDecoder:
 									module = moduleFactory->Module(tenSubModule::nenDecoder_INTEL);
 									if (module == nullptr)

@@ -161,6 +161,9 @@
     <ClInclude Include="IMP_MergeFrames.hpp" />
     <ClInclude Include="ModuleFactory.hpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="IMP.json" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

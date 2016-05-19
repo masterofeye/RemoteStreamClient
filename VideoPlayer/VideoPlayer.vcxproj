@@ -157,6 +157,10 @@
   <ItemGroup>
     <ClInclude Include="ModuleFactory.hpp" />
     <ClInclude Include="VideoPlayer.hpp" />
+    <ClInclude Include="VideoPlayerHelper.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="VideoPlayer.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
