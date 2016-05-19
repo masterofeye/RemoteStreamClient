@@ -30,13 +30,7 @@
     <ClCompile Include="ENC_CudaInterop.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="moc_ENC_CudaAutoLock.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="moc_ENC_CudaInterop.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="moc_ENC_Queue.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ModuleFactory.cpp">
@@ -61,6 +55,12 @@
     </ClInclude>
     <ClInclude Include="ModuleFactory.hpp">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\inc\dynlink_cuda.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\inc\NvHWEncoder.h">
+      <Filter>common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

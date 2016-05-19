@@ -21,19 +21,25 @@ namespace RW{
 		{
             //TODO Dynamic Link
             QDir pluginsDir = QDir("C:\\Projekte\\RemoteStreamClient\\build\\x64\\Debug");
+            //QDir pluginsDir = QDir("C:\\Projekte\\RemoteStreamClient\\build\\x64\\Debug\\Plugins");
 
-			//pluginsDir.cd("Plugins");
 			QString qsSuffix = ".plu";
 			foreach(QString fileName, pluginsDir.entryList(QDir::Files)) {
 				if (fileName.contains(qsSuffix)){
 					qDebug() << fileName;
 					QPluginLoader loader(pluginsDir.absoluteFilePath(fileName));
-					if (loader.load())
+                    bool bResult = loader.load();
+                    if (!bResult)
+                    {
+                        QString qsError = loader.errorString();
+                        qDebug() << "Error: " << qsError;
+                        m_Logger->error(qsError.toStdString().data());
+                    }
+                    else
 					{
-						qDebug() << fileName << " loaded successful.";
 						QObject *plugin = loader.instance();
 						if (plugin != NULL) {
-							AbstractModuleFactory *moduleFactory = NULL;
+                            AbstractModuleFactory *moduleFactory = NULL;
 							moduleFactory = qobject_cast <AbstractModuleFactory*>(plugin);
 							if (moduleFactory != NULL)
 							{
@@ -83,7 +89,8 @@ namespace RW{
 								}
 
 								Pluginlist->append(module);
-							}
+                                qDebug() << fileName << " loaded successfully.";
+                            }
 						}
 					}
 				}

@@ -4,10 +4,10 @@
 namespace RW{
 	namespace IMP{
 
-		IMP_CropFrames::IMP_CropFrames(std::shared_ptr<spdlog::logger> Logger) :
-			RW::CORE::AbstractModule(Logger)
-		{
-			}
+        IMP_CropFrames::IMP_CropFrames(std::shared_ptr<spdlog::logger> Logger) :
+            RW::CORE::AbstractModule(Logger)
+        {
+            }
 
 
 		IMP_CropFrames::~IMP_CropFrames()

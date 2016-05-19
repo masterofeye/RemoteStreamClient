@@ -3,7 +3,7 @@
 
 
 namespace RW{
-	namespace VG{
+	namespace VPL{
 		ModuleFactory::ModuleFactory()
 		{
 		}

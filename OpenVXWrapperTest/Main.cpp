@@ -51,7 +51,7 @@ int main(int argc, const char* argv[])
         RW::CORE::Graph graph(&context, file_logger);
         RW::CORE::KernelManager kernelManager(&context, file_logger);
 
-        RW::CORE::Kernel kernel(&context, "MyKernel", NVX_KERNEL_TEST,4, list[2], file_logger);
+        RW::CORE::Kernel kernel(&context, "MyKernel", NVX_KERNEL_TEST,4, list[4], file_logger);
         if (kernel.IsInitialized())
         {
             status = kernelManager.AddParameterToKernel(&kernel, RW::CORE::tenDir::nenInput, 0);
