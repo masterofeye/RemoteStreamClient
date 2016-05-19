@@ -6,27 +6,10 @@ namespace RW
 {
 	namespace IMP
 	{
-		typedef struct stMyInitialiseControlStruct : public CORE::tstInitialiseControlStruct
-		{
-			bool bNeedConversion;
-			cInputBase cInput;
-		}tstMyInitialiseControlStruct;
-
-		typedef struct stMyControlStruct : public CORE::tstControlStruct
-		{
-			stRectStruct stFrameRect;
-		}tstMyControlStruct;
-
-		typedef struct stMyDeinitialiseControlStruct : public CORE::tstDeinitialiseControlStruct
-		{
-			bool bNeedConversion;
-			cOutputBase cOutput;
-		}tstMyDeinitialiseControlStruct;
 
 		class IMP_CropFrames : public RW::CORE::AbstractModule
 		{
 			Q_OBJECT
-
 
 		private:
 			cv::cuda::GpuMat m_cuMat;

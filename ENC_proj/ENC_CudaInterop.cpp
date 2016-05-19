@@ -38,9 +38,9 @@ namespace RW{
 
 				memset(&m_stEncodeBuffer, 0, sizeof(m_stEncodeBuffer));
 				memset(m_ChromaDevPtr, 0, sizeof(m_ChromaDevPtr));
-				memset(m_cuYUVArray, 0, sizeof(m_cuYUVArray));
+				//memset(m_cuYUVArray, 0, sizeof(m_cuYUVArray));
 
-				memset(&m_encodeConfig, 0, sizeof(m_encodeConfig));
+				//memset(&m_encodeConfig, 0, sizeof(m_encodeConfig));
 
 				m_encodeConfig.endFrameIdx = INT_MAX;
 				m_encodeConfig.bitrate = 5000000;						//make editable
@@ -492,29 +492,32 @@ namespace RW{
 			{
 				pEncodeBuffer = m_EncodeBufferQueue.GetPending();
 
-				NV_ENC_LOCK_BITSTREAM stBitStreamData;
-				nvStatus = m_pNvHWEncoder->ProcessOutput(pEncodeBuffer, &stBitStreamData);
-				if (nvStatus != NV_ENC_SUCCESS)
+				if (pEncodeBuffer != NULL)
 				{
-					enStatus = tenStatus::nenError;
-					m_Logger->error("DoRender: m_pNvHWEncoder->ProcessOutput did not succeed!");
-					return enStatus;
-				}
-				data->stBitStream.pBitStreamBuffer = stBitStreamData.bitstreamBufferPtr;
-				data->stBitStream.u32BitStreamSizeInBytes = stBitStreamData.bitstreamSizeInBytes;
-
-				// UnMap the input buffer after frame done
-				if (pEncodeBuffer->stInputBfr.hInputSurface)
-				{
-					nvStatus = m_pNvHWEncoder->NvEncUnmapInputResource(pEncodeBuffer->stInputBfr.hInputSurface);
+					NV_ENC_LOCK_BITSTREAM stBitStreamData;
+					nvStatus = m_pNvHWEncoder->ProcessOutput(pEncodeBuffer, &stBitStreamData);
 					if (nvStatus != NV_ENC_SUCCESS)
 					{
 						enStatus = tenStatus::nenError;
-						m_Logger->error("DoRender: m_pNvHWEncoder->NvEncUnmapInputResource did not succeed!");
+						m_Logger->error("DoRender: m_pNvHWEncoder->ProcessOutput did not succeed!");
 						return enStatus;
 					}
+					data->stBitStream.pBitStreamBuffer = stBitStreamData.bitstreamBufferPtr;
+					data->stBitStream.u32BitStreamSizeInBytes = stBitStreamData.bitstreamSizeInBytes;
 
-					pEncodeBuffer->stInputBfr.hInputSurface = NULL;
+					// UnMap the input buffer after frame done
+					if (pEncodeBuffer->stInputBfr.hInputSurface)
+					{
+						nvStatus = m_pNvHWEncoder->NvEncUnmapInputResource(pEncodeBuffer->stInputBfr.hInputSurface);
+						if (nvStatus != NV_ENC_SUCCESS)
+						{
+							enStatus = tenStatus::nenError;
+							m_Logger->error("DoRender: m_pNvHWEncoder->NvEncUnmapInputResource did not succeed!");
+							return enStatus;
+						}
+
+						pEncodeBuffer->stInputBfr.hInputSurface = NULL;
+					}
 				}
 				pEncodeBuffer = m_EncodeBufferQueue.GetAvailable();
 			}

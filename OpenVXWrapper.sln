@@ -19,7 +19,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IMP_proj", "IMP_proj\IMP_pr
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ENC_proj", "ENC_proj\ENC_proj.vcxproj", "{6147A18E-0828-4379-9575-D9FAFC9B68D7}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "videowidget", "videowidget\videowidget.vcxproj", "{ED3ABCA4-9FED-3F47-A258-F1A95D446720}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VideoPlayer", "VideoPlayer\VideoPlayer.vcxproj", "{ED3ABCA4-9FED-3F47-A258-F1A95D446720}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VideoGrabberSimu", "VideoGrabberSimu\VideoGrabberSimu.vcxproj", "{DED08BA9-69A8-43D8-9E8B-EED79539EB6A}"
 EndProject

@@ -1,0 +1,55 @@
+#include "ModuleFactory.hpp"
+#include "IMP_CropFrames.hpp"
+#include "IMP_ConvColorFrames.hpp"
+#include "IMP_MergeFrames.hpp"
+#include "IMP.h"
+
+
+namespace RW{
+	namespace IMP{
+		ModuleFactory::ModuleFactory()
+		{
+		}
+
+
+		ModuleFactory::~ModuleFactory()
+		{
+		}
+
+        CORE::AbstractModule* ModuleFactory::Module(CORE::tenSubModule enModule)
+		{
+            CORE::AbstractModule* Module;
+			tenStatus status = tenStatus::nenError;
+			switch (enModule)
+			{
+			case CORE::tenSubModule::nenGraphic_Merge:
+				Module = new IMP::IMP_MergeFrames(m_Logger);
+				if (Module != nullptr)
+					status = tenStatus::nenSuccess;
+				break;
+			case CORE::tenSubModule::nenGraphic_Color:
+				Module = new IMP::IMP_ConvColorFrames(m_Logger);
+				if (Module != nullptr)
+					status = tenStatus::nenSuccess;
+				break;
+			case CORE::tenSubModule::nenGraphic_Crop:
+				Module = new IMP::IMP_CropFrames(m_Logger);
+				if (Module != nullptr)
+					status = tenStatus::nenSuccess;
+				break;
+			default:
+				//TODO Status can't find module
+				status = tenStatus::nenError;
+				break;
+			}
+            return Module;
+
+		}
+
+        CORE::tenModule ModuleFactory::ModuleType()
+        {
+			return CORE::tenModule::enGraphic;
+        }
+	}
+}
+

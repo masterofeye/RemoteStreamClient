@@ -69,14 +69,7 @@ namespace RW{
 		tenStatus IMP_ConvColorFrames::DoRender(CORE::tstControlStruct * ControlStruct)
 		{
 			tenStatus enStatus = tenStatus::nenSuccess;
-			stMyControlStruct* data = static_cast<stMyControlStruct*>(ControlStruct);
 
-			if (data == NULL)
-			{
-				m_Logger->error("DoRender: Data of stMyControlStruct is empty!");
-				enStatus = tenStatus::nenError;
-				return enStatus;
-			}
 			if (m_cuMat.data == NULL)
 			{
 				m_Logger->error("DoRender: Data of cuMat is empty!");
