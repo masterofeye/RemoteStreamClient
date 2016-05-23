@@ -14,7 +14,7 @@ namespace RW{
             ModuleLoader(std::shared_ptr<spdlog::logger> Logger);
 			~ModuleLoader();
 
-			void LoadPlugins(QList<AbstractModule const*> *Pluginlist);
+			void LoadPlugins(QList<AbstractModule *> *Pluginlist);
 		};
 	}
 

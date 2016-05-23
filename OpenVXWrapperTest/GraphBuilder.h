@@ -1,6 +1,8 @@
 #pragma once
 #include <QtCore>
+#include "OpenVXWrapper.h"
 #include "spdlog\spdlog.h"
+#include "AbstractModule.hpp"
 
 namespace RW
 {
@@ -11,12 +13,18 @@ namespace RW
         class GraphBuilder
         {
         private:
-            QList<AbstractModule const*> *m_ModuleList;
+            QList<RW::CORE::AbstractModule *> *m_ModuleList;
+            Graph *m_Graph;
+            Context *m_Context;
             std::shared_ptr<spdlog::logger> m_Logger;
         public:
-            GraphBuilder(QList<AbstractModule const*> *ModuleList, std::shared_ptr<spdlog::logger> Logger);
+            GraphBuilder(QList<AbstractModule *> *ModuleList, std::shared_ptr<spdlog::logger> Logger, Graph* CurrentGraph, Context* CurrentContext);
             ~GraphBuilder();
-
+            tenStatus BuildNode(KernelManager *CurrentKernelManager,
+                tstInitialiseControlStruct* InitialiseControlStruct,
+                tstControlStruct *ControlStruct,
+                tstDeinitialiseControlStruct *DeinitialiseControlStruct,
+                tenSubModule SubModule);
         };
     }
 }
