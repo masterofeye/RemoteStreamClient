@@ -138,14 +138,14 @@
     <ClCompile Include="common\src\dynlink_cuda.cpp" />
     <ClCompile Include="common\src\NvHWEncoder.cpp" />
     <ClCompile Include="ENC_CudaInterop.cpp" />
-    <ClCompile Include="moc_ENC_CudaAutoLock.cpp" />
     <ClCompile Include="moc_ENC_CudaInterop.cpp" />
-    <ClCompile Include="moc_ENC_Queue.cpp" />
     <ClCompile Include="moc_ModuleFactory.cpp" />
     <ClCompile Include="ModuleFactory.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common\inc\cudaModuleMgr.h" />
+    <ClInclude Include="common\inc\dynlink_cuda.h" />
+    <ClInclude Include="common\inc\NvHWEncoder.h" />
     <ClInclude Include="ENC_CudaAutoLock.h" />
     <ClInclude Include="ENC_CudaInterop.hpp" />
     <ClInclude Include="ENC_Queue.h" />
@@ -155,6 +155,9 @@
     <ProjectReference Include="..\RWPluginInterface\RWPluginInterface.vcxproj">
       <Project>{8262a21b-a3ac-48a7-9bf5-08ddf6794938}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ENC.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

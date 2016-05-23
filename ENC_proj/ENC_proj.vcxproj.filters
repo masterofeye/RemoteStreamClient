@@ -1,20 +1,20 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Quelldateien">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Headerdateien">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
     <Filter Include="Ressourcendateien">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
     <Filter Include="common">
       <UniqueIdentifier>{f7ab79e3-d820-4f34-a637-51db65ffb6f0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -28,22 +28,16 @@
       <Filter>common</Filter>
     </ClCompile>
     <ClCompile Include="ENC_CudaInterop.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="moc_ENC_CudaAutoLock.cpp">
-      <Filter>Quelldateien</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="moc_ENC_CudaInterop.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="moc_ENC_Queue.cpp">
-      <Filter>Quelldateien</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ModuleFactory.cpp">
-      <Filter>Quelldateien</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="moc_ModuleFactory.cpp">
-      <Filter>Quelldateien</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -51,16 +45,25 @@
       <Filter>common</Filter>
     </ClInclude>
     <ClInclude Include="ENC_CudaInterop.hpp">
-      <Filter>Headerdateien</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ENC_Queue.h">
-      <Filter>Headerdateien</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ENC_CudaAutoLock.h">
-      <Filter>Headerdateien</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ModuleFactory.hpp">
-      <Filter>Headerdateien</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="common\inc\dynlink_cuda.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\inc\NvHWEncoder.h">
+      <Filter>common</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ENC.json" />
   </ItemGroup>
 </Project>

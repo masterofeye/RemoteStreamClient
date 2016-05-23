@@ -6,12 +6,12 @@
 
 namespace RW
 {
-	namespace VPL
+    namespace CORE
 	{
 		class AbstractModule;
 	}
 
-	namespace VG{
+	namespace VPL{
 
 		class ModuleFactory : public CORE::AbstractModuleFactory
 		{
