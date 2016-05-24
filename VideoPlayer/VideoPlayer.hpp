@@ -52,7 +52,6 @@ namespace RW{
             virtual tenStatus Deinitialise(CORE::tstDeinitialiseControlStruct *DeinitialiseControlStruct) Q_DECL_OVERRIDE;
 
         private:
-            void openFile();
             void play();
 
             void mediaStateChanged(QMediaPlayer::State state);

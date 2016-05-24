@@ -64,16 +64,13 @@ typedef struct _EncodeConfig
     int              gopLength;
     int              numB;
     int              pictureStruct;
-    int              deviceID;
+    int              deviceID;    // consecutive number, has to be <= deviceCount
     int              isYuv444;
-    char            *qpDeltaMapFile;
+    //char            *qpDeltaMapFile;
     //char* inputFileName;	// PTX file. Fixed path in ./data/
-    //char* outputFileName;	// PTX file
     char* encoderPreset;	// possible values: "hq" "lowLatencyHP" "lowLatencyHQ" "lossless"
-    //char* inputFilePath;	// not being used. 
-    //char *encCmdFileName;	// not being used
     int  enableMEOnly;
-    //int  preloadedFrameCount; // not being used
+    //int  preloadedFrameCount; // not being used; has to be > 1; if preloadedFrameCount == 1 use enableMEOnly
 }EncodeConfig;
 
 typedef struct _EncodeInputBuffer
@@ -147,7 +144,7 @@ class CNvHWEncoder
 {
 public:
     uint32_t                                             m_EncodeIdx;
-    FILE                                                *m_fOutput;
+    //FILE                                                *m_fOutput;
     uint32_t                                             m_uMaxWidth;
     uint32_t                                             m_uMaxHeight;
     uint32_t                                             m_uCurWidth;

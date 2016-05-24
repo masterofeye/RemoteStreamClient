@@ -12,8 +12,8 @@ namespace RW
 			void vSetGpuMat(cv::cuda::GpuMat cuGpuMat){ m_cuGpuMat = cuGpuMat; };
 			cv::cuda::GpuMat cuGetGpuMat(){ return m_cuGpuMat; };
 
-			tenStatus Initialise(cInputBase *pInput);
-			tenStatus Deinitialise(cOutputBase *pOutput);
+            tenStatus tensProcessInput(cInputBase *pInput);
+            tenStatus tensProcessOutput(cOutputBase *pOutput);
 
 			IMP_Base(){};
 			~IMP_Base(){};

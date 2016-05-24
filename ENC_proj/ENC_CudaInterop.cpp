@@ -31,16 +31,15 @@ namespace RW{
 				m_cuContext = NULL;
 				m_cuModule = NULL;
 				m_cuInterleaveUVFunction = NULL;
+                m_cuYUVArray = NULL;
 
 				m_uEncodeBufferCount = 0;
-				//memset(&m_stEncoderInput, 0, sizeof(m_stEncoderInput));
 				memset(&m_stEOSOutputBfr, 0, sizeof(m_stEOSOutputBfr));
 
 				memset(&m_stEncodeBuffer, 0, sizeof(m_stEncodeBuffer));
 				memset(m_ChromaDevPtr, 0, sizeof(m_ChromaDevPtr));
-				//memset(m_cuYUVArray, 0, sizeof(m_cuYUVArray));
 
-				//memset(&m_encodeConfig, 0, sizeof(m_encodeConfig));
+				memset(&m_encodeConfig, 0, sizeof(m_encodeConfig));
 
 				m_encodeConfig.endFrameIdx = INT_MAX;
 				m_encodeConfig.bitrate = 5000000;						//make editable
@@ -56,6 +55,13 @@ namespace RW{
 				m_encodeConfig.b_quant_offset = DEFAULT_B_QOFFSET;
 				m_encodeConfig.presetGUID = NV_ENC_PRESET_DEFAULT_GUID;
 				m_encodeConfig.pictureStruct = NV_ENC_PIC_STRUCT_FRAME;
+
+                NVENCSTATUS nvStatus = m_pNvHWEncoder->Initialize((void*)m_cuContext, NV_ENC_DEVICE_TYPE_CUDA);
+                if (nvStatus != NV_ENC_SUCCESS)
+                {
+                    m_Logger->error("Initialise: m_pNvHWEncoder->Initialize did not succeed!");
+                }
+
 			}
 
 
@@ -252,7 +258,7 @@ namespace RW{
 
 			for (uint32_t i = 0; i < m_uEncodeBufferCount; i++)
 			{
-				cuMemFree(m_stEncodeBuffer[i].stInputBfr.pNV12devPtr);
+				__cu(cuMemFree(m_stEncodeBuffer[i].stInputBfr.pNV12devPtr));
 
 				m_pNvHWEncoder->NvEncDestroyBitstreamBuffer(m_stEncodeBuffer[i].stOutputBfr.hBitstreamBuffer);
 				m_stEncodeBuffer[i].stOutputBfr.hBitstreamBuffer = NULL;
@@ -379,29 +385,23 @@ namespace RW{
 				return enStatus;
 			}
 
-			m_encodeConfig = data->encodeConfig;
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point m_tStart = RW::CORE::HighResClock::now();
+#endif
+
+            m_encodeConfig = data->encodeConfig;
+
+            // initialize Cuda
+            nvStatus = InitCuda(m_encodeConfig.deviceID);
+            if (nvStatus != NV_ENC_SUCCESS)
+            {
+                m_Logger->error("Initialise: InitCuda did not succeed!");
+            }
 
 			if ( m_encodeConfig.width == 0 || m_encodeConfig.height == 0)
 			{
 				enStatus = tenStatus::nenError;
 				m_Logger->error("Initialise: Invalid frame size parameters!");
-			}
-
-			// initialize Cuda
-			nvStatus = InitCuda(m_encodeConfig.deviceID);
-			if (nvStatus != NV_ENC_SUCCESS)
-			{
-				enStatus = tenStatus::nenError;
-				m_Logger->error("Initialise: InitCuda did not succeed!");
-				return enStatus;
-			}
-
-			nvStatus = m_pNvHWEncoder->Initialize((void*)m_cuContext, NV_ENC_DEVICE_TYPE_CUDA);
-			if (nvStatus != NV_ENC_SUCCESS)
-			{
-				enStatus = tenStatus::nenError;
-				m_Logger->error("Initialise: m_pNvHWEncoder->Initialize did not succeed!");
-				return enStatus;
 			}
 
 			m_encodeConfig.presetGUID = m_pNvHWEncoder->GetPresetGUID(m_encodeConfig.encoderPreset, m_encodeConfig.codec);
@@ -449,10 +449,6 @@ namespace RW{
 				m_Logger->error("Initialise: AllocateIOBuffers did not succeed!");
 				return enStatus;
 			}
-
-#ifdef TRACE_PERFORMANCE
-			RW::CORE::HighResClock::time_point m_tStart = RW::CORE::HighResClock::now();
-#endif
 
 			m_u32NumFramesEncoded = 0;
 

@@ -7,6 +7,7 @@ namespace RW{
         IMP_CropFrames::IMP_CropFrames(std::shared_ptr<spdlog::logger> Logger) :
             RW::CORE::AbstractModule(Logger)
         {
+                m_pstRect = NULL;
             }
 
 
@@ -36,28 +37,17 @@ namespace RW{
 				return enStatus;
 			}
 
-			cInputBase input = data->cInput;
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point m_tStart = RW::CORE::HighResClock::now();
+#endif
+            *m_pstRect = data->stFrameRect;
 
-			if (data->bNeedConversion)
-			{
-				IMP_Base impBase = IMP_Base();
-				enStatus = impBase.Initialise(&input);
-				if (enStatus != tenStatus::nenSuccess)
-				{
-					m_Logger->error("Initialise: impBase.Initialise did not succeed!");
-				}
-
-				m_cuMat = impBase.cuGetGpuMat();
-			}
-			else
-			{
-				m_cuMat = input._gMat;
-			}
-			
-			if (m_cuMat.data == NULL)
-			{
-				m_Logger->error("Initialise: Data of cuMat is empty! Initialise failed!");
-			}
+            if (m_pstRect == NULL)
+            {
+                m_Logger->error("Initialise: Rect struct is empty!");
+                enStatus = tenStatus::nenError;
+                return enStatus;
+            }
 
 			m_Logger->debug("Initialise");
 			return enStatus;
@@ -74,25 +64,45 @@ namespace RW{
 				enStatus = tenStatus::nenError;
 				return enStatus;
 			}
-			if (m_cuMat.data == NULL)
-			{
-				m_Logger->error("DoRender: Data of cuMat is empty!");
-				enStatus = tenStatus::nenError;
-				return enStatus;
-			}
+            cInputBase input = data->cInput;
 
-			if (data->stFrameRect.iWidth > m_cuMat.cols || data->stFrameRect.iHeight > m_cuMat.rows
-				|| data->stFrameRect.iWidth == 0 || data->stFrameRect.iHeight == 0)
+            IMP_Base impBase = IMP_Base();
+            enStatus = impBase.tensProcessInput(&input);
+            if (enStatus != tenStatus::nenSuccess)
+            {
+                m_Logger->error("DoRender: impBase.tensProcessInput did not succeed!");
+                return enStatus;
+            }
+
+            cv::cuda::GpuMat gMat = impBase.cuGetGpuMat();
+            if (gMat.data == NULL)
+            {
+                enStatus = tenStatus::nenError;
+                m_Logger->error("DoRender: GpuMat is NULL!");
+                return enStatus;
+            }
+
+            if (m_pstRect->iWidth > gMat.cols || m_pstRect->iHeight > gMat.rows
+                || m_pstRect->iWidth == 0 || m_pstRect->iHeight == 0)
 			{
 				enStatus = tenStatus::nenError;
 				m_Logger->error("DoRender: Invalid frame size parameters!");
 				return enStatus;
 			}
-			else if (data->stFrameRect.iWidth < m_cuMat.cols || data->stFrameRect.iHeight < m_cuMat.rows)
+            else if (m_pstRect->iWidth < gMat.cols || m_pstRect->iHeight < gMat.rows)
 			{
-				cv::Rect rect(data->stFrameRect.iPosX, data->stFrameRect.iPosY, data->stFrameRect.iWidth, data->stFrameRect.iHeight);
-				m_cuMat = m_cuMat(rect);
+                cv::Rect rect(m_pstRect->iPosX, m_pstRect->iPosY, m_pstRect->iWidth, m_pstRect->iHeight);
+                gMat = gMat(rect);
 			}
+
+            cOutputBase output = data->cOutput;
+
+            impBase.vSetGpuMat(gMat);
+            enStatus = impBase.tensProcessOutput(&output);
+            if (enStatus != tenStatus::nenSuccess)
+            {
+                m_Logger->error("DoRender: impBase.tensProcessOutput did not succeed!");
+            }
 
 			m_Logger->debug("DoRender");
 			return enStatus;
@@ -100,41 +110,17 @@ namespace RW{
 
 		tenStatus IMP_CropFrames::Deinitialise(CORE::tstDeinitialiseControlStruct *DeinitialiseControlStruct)
 		{
-			tenStatus enStatus = tenStatus::nenSuccess;
-			stMyDeinitialiseControlStruct* data = static_cast<stMyDeinitialiseControlStruct*>(DeinitialiseControlStruct);
 
-			if (data == NULL)
-			{
-				m_Logger->error("Deinitialise: Data of stMyDeinitialiseControlStruct is empty!");
-				enStatus = tenStatus::nenError;
-				return enStatus;
-			}
-			if (m_cuMat.data == NULL)
-			{
-				m_Logger->error("Deinitialise: Data of cuMat is empty!");
-				enStatus = tenStatus::nenError;
-				return enStatus;
-			}
-
-			cOutputBase output = data->cOutput;
-
-			if (data->bNeedConversion)
-			{
-				IMP_Base impBase = IMP_Base();
-				impBase.vSetGpuMat(m_cuMat);
-				enStatus = impBase.Deinitialise(&output);
-				if (enStatus != tenStatus::nenSuccess || output._pcuArray == NULL)
-				{
-					m_Logger->error("Deinitialise: impBase.Deinitialise did not succeed!");
-				}
-			}
-			else
-			{
-				*output._pgMat = m_cuMat;
-			}
-
-			m_Logger->debug("Deinitialise");
-			return enStatus;
+#ifdef TRACE_PERFORMANCE
+            if (m_u32NumFramesEncoded > 0)
+            {
+                RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
+                m_Logger->trace() << "Execution Time of Module ENC: " << RW::CORE::HighResClock::diffMilli(m_tStart, t1).count() << "ms.";
+                m_Logger->trace() << "Number of encoded files: " << m_u32NumFramesEncoded;
+            }
+#endif
+            m_Logger->debug("Deinitialise");
+			return tenStatus::nenSuccess;
 		}
 	}
 }
