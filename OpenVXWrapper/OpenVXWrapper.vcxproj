@@ -108,7 +108,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>REMOTE_EXPORT;WIN32;_DEBUG;_WINDOWS;_USRDLL;OPENVXWRAPPER_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\RWPluginInterface;..\Plugin1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\RWPluginInterface;..\Plugin1;C:\Projekte\RemoteRepros\RemoteStreamClient\VideoGrabberSimu;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

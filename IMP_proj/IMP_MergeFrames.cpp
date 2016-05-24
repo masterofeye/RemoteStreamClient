@@ -28,26 +28,29 @@ namespace RW{
 		tenStatus IMP_MergeFrames::Initialise(CORE::tstInitialiseControlStruct * InitialiseControlStruct)
 		{
 			tenStatus enStatus = tenStatus::nenSuccess;
-			stMyInitialiseControlStruct* data = static_cast<stMyInitialiseControlStruct*>(InitialiseControlStruct);
 
-			if (data == NULL)
-			{
-				m_Logger->error("Initialise: Data of tstMyInitialiseControlStruct is empty!");
-				enStatus = tenStatus::nenError;
-				return enStatus;
-			}
+            m_Logger->debug("Initialise nenGraphic_Merge");
 
 #ifdef TRACE_PERFORMANCE
-            RW::CORE::HighResClock::time_point m_tStart = RW::CORE::HighResClock::now();
+            RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
 #endif
 
-			m_Logger->debug("Initialise");
-			return enStatus;
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
+            file_logger->trace() << "Time to Initialise for nenGraphic_Merge module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+#endif
+            return enStatus;
 		}
 
 		tenStatus IMP_MergeFrames::DoRender(CORE::tstControlStruct * ControlStruct)
 		{
 			tenStatus enStatus = tenStatus::nenSuccess;
+
+            m_Logger->debug("DoRender nenGraphic_Merge");
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
+#endif
+
 			stMyControlStruct* data = static_cast<stMyControlStruct*>(ControlStruct);
 
 			if (data == NULL)
@@ -64,6 +67,7 @@ namespace RW{
             if (enStatus != tenStatus::nenSuccess)
             {
                 m_Logger->error("Initialise: impBase.Initialise did not succeed!");
+                return enStatus;
             }
 
             cv::cuda::GpuMat gMat1 = impBase1.cuGetGpuMat();
@@ -85,7 +89,8 @@ namespace RW{
             if (enStatus != tenStatus::nenSuccess || gMat1.data == NULL)
 			{
 				m_Logger->error("DoRender: ApplyMerge did not succeed!");
-			}
+                return enStatus;
+            }
 
             cOutputBase output = data->cOutput;
 
@@ -94,25 +99,29 @@ namespace RW{
             if (enStatus != tenStatus::nenSuccess)
             {
                 m_Logger->error("DoRender: impBase.tensProcessOutput did not succeed!");
+                return enStatus;
             }
+            data->cOutput = output; //doppelt gemoppelt, ik
 
-			m_Logger->debug("DoRender");
-			return enStatus;
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
+            file_logger->trace() << "Time to DoRender for nenGraphic_Merge module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+#endif
+            return enStatus;
 		}
 
 		tenStatus IMP_MergeFrames::Deinitialise(CORE::tstDeinitialiseControlStruct *DeinitialiseControlStruct)
 		{
+            m_Logger->debug("Deinitialise nenGraphic_Merge");
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
+#endif
 
 #ifdef TRACE_PERFORMANCE
-            if (m_u32NumFramesEncoded > 0)
-            {
-                RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
-                m_Logger->trace() << "Execution Time of Module ENC: " << RW::CORE::HighResClock::diffMilli(m_tStart, t1).count() << "ms.";
-                m_Logger->trace() << "Number of encoded files: " << m_u32NumFramesEncoded;
-            }
+            RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
+            file_logger->trace() << "Time to Deinitialise for nenGraphic_Merge module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
-            m_Logger->debug("Deinitialise");
-			return tenStatus::nenSuccess;
+            return tenStatus::nenSuccess;
 		}
 
 		tenStatus IMP_MergeFrames::ApplyMerge(cv::cuda::GpuMat gMat1, cv::cuda::GpuMat gMat2, cv::cuda::GpuMat *pgMat)

@@ -8,9 +8,7 @@
 #include "AbstractModule.hpp"
 #include "Utils.h"
 
-#ifdef TRACE_PERFORMANCE
-#include "HighResolution\HighResClock.h"
-#endif
+
 
 #define MAX_ENCODE_QUEUE 32
 #define NV_ENC_CUDA 2
@@ -76,9 +74,6 @@ namespace RW{
 			CUarray                                             m_cuYUVArray;
 			EncodeConfig										m_encodeConfig;
 			uint32_t											m_u32NumFramesEncoded;
-#ifdef TRACE_PERFORMANCE
-			RW::CORE::HighResClock::time_point					m_tStart;
-#endif
 
 			NVENCSTATUS                                         CuDestroy();
 			NVENCSTATUS                                         InitCuda(uint32_t deviceID);

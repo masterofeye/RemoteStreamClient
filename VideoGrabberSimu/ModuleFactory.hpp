@@ -2,21 +2,14 @@
 
 #include "AbstractModuleFactory.hpp"
 
-#include "Utils.h"
-
 namespace RW
 {
-	namespace CORE
-	{
-		class AbstractModule;
-	}
-
-    namespace TEST{
+	namespace VG{
 
 		class ModuleFactory : public CORE::AbstractModuleFactory
 		{
 			Q_OBJECT
-				Q_PLUGIN_METADATA(IID "AbstractModuleFactory" FILE "Plugin1.json")
+				Q_PLUGIN_METADATA(IID "AbstractModuleFactory" FILE "VideoGrabberSimu.json")
                 Q_INTERFACES(RW::CORE::AbstractModuleFactory)
 
 		public:
@@ -27,6 +20,3 @@ namespace RW
 		};
 	}
 }
-
-
-

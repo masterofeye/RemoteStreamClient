@@ -1,5 +1,8 @@
 #include "IMP_CropFrames.hpp"
 
+#ifdef TRACE_PERFORMANCE
+#include "HighResolution\HighResClock.h"
+#endif
 
 namespace RW{
 	namespace IMP{
@@ -27,6 +30,10 @@ namespace RW{
 
 		tenStatus IMP_CropFrames::Initialise(CORE::tstInitialiseControlStruct * InitialiseControlStruct)
 		{
+            m_Logger->debug("Initialise nenGraphic_Crop");
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
+#endif
 			tenStatus enStatus = tenStatus::nenSuccess;
 			stMyInitialiseControlStruct* data = static_cast<stMyInitialiseControlStruct*>(InitialiseControlStruct);
 
@@ -37,9 +44,6 @@ namespace RW{
 				return enStatus;
 			}
 
-#ifdef TRACE_PERFORMANCE
-            RW::CORE::HighResClock::time_point m_tStart = RW::CORE::HighResClock::now();
-#endif
             *m_pstRect = data->stFrameRect;
 
             if (m_pstRect == NULL)
@@ -49,12 +53,19 @@ namespace RW{
                 return enStatus;
             }
 
-			m_Logger->debug("Initialise");
-			return enStatus;
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
+            file_logger->trace() << "Time to Initialise for nenGraphic_Crop module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+#endif
+            return enStatus;
 		}
 
 		tenStatus IMP_CropFrames::DoRender(CORE::tstControlStruct * ControlStruct)
 		{
+            m_Logger->debug("DoRender nenGraphic_Crop");
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
+#endif
 			tenStatus enStatus = tenStatus::nenSuccess;
 			stMyControlStruct* data = static_cast<stMyControlStruct*>(ControlStruct);
 
@@ -104,23 +115,26 @@ namespace RW{
                 m_Logger->error("DoRender: impBase.tensProcessOutput did not succeed!");
             }
 
-			m_Logger->debug("DoRender");
-			return enStatus;
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
+            file_logger->trace() << "Time to DoRender for nenGraphic_Crop module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+#endif
+            return enStatus;
 		}
 
 		tenStatus IMP_CropFrames::Deinitialise(CORE::tstDeinitialiseControlStruct *DeinitialiseControlStruct)
 		{
 
+            m_Logger->debug("Deinitialise nenGraphic_Crop");
 #ifdef TRACE_PERFORMANCE
-            if (m_u32NumFramesEncoded > 0)
-            {
-                RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
-                m_Logger->trace() << "Execution Time of Module ENC: " << RW::CORE::HighResClock::diffMilli(m_tStart, t1).count() << "ms.";
-                m_Logger->trace() << "Number of encoded files: " << m_u32NumFramesEncoded;
-            }
+            RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
 #endif
-            m_Logger->debug("Deinitialise");
-			return tenStatus::nenSuccess;
+
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
+            file_logger->trace() << "Time to Deinitialise for nenGraphic_Crop module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+#endif
+            return tenStatus::nenSuccess;
 		}
 	}
 }

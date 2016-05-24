@@ -3,7 +3,7 @@
 
 
 namespace RW{
-	namespace VG{
+    namespace TEST{
 		ModuleFactory::ModuleFactory()
 		{
 		}
@@ -15,12 +15,12 @@ namespace RW{
 
         CORE::AbstractModule* ModuleFactory::Module(CORE::tenSubModule enModule)
 		{
-            CORE::AbstractModule* Module;
+            CORE::AbstractModule* Module = nullptr;
 			tenStatus status = tenStatus::nenError;
 			switch (enModule)
 			{
-			case CORE::tenSubModule::nenVideoGrabber_SIMU:
-			    Module = new VG::Plugin1(m_Logger);
+			case CORE::tenSubModule::nenStream_Productive:
+                Module = new TEST::Plugin1(m_Logger);
 				if (Module != nullptr)
 					status = tenStatus::nenSuccess;
 				break;
@@ -37,7 +37,7 @@ namespace RW{
 
         CORE::tenModule ModuleFactory::ModuleType()
         {
-            return CORE::tenModule::enVideoGrabber;
+            return CORE::tenModule::enTest;
         }
 	}
 }

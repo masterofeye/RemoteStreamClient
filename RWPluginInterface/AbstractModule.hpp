@@ -8,12 +8,13 @@
 
 namespace RW{
 	namespace CORE{
+		
 
         typedef struct stInitialiseControlStruct
 		{
         }tstInitialiseControlStruct;
 
-        typedef struct stControlStruct
+		typedef struct stControlStruct
         {
         }tstControlStruct;
 

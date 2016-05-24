@@ -8,6 +8,11 @@
 #include "common/inc/helper_string.h"
 #include "common/inc/dynlink_builtin_types.h"
 
+#ifdef TRACE_PERFORMANCE
+#include "HighResolution\HighResClock.h"
+#endif
+
+
 #if defined(__x86_64) || defined(AMD64) || defined(_M_AMD64) || defined(__aarch64__)
 #define PTX_FILE "preproc64_cuda.ptx"
 #else
@@ -34,10 +39,12 @@ namespace RW{
                 m_cuYUVArray = NULL;
 
 				m_uEncodeBufferCount = 0;
+				//memset(&m_stEncoderInput, 0, sizeof(m_stEncoderInput));
 				memset(&m_stEOSOutputBfr, 0, sizeof(m_stEOSOutputBfr));
 
 				memset(&m_stEncodeBuffer, 0, sizeof(m_stEncodeBuffer));
 				memset(m_ChromaDevPtr, 0, sizeof(m_ChromaDevPtr));
+				//memset(m_cuYUVArray, 0, sizeof(m_cuYUVArray));
 
 				memset(&m_encodeConfig, 0, sizeof(m_encodeConfig));
 
@@ -373,6 +380,10 @@ namespace RW{
 
 		tenStatus ENC_CudaInterop::Initialise(CORE::tstInitialiseControlStruct * InitialiseControlStruct)
 		{
+            m_Logger->debug("Initialise nenEncode_NVIDIA");
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
+#endif
 			NVENCSTATUS nvStatus = NV_ENC_SUCCESS;
 
 			tenStatus enStatus = tenStatus::nenSuccess;
@@ -385,18 +396,18 @@ namespace RW{
 				return enStatus;
 			}
 
-#ifdef TRACE_PERFORMANCE
-            RW::CORE::HighResClock::time_point m_tStart = RW::CORE::HighResClock::now();
-#endif
+			m_encodeConfig = data->encodeConfig;
 
-            m_encodeConfig = data->encodeConfig;
 
-            // initialize Cuda
-            nvStatus = InitCuda(m_encodeConfig.deviceID);
-            if (nvStatus != NV_ENC_SUCCESS)
-            {
-                m_Logger->error("Initialise: InitCuda did not succeed!");
-            }
+
+			// initialize Cuda
+			nvStatus = InitCuda(m_encodeConfig.deviceID);
+			if (nvStatus != NV_ENC_SUCCESS)
+			{
+				enStatus = tenStatus::nenError;
+				m_Logger->error("Initialise: InitCuda did not succeed!");
+				return enStatus;
+			}
 
 			if ( m_encodeConfig.width == 0 || m_encodeConfig.height == 0)
 			{
@@ -406,13 +417,13 @@ namespace RW{
 
 			m_encodeConfig.presetGUID = m_pNvHWEncoder->GetPresetGUID(m_encodeConfig.encoderPreset, m_encodeConfig.codec);
 
-			m_Logger->info("         codec           : \"%s\"\n", m_encodeConfig.codec == NV_ENC_HEVC ? "HEVC" : "H264");
-			m_Logger->info("         size            : %dx%d\n", m_encodeConfig.width, m_encodeConfig.height);
-			m_Logger->info("         bitrate         : %d bits/sec\n", m_encodeConfig.bitrate);
-			m_Logger->info("         vbvMaxBitrate   : %d bits/sec\n", m_encodeConfig.vbvMaxBitrate);
-			m_Logger->info("         vbvSize         : %d bits\n", m_encodeConfig.vbvSize);
-			m_Logger->info("         fps             : %d frames/sec\n", m_encodeConfig.fps);
-			m_Logger->info("         rcMode          : %s\n", m_encodeConfig.rcMode == NV_ENC_PARAMS_RC_CONSTQP ? "CONSTQP" :
+			m_Logger->debug("         codec           : \"%s\"\n", m_encodeConfig.codec == NV_ENC_HEVC ? "HEVC" : "H264");
+            m_Logger->debug("         size            : %dx%d\n", m_encodeConfig.width, m_encodeConfig.height);
+            m_Logger->debug("         bitrate         : %d bits/sec\n", m_encodeConfig.bitrate);
+            m_Logger->debug("         vbvMaxBitrate   : %d bits/sec\n", m_encodeConfig.vbvMaxBitrate);
+            m_Logger->debug("         vbvSize         : %d bits\n", m_encodeConfig.vbvSize);
+            m_Logger->debug("         fps             : %d frames/sec\n", m_encodeConfig.fps);
+            m_Logger->debug("         rcMode          : %s\n", m_encodeConfig.rcMode == NV_ENC_PARAMS_RC_CONSTQP ? "CONSTQP" :
 				m_encodeConfig.rcMode == NV_ENC_PARAMS_RC_VBR ? "VBR" :
 				m_encodeConfig.rcMode == NV_ENC_PARAMS_RC_CBR ? "CBR" :
 				m_encodeConfig.rcMode == NV_ENC_PARAMS_RC_VBR_MINQP ? "VBR MINQP" :
@@ -420,12 +431,12 @@ namespace RW{
 				m_encodeConfig.rcMode == NV_ENC_PARAMS_RC_2_PASS_FRAMESIZE_CAP ? "TWO_PASS_FRAMESIZE_CAP" :
 				m_encodeConfig.rcMode == NV_ENC_PARAMS_RC_2_PASS_VBR ? "TWO_PASS_VBR" : "UNKNOWN");
 			if (m_encodeConfig.gopLength == NVENC_INFINITE_GOPLENGTH)
-				m_Logger->info("         goplength       : INFINITE GOP \n");
+                m_Logger->debug("         goplength       : INFINITE GOP \n");
 			else
-				m_Logger->info("         goplength       : %d \n", m_encodeConfig.gopLength);
-			m_Logger->info("         B frames        : %d \n", m_encodeConfig.numB);
-			m_Logger->info("         QP              : %d \n", m_encodeConfig.qp);
-			m_Logger->info("         preset          : %s\n", (m_encodeConfig.presetGUID == NV_ENC_PRESET_LOW_LATENCY_HQ_GUID) ? "LOW_LATENCY_HQ" :
+                m_Logger->debug("         goplength       : %d \n", m_encodeConfig.gopLength);
+            m_Logger->debug("         B frames        : %d \n", m_encodeConfig.numB);
+            m_Logger->debug("         QP              : %d \n", m_encodeConfig.qp);
+            m_Logger->debug("         preset          : %s\n", (m_encodeConfig.presetGUID == NV_ENC_PRESET_LOW_LATENCY_HQ_GUID) ? "LOW_LATENCY_HQ" :
 				(m_encodeConfig.presetGUID == NV_ENC_PRESET_LOW_LATENCY_HP_GUID) ? "LOW_LATENCY_HP" :
 				(m_encodeConfig.presetGUID == NV_ENC_PRESET_HQ_GUID) ? "HQ_PRESET" :
 				(m_encodeConfig.presetGUID == NV_ENC_PRESET_HP_GUID) ? "HP_PRESET" :
@@ -451,15 +462,21 @@ namespace RW{
 			}
 
 			m_u32NumFramesEncoded = 0;
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
+            m_Logger->trace() << "Initialise time of Module ENC DoRender: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+#endif
 
-			m_Logger->debug("Initialise");
 			return enStatus;
 		}
 
 		tenStatus ENC_CudaInterop::DoRender(CORE::tstControlStruct * ControlStruct)
 		{
+            m_Logger->debug("DoRender nenEncode_NVIDIA");
 			tenStatus enStatus = tenStatus::nenSuccess;
-
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
+#endif
 			stMyControlStruct* data = static_cast<stMyControlStruct*>(ControlStruct);
 			if (data == NULL)
 			{
@@ -545,11 +562,12 @@ namespace RW{
 			m_u32NumFramesEncoded++;
 
 #ifdef TRACE_PERFORMANCE
-			RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
-			m_Logger->trace() << "Time of Module ENC DoRender: " << t1 << "ms.";
+            RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
+            m_Logger->trace() << "Time of Module ENC DoRender: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+            m_Logger->trace() << "Number of encoded files: " << m_u32NumFramesEncoded;
 #endif
 
-			m_Logger->debug("DoRender");
+
 			return enStatus;
 		}
 
@@ -562,6 +580,10 @@ namespace RW{
 
 		tenStatus ENC_CudaInterop::Deinitialise(CORE::tstDeinitialiseControlStruct *DeinitialiseControlStruct)
 		{
+            m_Logger->debug("Deinitialise nenEncode_NVIDIA");
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
+#endif
 			tenStatus enStatus = tenStatus::nenSuccess;
 			stMyDeinitialiseControlStruct* data = static_cast<stMyDeinitialiseControlStruct*>(DeinitialiseControlStruct);
 
@@ -604,15 +626,11 @@ namespace RW{
 			}
 
 #ifdef TRACE_PERFORMANCE
-			if (m_u32NumFramesEncoded > 0)
-			{
-				RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
-				m_Logger->trace() << "Execution Time of Module ENC: " << RW::CORE::HighResClock::diffMilli(m_tStart, t1).count() << "ms.";
-				m_Logger->trace() << "Number of encoded files: " << m_u32NumFramesEncoded;
-			}
+			RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
+			m_Logger->trace() << "Execution Time of Module ENC: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
 
-			m_Logger->debug("Deinitialise");
+
 			return enStatus;
 		}
 
