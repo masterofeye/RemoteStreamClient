@@ -24,14 +24,15 @@ namespace RW{
     namespace CORE{
 		enum class tenModule
 		{
-			enVideoGrabber,
-			enGraphic,
-			enEncoder,
-			enDecoder,
-			enRecord,
-			enSend,
-			enReceive,
+            enVideoGrabber,
+            enGraphic,
+            enEncoder,
+            enDecoder,
+            enRecord,
+            enSend,
+            enReceive,
             enPlayback,
+            enTest,
 		};
 
 		enum class tenSubModule

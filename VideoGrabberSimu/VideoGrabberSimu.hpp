@@ -13,7 +13,7 @@ namespace RW
 			nenUnknown
 		};
 
-		struct stVideoGrabberInitialiseControlStruct : public CORE::stInitialiseControlStruct
+        typedef struct stVideoGrabberInitialiseControlStruct : public CORE::stInitialiseControlStruct
 		{
 			int nFrameWidth;
 			int nFrameHeight;
@@ -21,15 +21,19 @@ namespace RW
 			int nNumberOfFrames;
 			tenColorSpace enColorSpace;
 			std::string sFileName;
-		};
+        }tstVideoGrabberInitialiseControlStruct;
 
-		struct stVideoGrabberControlStruct : public CORE::tstControlStruct
+        typedef struct stVideoGrabberControlStruct : public CORE::tstControlStruct
 		{			
 			void *pData;
 			size_t nDataLength;
 			int nCurrentFrameNumber;
 			int nCurrentPositionMSec;
-		};
+        }tstVideoGrabberControlStruct;
+
+        typedef struct stVideoGrabberDeinitialiseControlStruct : public CORE::tstDeinitialiseControlStruct
+        {
+        }tstVideoGrabberDeinitialiseControlStruct;
 
 		class VideoGrabberSimu : public RW::CORE::AbstractModule
 		{

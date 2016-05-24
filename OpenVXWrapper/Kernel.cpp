@@ -40,9 +40,8 @@ namespace RW
             vxAccessArrayRange(kernenArray, 0, 1, &size, (void**)&kernel, VX_READ_AND_WRITE);
 
             status = vxQueryParameter((vx_parameter)param[1], VX_PARAMETER_ATTRIBUTE_REF, &controlStructArray, sizeof(controlStructArray));
-            RW::VG::tstMyInitialiseControlStruct *controlStruct = nullptr;
+            RW::CORE::tstInitialiseControlStruct *controlStruct = nullptr;
             vxAccessArrayRange(controlStructArray, 0, 1, &size, (void**)&controlStruct, VX_READ_AND_WRITE);
-
 
             if (status != VX_SUCCESS)
             {
@@ -56,7 +55,9 @@ namespace RW
             {
                 if (kernel != nullptr)
                 {
-                    kernel->KernelInitialize((RW::CORE::tstInitialiseControlStruct*) controlStruct);
+                    tenStatus ret = kernel->KernelInitialize((RW::CORE::tstInitialiseControlStruct*) controlStruct);
+                    if (ret != tenStatus::nenSuccess)
+                        return VX_FAILURE;
                 }
                 else
                 {
@@ -66,6 +67,7 @@ namespace RW
             catch (...)
             {
                 //Todo Error log
+                status = VX_FAILURE;
             }
             vxCommitArrayRange(kernenArray, 0, 1, kernel);
             vxCommitArrayRange(controlStructArray, 0, 1, controlStruct);
@@ -104,7 +106,7 @@ namespace RW
             {
                 return VX_FAILURE;
             }
-            RW::VG::tstMyDeinitialiseControlStruct *controlStruct = nullptr;
+            RW::CORE::tstDeinitialiseControlStruct *controlStruct = nullptr;
             vxAccessArrayRange(controlStructArray, 0, 1, &size, (void**)&controlStruct, VX_READ_AND_WRITE);
 
             try
@@ -174,7 +176,7 @@ namespace RW
                 return VX_FAILURE;
             }
             
-            RW::VG::tstMyControlStruct *controlStruct = nullptr;
+            RW::CORE::tstControlStruct *controlStruct = nullptr;
             vxAccessArrayRange(controlStructArray, 0, 1, &size, (void**)&controlStruct, VX_READ_AND_WRITE);
 
 

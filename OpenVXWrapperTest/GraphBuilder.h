@@ -22,8 +22,11 @@ namespace RW
             ~GraphBuilder();
             tenStatus BuildNode(KernelManager *CurrentKernelManager,
                 tstInitialiseControlStruct* InitialiseControlStruct,
+                size_t size1,
                 tstControlStruct *ControlStruct,
+                size_t size2,
                 tstDeinitialiseControlStruct *DeinitialiseControlStruct,
+                size_t size3,
                 tenSubModule SubModule);
         };
     }

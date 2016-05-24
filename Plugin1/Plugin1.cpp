@@ -4,7 +4,7 @@
 #endif
 
 namespace RW{
-	namespace VG{
+    namespace TEST{
         Plugin1::Plugin1(std::shared_ptr<spdlog::logger> Logger) :
             RW::CORE::AbstractModule(Logger)
 		{

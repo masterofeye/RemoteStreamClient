@@ -1,15 +1,19 @@
 #include <iostream>
 #include <OpenVXWrapper.h>
 #include "ModuleLoader.hpp"
+/*Modules*/
+#include "IMP_ConvColorFrames.hpp"
 #include "Plugin1.hpp"
 #include "GraphBuilder.h"
 #include "ENC_CudaInterop.hpp"
+#include "VideoGrabberSimu.hpp"
+
 #include "HighResolution\HighResClock.h"
 #include "spdlog\spdlog.h"
 
 #include <QApplication>
 
-#define DEBUG 1
+#define TRACE 1
 #define TRACE_PERFORMANCE
 
 void logtest()
@@ -32,8 +36,8 @@ int main(int argc, char* argv[])
         spdlog::set_level(spdlog::level::info);
 #endif
 
-
-        auto file_logger = spdlog::rotating_logger_mt("file_logger", (qApp->applicationDirPath() + "/logfile.log").toStdString(), 1048576 * 5, 3);
+        auto file_logger = spdlog::stdout_logger_mt("file_logger");
+        //auto file_logger = spdlog::rotating_logger_mt("file_logger", (qApp->applicationDirPath() + "/logfile.log").toStdString(), 1048576 * 5, 3);
         file_logger->debug("******************");
         file_logger->debug("*Applicationstart*");
         file_logger->debug("******************");
@@ -61,13 +65,57 @@ int main(int argc, char* argv[])
 
                 RW::CORE::GraphBuilder builder(&list, file_logger, &graph, &context);
 
-                RW::VG::tstMyInitialiseControlStruct initControl;
-                RW::VG::tstMyControlStruct control;
-                RW::VG::tstMyDeinitialiseControlStruct deinitControl;
+                RW::VG::tstVideoGrabberInitialiseControlStruct videoGrabberInitialiseControlStruct;
+                videoGrabberInitialiseControlStruct.enColorSpace = RW::VG::nenRGB;
+                videoGrabberInitialiseControlStruct.nFPS = 30;
+                videoGrabberInitialiseControlStruct.nFrameHeight = 1920;
+                videoGrabberInitialiseControlStruct.nFrameWidth = 1080;
+                videoGrabberInitialiseControlStruct.nNumberOfFrames = 1000;
+                videoGrabberInitialiseControlStruct.sFileName = "c:\test.txt";
 
-                builder.BuildNode(&kernelManager, &initControl, &control, &deinitControl, RW::CORE::tenSubModule::nenVideoGrabber_SIMU);
-                builder.BuildNode(&kernelManager, &initControl, &control, &deinitControl, RW::CORE::tenSubModule::nenGraphic_Color);
-                builder.BuildNode(&kernelManager, &initControl, &control, &deinitControl, RW::CORE::tenSubModule::nenEncode_NVIDIA);
+                RW::VG::tstVideoGrabberControlStruct videoGrabberControlStruct;
+                RW::VG::tstVideoGrabberDeinitialiseControlStruct videoGrabberDeinitialiseControlStruct;
+
+                RW::IMP::tstMyInitialiseControlStruct impInitialiseControlStruct;
+                impInitialiseControlStruct.bNeedConversion = false;
+                RW::IMP::tstInputParams test = { 0, 0, nullptr };
+                impInitialiseControlStruct.cInput = RW::IMP::cInputBase(test);
+                RW::IMP::tstMyControlStruct impControlStruct;
+                RW::IMP::tstMyDeinitialiseControlStruct impDeinitialiseControlStruct;
+
+                RW::ENC::tstMyInitialiseControlStruct encodeInitialiseControlStruct;
+                RW::ENC::tstMyControlStruct encodeControlStruct;
+                RW::ENC::tstMyDeinitialiseControlStruct encodeDeinitialiseControlStruct;
+
+                if (builder.BuildNode(&kernelManager,
+                    &videoGrabberInitialiseControlStruct,
+                    sizeof(RW::VG::tstVideoGrabberInitialiseControlStruct),
+                    &videoGrabberControlStruct,
+                    sizeof(RW::VG::tstVideoGrabberControlStruct),
+                    &videoGrabberDeinitialiseControlStruct,
+                    sizeof(RW::VG::tstVideoGrabberDeinitialiseControlStruct), 
+                    RW::CORE::tenSubModule::nenVideoGrabber_SIMU) != RW::tenStatus::nenSuccess)
+                    file_logger->error("nenVideoGrabber_SIMU couldn't build correct");
+                
+                if (builder.BuildNode(&kernelManager, 
+                    &impInitialiseControlStruct, 
+                    sizeof(RW::IMP::tstMyInitialiseControlStruct), 
+                    &impControlStruct, 
+                    sizeof(RW::IMP::tstMyControlStruct), 
+                    &impDeinitialiseControlStruct, 
+                    sizeof(RW::IMP::tstMyDeinitialiseControlStruct), 
+                    RW::CORE::tenSubModule::nenGraphic_Color) != RW::tenStatus::nenSuccess)
+                    file_logger->error("nenGraphic_Color couldn't build correct");
+                
+                if (builder.BuildNode(&kernelManager, 
+                    &encodeInitialiseControlStruct, 
+                    sizeof(RW::ENC::tstMyInitialiseControlStruct),
+                    &encodeControlStruct, 
+                    sizeof(RW::ENC::tstMyControlStruct),
+                    &encodeDeinitialiseControlStruct,
+                    sizeof(RW::ENC::tstMyDeinitialiseControlStruct),
+                    RW::CORE::tenSubModule::nenEncode_NVIDIA) != RW::tenStatus::nenSuccess)
+                    file_logger->error("nenEncode_NVIDIA couldn't build correct");
 
                 if (graph.VerifyGraph() == RW::tenStatus::nenSuccess)
                 {

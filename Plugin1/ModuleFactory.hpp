@@ -11,7 +11,7 @@ namespace RW
 		class AbstractModule;
 	}
 
-	namespace VG{
+    namespace TEST{
 
 		class ModuleFactory : public CORE::AbstractModuleFactory
 		{

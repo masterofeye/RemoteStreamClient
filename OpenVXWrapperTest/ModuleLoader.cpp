@@ -32,12 +32,11 @@ namespace RW{
                 m_Logger->error("No plugins found. Path: ") << pluginsDir.absolutePath().toStdString();
             }
             //TODO Duplikate müssen gefiltert werden
-
 			foreach(QString fileName, pluginsDir.entryList(QDir::Files))
             {
 				QPluginLoader loader(pluginsDir.absoluteFilePath(fileName));
 				if (loader.load())
-				{
+                {
 					QObject *plugin = loader.instance();
 					if (plugin != NULL)
                     {
@@ -62,30 +61,32 @@ namespace RW{
                                 m_Logger->debug("nenEncode_NVIDIA loaded");
                                 break; 
 							case tenModule::enGraphic:
-                                switch (module->SubModulType())
+                                module = moduleFactory->Module(tenSubModule::nenGraphic_Color);
+                                if (module == nullptr)
+                                    m_Logger->error("nenGraphic_Color module coudn't load correct.");
+                                else
                                 {
-                                case tenSubModule::nenGraphic_Color:
-                                    module = moduleFactory->Module(tenSubModule::nenGraphic_Color);
-                                    if (module == nullptr)
-                                        m_Logger->error("Colorspace conversion module coudn't load correct.");
-                                    break;
                                     m_Logger->debug("nenGraphic_Color loaded");
-                                case tenSubModule::nenGraphic_Crop:
-                                    module = moduleFactory->Module(tenSubModule::nenGraphic_Crop);
-                                    if (module == nullptr)
-                                        m_Logger->error("Colorspace conversion module coudn't load correct.");
-                                    m_Logger->debug("nenGraphic_Crop loaded");
-                                    break;
-                                case tenSubModule::nenGraphic_Merge:
-                                    module = moduleFactory->Module(tenSubModule::nenGraphic_Merge);
-                                    if (module == nullptr)
-                                        m_Logger->error("Colorspace conversion module coudn't load correct.");
-                                    m_Logger->debug("nenGraphic_Merge loaded");
-                                    break;
-                                default:
-                                    m_Logger->alert("No module found.");
-                                    break;
+                                    Pluginlist->append(module);
                                 }
+
+                                module = moduleFactory->Module(tenSubModule::nenGraphic_Crop);
+                                if (module == nullptr)
+                                    m_Logger->error("nenGraphic_Crop module coudn't load correct.");
+                                else
+                                {
+                                    m_Logger->debug("nenGraphic_Crop loaded");
+                                    Pluginlist->append(module);
+                                }
+                                module = moduleFactory->Module(tenSubModule::nenGraphic_Merge);
+                                if (module == nullptr)
+                                    m_Logger->error("nenGraphic_Merge module coudn't load correct.");
+                                else
+                                {
+                                    m_Logger->debug("nenGraphic_Merge loaded");
+                                    Pluginlist->append(module);
+                                }
+                                break;
 							case tenModule::enDecoder:
 								module = moduleFactory->Module(tenSubModule::nenDecoder_INTEL);
 								if (module == nullptr)
@@ -99,7 +100,7 @@ namespace RW{
                                 m_Logger->debug("nenPlayback_Simple loaded");
 								break;
 							default:
-								m_Logger->alert("No module found.");
+								m_Logger->alert("This module wasn't found.");
 								break;
 
 							}
@@ -107,9 +108,8 @@ namespace RW{
 							Pluginlist->append(module);
 						}
 					}
-				}
+                }
 			}
-
             m_Logger->debug("Amount of loaded modules: ") << Pluginlist->count();
 		}
 	}

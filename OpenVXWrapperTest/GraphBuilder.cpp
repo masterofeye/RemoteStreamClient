@@ -22,8 +22,11 @@ namespace RW
 
         tenStatus GraphBuilder::BuildNode(KernelManager *CurrentKernelManager,
             tstInitialiseControlStruct* InitialiseControlStruct,
+            size_t size1,
             tstControlStruct *ControlStruct,
+            size_t size2,
             tstDeinitialiseControlStruct *DeinitialiseControlStruct,
+            size_t size3,
             tenSubModule SubModule
             )
         {
@@ -36,12 +39,20 @@ namespace RW
             while (i.hasNext())
             {
                 AbstractModule* currentModule = i.next();
+                if (currentModule == nullptr)
+                    break;
                 if (currentModule->SubModulType() == SubModule)
                 {
                     module = currentModule;
                     break;
                 }
             }
+            if (module == nullptr)
+            {
+                m_Logger->error() << "Module is missing";
+                return tenStatus::nenError;
+            }
+
 
 
             RW::CORE::Kernel kernel(m_Context, "MyKernel", NVX_KERNEL_TEST, 4, module, m_Logger);
@@ -93,21 +104,21 @@ namespace RW
                         return status;
                     }
 
-                    status = node.SetParameterByIndex(1, (void*)&InitialiseControlStruct, sizeof(InitialiseControlStruct), m_Context);
+                    status = node.SetParameterByIndex(1, (void*)&InitialiseControlStruct, size1, m_Context);
                     if (status == tenStatus::nenError)
                     {
                         m_Logger->error("Set parameter for node failed(2).");
                         return status;
                     }
 
-                    status = node.SetParameterByIndex(2, (void*)&ControlStruct, sizeof(ControlStruct), m_Context);
+                    status = node.SetParameterByIndex(2, (void*)&ControlStruct, size2, m_Context);
                     if (status == tenStatus::nenError)
                     {
                         m_Logger->error("Set parameter for node failed(3).");
                         return status;
                     }
 
-                    status = node.SetParameterByIndex(3, (void*)&DeinitialiseControlStruct, sizeof(DeinitialiseControlStruct), m_Context);
+                    status = node.SetParameterByIndex(3, (void*)&DeinitialiseControlStruct, size3, m_Context);
                     if (status == tenStatus::nenError)
                     {
                         m_Logger->error("Set parameter for node failed(4).");

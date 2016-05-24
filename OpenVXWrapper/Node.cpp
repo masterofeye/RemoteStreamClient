@@ -159,7 +159,10 @@ namespace RW
             }
             vx_enum en = vxRegisterUserStruct((*CurrentContext)(), StructSize);
             vx_array testArray = vxCreateArray((*CurrentContext)(), en, 1);
-            vxAddArrayItems(testArray, 1, Value, StructSize);
+            vx_status res = vxAddArrayItems(testArray, 1, Value, StructSize);
+            if (res != VX_SUCCESS)
+                return tenStatus::nenError;
+
             if (vxSetParameterByIndex(m_Node, Index, (vx_reference)testArray) != VX_SUCCESS)
             {
                 m_Logger->error("Couldn't add parameter to Node. ") << "Index: " << Index;

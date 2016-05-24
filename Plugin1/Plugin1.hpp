@@ -7,7 +7,7 @@
 
 namespace RW
 {
-	namespace VG{
+	namespace TEST{
 
         typedef struct stMyInitialiseControlStruct : public CORE::tstInitialiseControlStruct
         {
