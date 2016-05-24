@@ -28,59 +28,29 @@ namespace RW{
 		tenStatus IMP_MergeFrames::Initialise(CORE::tstInitialiseControlStruct * InitialiseControlStruct)
 		{
 			tenStatus enStatus = tenStatus::nenSuccess;
-			stMyInitialiseControlStruct* data = static_cast<stMyInitialiseControlStruct*>(InitialiseControlStruct);
 
-			if (data == NULL)
-			{
-				m_Logger->error("Initialise: Data of tstMyInitialiseControlStruct is empty!");
-				enStatus = tenStatus::nenError;
-				return enStatus;
-			}
+            m_Logger->debug("Initialise nenGraphic_Merge");
 
-			cInputBase input1 = *(data->cInput._pInput1);
-			cInputBase input2 = *(data->cInput._pInput2);
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
+#endif
 
-			if (data->bNeedConversion)
-			{
-				IMP_Base impBase1 = IMP_Base();
-				enStatus = impBase1.Initialise(&input1);
-				if (enStatus != tenStatus::nenSuccess)
-				{
-					m_Logger->error("Initialise: impBase.Initialise did not succeed!");
-				}
-
-				m_cuMat1 = impBase1.cuGetGpuMat();
-
-				if (enStatus == tenStatus::nenSuccess)
-				{
-					IMP_Base impBase2 = IMP_Base();
-					enStatus = impBase2.Initialise(&input1);
-					if (enStatus != tenStatus::nenSuccess)
-					{
-						m_Logger->error("Initialise: impBase.Initialise did not succeed!");
-					}
-
-					m_cuMat2 = impBase2.cuGetGpuMat();
-				}
-			}
-			else
-			{
-				m_cuMat1 = input1._gMat;
-				m_cuMat2 = input2._gMat;
-			}
-
-			if (m_cuMat1.data == NULL || m_cuMat2.data == NULL)
-			{
-				m_Logger->error("Initialise: Data of cuMat is empty! Initialise failed!");
-			}
-
-			m_Logger->debug("Initialise");
-			return enStatus;
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
+            file_logger->trace() << "Time to Initialise for nenGraphic_Merge module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+#endif
+            return enStatus;
 		}
 
 		tenStatus IMP_MergeFrames::DoRender(CORE::tstControlStruct * ControlStruct)
 		{
 			tenStatus enStatus = tenStatus::nenSuccess;
+
+            m_Logger->debug("DoRender nenGraphic_Merge");
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
+#endif
+
 			stMyControlStruct* data = static_cast<stMyControlStruct*>(ControlStruct);
 
 			if (data == NULL)
@@ -89,60 +59,69 @@ namespace RW{
 				enStatus = tenStatus::nenError;
 				return enStatus;
 			}
-			if (m_cuMat1.data == NULL || m_cuMat2.data == NULL)
-			{
-				m_Logger->error("DoRender: Data of cuMat is empty!");
-				enStatus = tenStatus::nenError;
-				return enStatus;
-			}
+            cInputBase input1 = *(data->cInput._pInput1);
+            cInputBase input2 = *(data->cInput._pInput2);
 
-			enStatus = ApplyMerge(m_cuMat1, m_cuMat2, &m_cuMat1);
-			if (enStatus != tenStatus::nenSuccess || m_cuMat1.data == NULL)
+            IMP_Base impBase1 = IMP_Base();
+            enStatus = impBase1.tensProcessInput(&input1);
+            if (enStatus != tenStatus::nenSuccess)
+            {
+                m_Logger->error("Initialise: impBase.Initialise did not succeed!");
+                return enStatus;
+            }
+
+            cv::cuda::GpuMat gMat1 = impBase1.cuGetGpuMat();
+
+            if (enStatus != tenStatus::nenSuccess)
+            {
+                return enStatus;
+            }
+            IMP_Base impBase2 = IMP_Base();
+            enStatus = impBase2.tensProcessInput(&input2);
+            if (enStatus != tenStatus::nenSuccess)
+            {
+                m_Logger->error("Initialise: impBase.Initialise did not succeed!");
+            }
+
+            cv::cuda::GpuMat gMat2 = impBase2.cuGetGpuMat();
+
+            enStatus = ApplyMerge(gMat1, gMat2, &gMat1);
+            if (enStatus != tenStatus::nenSuccess || gMat1.data == NULL)
 			{
 				m_Logger->error("DoRender: ApplyMerge did not succeed!");
-			}
+                return enStatus;
+            }
 
-			m_Logger->debug("DoRender");
-			return enStatus;
+            cOutputBase output = data->cOutput;
+
+            impBase1.vSetGpuMat(gMat1);
+            enStatus = impBase1.tensProcessOutput(&output);
+            if (enStatus != tenStatus::nenSuccess)
+            {
+                m_Logger->error("DoRender: impBase.tensProcessOutput did not succeed!");
+                return enStatus;
+            }
+            data->cOutput = output; //doppelt gemoppelt, ik
+
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
+            file_logger->trace() << "Time to DoRender for nenGraphic_Merge module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+#endif
+            return enStatus;
 		}
 
 		tenStatus IMP_MergeFrames::Deinitialise(CORE::tstDeinitialiseControlStruct *DeinitialiseControlStruct)
 		{
-			tenStatus enStatus = tenStatus::nenSuccess;
-			stMyDeinitialiseControlStruct* data = static_cast<stMyDeinitialiseControlStruct*>(DeinitialiseControlStruct);
+            m_Logger->debug("Deinitialise nenGraphic_Merge");
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
+#endif
 
-			if (data == NULL)
-			{
-				m_Logger->error("Deinitialise: Data of stMyDeinitialiseControlStruct is empty!");
-				enStatus = tenStatus::nenError;
-				return enStatus;
-			}
-			if (m_cuMat1.data == NULL)
-			{
-				m_Logger->error("Deinitialise: Data of cuMat is empty!");
-				enStatus = tenStatus::nenError;
-				return enStatus;
-			}
-
-			cOutputBase output = data->cOutput;
-
-			if (data->bNeedConversion)
-			{
-				IMP_Base impBase = IMP_Base();
-				impBase.vSetGpuMat(m_cuMat1);
-				enStatus = impBase.Deinitialise(&output);
-				if (enStatus != tenStatus::nenSuccess || output._pcuArray == NULL)
-				{
-					m_Logger->error("Deinitialise: impBase.Deinitialise did not succeed!");
-				}
-			}
-			else
-			{
-				*output._pgMat = m_cuMat1;
-			}
-
-			m_Logger->debug("Deinitialise");
-			return enStatus;
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
+            file_logger->trace() << "Time to Deinitialise for nenGraphic_Merge module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+#endif
+            return tenStatus::nenSuccess;
 		}
 
 		tenStatus IMP_MergeFrames::ApplyMerge(cv::cuda::GpuMat gMat1, cv::cuda::GpuMat gMat2, cv::cuda::GpuMat *pgMat)

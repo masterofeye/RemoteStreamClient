@@ -12,7 +12,9 @@ namespace RW
 			Q_OBJECT
 
 		private:
-			cv::cuda::GpuMat m_cuMat;
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point					m_tStart;
+#endif
 
 		public:
 

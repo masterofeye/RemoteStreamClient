@@ -62,14 +62,12 @@ namespace RW{
 
 
 		private:
-			//HANDLE											m_hInput;
 			CNvHWEncoder                                        *m_pNvHWEncoder;
 			uint32_t                                            m_uEncodeBufferCount;
 			CUcontext                                           m_cuContext;
 			CUmodule                                            m_cuModule;
 			CUfunction                                          m_cuInterleaveUVFunction;
 			CUdeviceptr                                         m_ChromaDevPtr[2];
-			//EncodeConfig                                      m_stEncoderInput;
 			EncodeBuffer                                        m_stEncodeBuffer[MAX_ENCODE_QUEUE];
 			ENC_Queue<EncodeBuffer>                             m_EncodeBufferQueue;
 			EncodeOutputBuffer                                  m_stEOSOutputBfr;

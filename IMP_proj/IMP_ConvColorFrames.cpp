@@ -33,70 +33,68 @@ namespace RW{
 		tenStatus IMP_ConvColorFrames::Initialise(CORE::tstInitialiseControlStruct * InitialiseControlStruct)
 		{
             m_Logger->debug("Initialise nenGraphic_Color");
+
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
 #endif
-			tenStatus enStatus = tenStatus::nenSuccess;
-			stMyInitialiseControlStruct* data = static_cast<stMyInitialiseControlStruct*>(InitialiseControlStruct);
-
-			if (data == NULL)
-			{
-				m_Logger->error("Initialise: Data of tstMyInitialiseControlStruct is empty!");
-				enStatus = tenStatus::nenError;
-				return enStatus;
-			}
-
-			cInputBase input = data->cInput;
-
-			if (data->bNeedConversion)
-			{
-				IMP_Base impBase = IMP_Base();
-				enStatus = impBase.Initialise(&input);
-				if (enStatus != tenStatus::nenSuccess)
-				{
-					m_Logger->error("Initialise: impBase.Initialise did not succeed!");
-				}
-
-				m_cuMat = impBase.cuGetGpuMat();
-			}
-			else
-			{
-				m_cuMat = input._gMat;
-			}
-
-			if (m_cuMat.data == NULL)
-			{
-				m_Logger->error("Initialise: Data of cuMat is empty! Initialise failed!");
-			}
 
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
-            m_Logger->trace() << "Time to Initialise nenGraphic_Color module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+            file_logger->trace() << "Time to Initialise for nenGraphic_Color module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
-			return enStatus;
+            return tenStatus::nenSuccess;
 		}
 
 		tenStatus IMP_ConvColorFrames::DoRender(CORE::tstControlStruct * ControlStruct)
 		{
-            m_Logger->debug("DoRender nenGraphic_Color");
 			tenStatus enStatus = tenStatus::nenSuccess;
+
+            m_Logger->debug("DoRender nenGraphic_Color");
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
 #endif
 
-			if (m_cuMat.data == NULL)
-			{
-				m_Logger->error("DoRender: Data of cuMat is empty!");
-				enStatus = tenStatus::nenError;
-				return enStatus;
-			}
+            stMyControlStruct* data = static_cast<stMyControlStruct*>(ControlStruct);
 
-			cv::cuda::cvtColor(m_cuMat, m_cuMat, cv::COLOR_RGB2YUV);
-			if (m_cuMat.data == NULL)
+            if (data == NULL)
+            {
+                m_Logger->error("DoRender: Data of stMyControlStruct is empty!");
+                enStatus = tenStatus::nenError;
+                return enStatus;
+            }
+            cInputBase input = data->cInput;
+
+            IMP_Base impBase = IMP_Base();
+            enStatus = impBase.tensProcessInput(&input);
+            if (enStatus != tenStatus::nenSuccess)
+            {
+                m_Logger->error("DoRender: impBase.tensProcessInput did not succeed!");
+            }
+
+            cv::cuda::GpuMat gMat = impBase.cuGetGpuMat();
+            if (gMat.data == NULL)
+            {
+                enStatus = tenStatus::nenError;
+                m_Logger->error("DoRender: GpuMat is NULL!");
+                return enStatus;
+            }
+
+            cv::cuda::cvtColor(gMat, gMat, cv::COLOR_RGB2YUV);
+            if (gMat.data == NULL)
 			{
 				m_Logger->error("DoRender: Data of cuMat is empty! cvtColor did not succeed!");
 				enStatus = tenStatus::nenError;
 			}
+
+            cOutputBase output = data->cOutput;
+
+            impBase.vSetGpuMat(gMat);
+            enStatus = impBase.tensProcessOutput(&output);
+            if (enStatus != tenStatus::nenSuccess)
+            {
+                m_Logger->error("DoRender: impBase.tensProcessOutput did not succeed!");
+            }
+
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
             m_Logger->trace() << "Time to DoRender for nenGraphic_Color module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
@@ -104,43 +102,14 @@ namespace RW{
 
 			return enStatus;
 		}
+
 		tenStatus IMP_ConvColorFrames::Deinitialise(CORE::tstDeinitialiseControlStruct *DeinitialiseControlStruct)
 		{
             m_Logger->debug("Deinitialise nenGraphic_Color");
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
 #endif
-			tenStatus enStatus = tenStatus::nenSuccess;
-			stMyDeinitialiseControlStruct* data = static_cast<stMyDeinitialiseControlStruct*>(DeinitialiseControlStruct);
-			if (data == NULL)
-			{
-				m_Logger->error("Deinitialise: Data of stMyDeinitialiseControlStruct is empty!");
-				enStatus = tenStatus::nenError;
-				return enStatus;
-			}
-			if (m_cuMat.data == NULL)
-			{
-				m_Logger->error("Deinitialise: Data of cuMat is empty!");
-				enStatus = tenStatus::nenError;
-				return enStatus;
-			}
 
-			cOutputBase output = data->cOutput;
-
-			if (data->bNeedConversion)
-			{
-				IMP_Base impBase = IMP_Base();
-				impBase.vSetGpuMat(m_cuMat);
-				enStatus = impBase.Deinitialise(&output);
-				if (enStatus != tenStatus::nenSuccess || output._pcuArray == NULL)
-				{
-					m_Logger->error("Deinitialise: impBase.Deinitialise did not succeed!");
-				}
-			}
-			else
-			{
-				*output._pgMat = m_cuMat;
-			}
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
             m_Logger->trace() << "Time to deinitialise nenGraphic_Color module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";

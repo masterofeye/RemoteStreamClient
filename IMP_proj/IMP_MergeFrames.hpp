@@ -12,8 +12,10 @@ namespace RW
 			Q_OBJECT
 
 		private:
-			cv::cuda::GpuMat m_cuMat1;
-			cv::cuda::GpuMat m_cuMat2;
+            tstRectStruct *m_pstRect;
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point					m_tStart;
+#endif
 
 			tenStatus ApplyMerge(cv::cuda::GpuMat gMat1, cv::cuda::GpuMat gMat2, cv::cuda::GpuMat *pgMat);
 

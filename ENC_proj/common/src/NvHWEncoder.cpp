@@ -594,7 +594,6 @@ NVENCSTATUS CNvHWEncoder::NvEncReconfigureEncoder(const NvEncPictureCommand *pEn
 
 CNvHWEncoder::CNvHWEncoder()
 {
-    m_hEncoder = NULL;
     m_bEncoderInitialized = false;
     m_pEncodeAPI = NULL;
     m_hinstLib = NULL;
@@ -603,6 +602,7 @@ CNvHWEncoder::CNvHWEncoder()
     m_uCurHeight = 0;
     m_uMaxWidth = 0;
     m_uMaxHeight = 0;
+    m_hEncoder = new HANDLE();
 
     memset(&m_stCreateEncodeParams, 0, sizeof(m_stCreateEncodeParams));
     SET_VER(m_stCreateEncodeParams, NV_ENC_INITIALIZE_PARAMS);
@@ -618,6 +618,10 @@ CNvHWEncoder::~CNvHWEncoder()
     {
         delete m_pEncodeAPI;
         m_pEncodeAPI = NULL;
+    }
+    if (m_hEncoder)
+    {
+        delete m_hEncoder;
     }
 
     if (m_hinstLib)
@@ -883,10 +887,10 @@ NVENCSTATUS CNvHWEncoder::CreateEncoder(const EncodeConfig *pEncCfg)
         }
     }
 
-    if (pEncCfg->qpDeltaMapFile)
-    {
-        m_stEncodeConfig.rcParams.enableExtQPDeltaMap = 1;
-    }
+    //if (pEncCfg->qpDeltaMapFile)
+    //{
+    //    m_stEncodeConfig.rcParams.enableExtQPDeltaMap = 1;
+    //}
     if (pEncCfg->codec == NV_ENC_H264)
     {
         m_stEncodeConfig.encodeCodecConfig.h264Config.idrPeriod = pEncCfg->gopLength;

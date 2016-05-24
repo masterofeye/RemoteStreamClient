@@ -42,8 +42,8 @@ namespace RW
             QVideoWidget *videoWidget = new QVideoWidget;
             m_qbArray = new QByteArray();
 
-            QAbstractButton *openButton = new QPushButton(tr("Open..."));
-            connect(openButton, SIGNAL(clicked()), this, SLOT(openFile()));
+            //QAbstractButton *openButton = new QPushButton(tr("Open..."));
+            //connect(openButton, SIGNAL(clicked()), this, SLOT(openFile()));
 
             m_pqWidget = new QWidget();
             m_qabPlay = new QPushButton;
@@ -64,7 +64,7 @@ namespace RW
 
             QBoxLayout *controlLayout = new QHBoxLayout;
             controlLayout->setMargin(0);
-            controlLayout->addWidget(openButton);
+            //controlLayout->addWidget(openButton);
             controlLayout->addWidget(m_qabPlay);
             controlLayout->addWidget(m_qsPosition);
 
@@ -116,18 +116,6 @@ namespace RW
 
             m_Logger->debug("Deinitialise");
             return enStatus;
-        }
-
-        void VideoPlayer::openFile()
-        {
-            m_qlError->setText("");
-
-            QString fileName = QFileDialog::getOpenFileName(m_pqWidget, tr("Open Movie"), QDir::homePath());
-
-            if (!fileName.isEmpty()) {
-                m_qmPlayer.setMedia(QUrl::fromLocalFile(fileName));
-                m_qabPlay->setEnabled(true);
-            }
         }
 
         void VideoPlayer::play()

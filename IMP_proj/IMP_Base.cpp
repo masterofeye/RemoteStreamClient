@@ -5,27 +5,39 @@
 namespace RW{
 	namespace IMP{
 
-		tenStatus IMP_Base::Initialise(cInputBase *pInput)
+		tenStatus IMP_Base::tensProcessInput(cInputBase *pInput)
 		{
-			tenStatus enStatus = tenStatus::nenSuccess;
-			int iWidth = pInput->_stParams.iWidth;
-			int iHeight = pInput->_stParams.iWidth;
-			void* pvImg = pInput->_stParams.pvImg;
+            if (pInput->_pstParams != NULL)
+            {
+                tenStatus enStatus = tenStatus::nenSuccess;
+                int iWidth = pInput->_pstParams->iWidth;
+                int iHeight = pInput->_pstParams->iWidth;
+                void* pvImg = pInput->_pstParams->pvImg;
 
-			if (iWidth == 0 || iHeight == 0)
-			{
-				enStatus = tenStatus::nenError;
-			}
+                if (iWidth == 0 || iHeight == 0)
+                {
+                    enStatus = tenStatus::nenError;
+                }
 
-			if (pvImg != NULL)
-			{
-				enStatus = tensConvertArrayToGpuMat(iWidth, iHeight, pvImg, &m_cuGpuMat);
-			}
-			else
-			{
-				enStatus = tenStatus::nenError;
-			}
-			return enStatus;
+                if (pvImg != NULL)
+                {
+                    enStatus = tensConvertArrayToGpuMat(iWidth, iHeight, pvImg, &m_cuGpuMat);
+                }
+                else
+                {
+                    enStatus = tenStatus::nenError;
+                }
+                return enStatus;
+            }
+            else if (pInput->_pgMat != NULL)
+            {
+                m_cuGpuMat = *pInput->_pgMat;
+                return tenStatus::nenSuccess;
+            }
+            else
+            {
+                return tenStatus::nenError;
+            }
 		}
 
 		tenStatus IMP_Base::tensConvertArrayToGpuMat(int iWidth, int iHeight, void *pvImg, cv::cuda::GpuMat *pgMat)
@@ -50,20 +62,32 @@ namespace RW{
 			return enStatus;
 		}
 
-		tenStatus IMP_Base::Deinitialise(cOutputBase *pOutput)
+        tenStatus IMP_Base::tensProcessOutput(cOutputBase *pOutput)
 		{
-			tenStatus enStatus = tenStatus::nenSuccess;
-			cudaArray *pcuArr = NULL;
-			cudaError cuErr = cudaMemcpy2DToArray(pcuArr, 0, 0, m_cuGpuMat.data, m_cuGpuMat.step * sizeof(size_t), m_cuGpuMat.cols*sizeof(int), m_cuGpuMat.rows*sizeof(int), cudaMemcpyDeviceToDevice);
-			if (pcuArr == NULL || cuErr != cudaSuccess)
-			{
-				enStatus = tenStatus::nenError;
-			}
-			else
-			{
-				pOutput->_pcuArray = pcuArr;
-			}
-			return enStatus;
-		}
+            if (pOutput->_pcuArray != NULL)
+            {
+                tenStatus enStatus = tenStatus::nenSuccess;
+                cudaArray *pcuArr = NULL;
+                cudaError cuErr = cudaMemcpy2DToArray(pcuArr, 0, 0, m_cuGpuMat.data, m_cuGpuMat.step * sizeof(size_t), m_cuGpuMat.cols*sizeof(int), m_cuGpuMat.rows*sizeof(int), cudaMemcpyDeviceToDevice);
+                if (pcuArr == NULL || cuErr != cudaSuccess)
+                {
+                    enStatus = tenStatus::nenError;
+                }
+                else
+                {
+                    pOutput->_pcuArray = pcuArr;
+                }
+                return enStatus;
+            }
+            else if (pOutput->_pgMat != NULL)
+            {
+                *pOutput->_pgMat = m_cuGpuMat;
+                return tenStatus::nenSuccess;
+            }
+            else
+            {
+                return tenStatus::nenError;;
+            }
+        }
 	}
 }
