@@ -2,6 +2,8 @@
 
 #include <opencv2\videoio.hpp>
 #include "opencv2/opencv.hpp"
+
+#include "HighResolution\HighResClock.h"
 using namespace cv;
 
 namespace RW
@@ -25,14 +27,18 @@ namespace RW
 
         tenStatus VideoGrabberSimu::Initialise(CORE::tstInitialiseControlStruct * pInitialiseControlStruct)
 		{
-			m_Logger->debug("Initialise");
+
+			m_Logger->debug("Initialise nenVideoGrabber_SIMU");
 			if (pInitialiseControlStruct == NULL)
 			{
 				m_Logger->critical("VideoGrabberSimu::Initialise - pInitialiseControlStruct parameter is NULL");
 				return tenStatus::nenError;
 			}
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
+#endif
 
-			auto pControlStruct = (stVideoGrabberInitialiseControlStruct*)pInitialiseControlStruct;
+			auto pControlStruct = (tstVideoGrabberInitialiseControlStruct*)pInitialiseControlStruct;
 			auto sFileName = pControlStruct->sFileName;
 			m_videoCapture.open(sFileName);
 			if (m_videoCapture.isOpened())
@@ -44,6 +50,10 @@ namespace RW
 				pControlStruct->nNumberOfFrames = m_videoCapture.get(CAP_PROP_FRAME_COUNT);
 				pControlStruct->enColorSpace = nenRGB;
 				m_nFrameCounter = 0;
+#ifdef TRACE_PERFORMANCE
+                RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
+                file_logger->trace() << "Time to load Plugins: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+#endif
 				return tenStatus::nenSuccess;
 			}
 			else
@@ -51,10 +61,15 @@ namespace RW
 				m_Logger->critical("Cannot open " + sFileName);
 				return tenStatus::nenError;
 			}
+
         }
 
         tenStatus VideoGrabberSimu::DoRender(CORE::tstControlStruct * pControlStruct) 
         {
+            m_Logger->debug("DoRender: nenVideoGrabber_SIMU");
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
+#endif
 			if (pControlStruct == NULL)
 			{
 				m_Logger->critical("VideoGrabberSimu::DoRender - pControlStruct is NULL");
@@ -73,6 +88,10 @@ namespace RW
 			if (!m_videoCapture.read(rawFrame))
 			{
 				m_Logger->info("VideoGrabberSimu::DoRender - end of the file");
+#ifdef TRACE_PERFORMANCE
+                RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
+                file_logger->trace() << "DoRender time for module nenVideoGrabber_SIMU: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+#endif
 				return tenStatus::nenSuccess;
 			}
 			else if (pControl->pData == NULL || pControl->nDataLength == 0)
@@ -93,14 +112,19 @@ namespace RW
 				memcpy(pControl->pData, rgbFrame.data, nActualDataLength);
 				pControl->nCurrentFrameNumber = m_nFrameCounter++;
 				pControl->nCurrentPositionMSec = m_videoCapture.get(CV_CAP_PROP_POS_MSEC);
+#ifdef TRACE_PERFORMANCE
+                RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
+                file_logger->trace() << "DoRender time for module nenVideoGrabber_SIMU: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+#endif
 				return tenStatus::nenSuccess;
 			}
-            m_Logger->debug("DoRender");
+
+
         }
 
         tenStatus VideoGrabberSimu::Deinitialise(CORE::tstDeinitialiseControlStruct *DeinitialiseControlStruct)
         {
-            m_Logger->debug("Deinitialise");
+            m_Logger->debug("Deinitialise nenVideoGrabber_SIMU");
 			m_videoCapture.release();
             return tenStatus::nenSuccess;
         }

@@ -35,6 +35,10 @@ namespace RW{
             enTest,
 		};
 
+        /*
+        @brief List of SubModule types in a module
+        @note don't forget to adapt also the string representation in the Util class!!
+        */
 		enum class tenSubModule
 		{
 			nenVideoGrabber_WC,
@@ -54,6 +58,8 @@ namespace RW{
 			nenReceive_Productive,
             nenPlayback_Simple
 		};
+
+
 
 		enum class tenStatusVX
 		{
@@ -117,6 +123,32 @@ namespace RW{
                 std::wstring wstring(NPath);
                 return std::string (wstring.begin(), wstring.end());
             }
+
+            static std::string ModuleName(tenSubModule SubModule)
+            {
+                std::string ModuleName[] =
+                {
+                    { "nenVideoGrabber_WC" },
+                    { "nenVideoGrabber_FG_USB" },
+                    { "nenVideoGrabber_SIMU" },
+                    { "nenGraphic_Color" },
+                    { "nenGraphic_Crop" },
+                    { "nenGraphic_Merge" },
+                    { "nenEncode_NVIDIA" },
+                    { "nenEncode_INTEL" },
+                    { "nenDecoder_NVIDIA" },
+                    { "nenDecoder_INTEL" },
+                    { "nenStream_Simple" },
+                    { "nenStream_Productive" },
+                    { "nenReceive_Simple" },
+                    { "nenReceive_Productive" },
+                    { "nenPlayback_Simple" }
+                };
+
+                return ModuleName[((int)SubModule)-1];
+               
+            }
+
         };
 	}
 }

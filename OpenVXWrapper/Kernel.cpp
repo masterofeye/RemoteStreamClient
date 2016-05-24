@@ -1,6 +1,7 @@
 #include "Kernel.h"
 #include "Context.h"
-#include "Plugin1.hpp"
+#include "AbstractModule.hpp"
+
 namespace RW
 {
 	namespace CORE
@@ -41,8 +42,8 @@ namespace RW
 
             status = vxQueryParameter((vx_parameter)param[1], VX_PARAMETER_ATTRIBUTE_REF, &controlStructArray, sizeof(controlStructArray));
             RW::CORE::tstInitialiseControlStruct *controlStruct = nullptr;
-            vxAccessArrayRange(controlStructArray, 0, 1, &size, (void**)&controlStruct, VX_READ_AND_WRITE);
-
+            status = vxAccessArrayRange(controlStructArray, 0, 1, &size, (void**)&controlStruct, VX_READ_AND_WRITE);
+            
             if (status != VX_SUCCESS)
             {
                 //TODO log error and specific return value

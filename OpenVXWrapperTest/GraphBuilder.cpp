@@ -49,11 +49,12 @@ namespace RW
             }
             if (module == nullptr)
             {
-                m_Logger->error() << "Module is missing";
+                m_Logger->error() << "Module is missing" << Util::ModuleName(SubModule);
                 return tenStatus::nenError;
             }
-
-
+            m_Logger->debug("*************************");
+            m_Logger->debug(Util::ModuleName(SubModule));
+            m_Logger->debug("************************");
 
             RW::CORE::Kernel kernel(m_Context, "MyKernel", NVX_KERNEL_TEST, 4, module, m_Logger);
             if (kernel.IsInitialized())
@@ -103,22 +104,21 @@ namespace RW
                         m_Logger->error("Set parameter for node failed(1).");
                         return status;
                     }
-
-                    status = node.SetParameterByIndex(1, (void*)&InitialiseControlStruct, size1, m_Context);
+                    status = node.SetParameterByIndex(1, (void*)InitialiseControlStruct, size1, m_Context);
                     if (status == tenStatus::nenError)
                     {
                         m_Logger->error("Set parameter for node failed(2).");
                         return status;
                     }
 
-                    status = node.SetParameterByIndex(2, (void*)&ControlStruct, size2, m_Context);
+                    status = node.SetParameterByIndex(2, (void*)ControlStruct, size2, m_Context);
                     if (status == tenStatus::nenError)
                     {
                         m_Logger->error("Set parameter for node failed(3).");
                         return status;
                     }
 
-                    status = node.SetParameterByIndex(3, (void*)&DeinitialiseControlStruct, size3, m_Context);
+                    status = node.SetParameterByIndex(3, (void*)DeinitialiseControlStruct, size3, m_Context);
                     if (status == tenStatus::nenError)
                     {
                         m_Logger->error("Set parameter for node failed(4).");

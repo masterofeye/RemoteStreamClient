@@ -89,7 +89,7 @@ int main(int argc, char* argv[])
 
                 if (builder.BuildNode(&kernelManager,
                     &videoGrabberInitialiseControlStruct,
-                    sizeof(RW::VG::tstVideoGrabberInitialiseControlStruct),
+                    sizeof(videoGrabberInitialiseControlStruct),
                     &videoGrabberControlStruct,
                     sizeof(RW::VG::tstVideoGrabberControlStruct),
                     &videoGrabberDeinitialiseControlStruct,

@@ -53,12 +53,14 @@ namespace RW{
 								if (module == nullptr)
 									m_Logger->error("Virtual video source module coudn't load correct.");
                                 m_Logger->debug("nenVideoGrabber_SIMU loaded");
+                                Pluginlist->append(module);
 								break;
 							case tenModule::enEncoder:
 								module = moduleFactory->Module(tenSubModule::nenEncode_NVIDIA);
 								if (module == nullptr)
 									m_Logger->error("NVIDIA encoder module coudn't load correct.");
                                 m_Logger->debug("nenEncode_NVIDIA loaded");
+                                Pluginlist->append(module);
                                 break; 
 							case tenModule::enGraphic:
                                 module = moduleFactory->Module(tenSubModule::nenGraphic_Color);
@@ -92,20 +94,20 @@ namespace RW{
 								if (module == nullptr)
 									m_Logger->error("Intel Decode module coudn't load correct.");
                                 m_Logger->debug("nenDecoder_INTEL loaded");
+                                Pluginlist->append(module);
 								break;
 							case tenModule::enPlayback:
 								module = moduleFactory->Module(tenSubModule::nenPlayback_Simple);
 								if (module == nullptr)
 									m_Logger->error("Qt Playback module coudn't load correct.");
                                 m_Logger->debug("nenPlayback_Simple loaded");
+                                Pluginlist->append(module);
 								break;
 							default:
 								m_Logger->alert("This module wasn't found.");
 								break;
 
 							}
-
-							Pluginlist->append(module);
 						}
 					}
                 }
