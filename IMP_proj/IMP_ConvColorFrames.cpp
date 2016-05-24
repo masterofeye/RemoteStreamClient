@@ -4,6 +4,9 @@
 #include "opencv2/cudev/common.hpp"
 #include "opencv2/cudaimgproc.hpp"
 
+#ifdef TRACE_PERFORMANCE
+#include "HighResolution\HighResClock.h"
+#endif
 namespace RW{
 	namespace IMP{
 
@@ -29,6 +32,10 @@ namespace RW{
 
 		tenStatus IMP_ConvColorFrames::Initialise(CORE::tstInitialiseControlStruct * InitialiseControlStruct)
 		{
+            m_Logger->debug("Initialise nenGraphic_Color");
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
+#endif
 			tenStatus enStatus = tenStatus::nenSuccess;
 			stMyInitialiseControlStruct* data = static_cast<stMyInitialiseControlStruct*>(InitialiseControlStruct);
 
@@ -62,13 +69,20 @@ namespace RW{
 				m_Logger->error("Initialise: Data of cuMat is empty! Initialise failed!");
 			}
 
-			m_Logger->debug("Initialise");
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
+            file_logger->trace() << "Time to Initialise nenGraphic_Color module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+#endif
 			return enStatus;
 		}
 
 		tenStatus IMP_ConvColorFrames::DoRender(CORE::tstControlStruct * ControlStruct)
 		{
+            m_Logger->debug("DoRender nenGraphic_Color");
 			tenStatus enStatus = tenStatus::nenSuccess;
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
+#endif
 
 			if (m_cuMat.data == NULL)
 			{
@@ -83,12 +97,19 @@ namespace RW{
 				m_Logger->error("DoRender: Data of cuMat is empty! cvtColor did not succeed!");
 				enStatus = tenStatus::nenError;
 			}
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
+            file_logger->trace() << "Time to DoRender for nenGraphic_Color module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+#endif
 
-			m_Logger->debug("DoRender");
 			return enStatus;
 		}
 		tenStatus IMP_ConvColorFrames::Deinitialise(CORE::tstDeinitialiseControlStruct *DeinitialiseControlStruct)
 		{
+            m_Logger->debug("Deinitialise nenGraphic_Color");
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
+#endif
 			tenStatus enStatus = tenStatus::nenSuccess;
 			stMyDeinitialiseControlStruct* data = static_cast<stMyDeinitialiseControlStruct*>(DeinitialiseControlStruct);
 			if (data == NULL)
@@ -120,8 +141,10 @@ namespace RW{
 			{
 				*output._pgMat = m_cuMat;
 			}
-
-			m_Logger->debug("Deinitialise");
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
+            file_logger->trace() << "Time to deinitialise nenGraphic_Color module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+#endif
 			return enStatus;
 		}
 	}

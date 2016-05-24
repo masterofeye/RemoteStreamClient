@@ -8,6 +8,11 @@
 #include "common/inc/helper_string.h"
 #include "common/inc/dynlink_builtin_types.h"
 
+#ifdef TRACE_PERFORMANCE
+#include "HighResolution\HighResClock.h"
+#endif
+
+
 #if defined(__x86_64) || defined(AMD64) || defined(_M_AMD64) || defined(__aarch64__)
 #define PTX_FILE "preproc64_cuda.ptx"
 #else

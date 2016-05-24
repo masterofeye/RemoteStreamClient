@@ -8,9 +8,7 @@
 #include "AbstractModule.hpp"
 #include "Utils.h"
 
-#ifdef TRACE_PERFORMANCE
-#include "HighResolution\HighResClock.h"
-#endif
+
 
 #define MAX_ENCODE_QUEUE 32
 #define NV_ENC_CUDA 2
