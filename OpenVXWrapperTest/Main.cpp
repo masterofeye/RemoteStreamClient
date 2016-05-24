@@ -77,10 +77,14 @@ int main(int argc, char* argv[])
                 RW::VG::tstVideoGrabberDeinitialiseControlStruct videoGrabberDeinitialiseControlStruct;
 
                 RW::IMP::tstMyInitialiseControlStruct impInitialiseControlStruct;
-                impInitialiseControlStruct.bNeedConversion = false;
-                RW::IMP::tstInputParams test = { 0, 0, nullptr };
-                impInitialiseControlStruct.cInput = RW::IMP::cInputBase(test);
+                //RW::IMP::tstRectStruct test = { 0, 0, 100, 100 };
+                //impInitialiseControlStruct.stFrameRect = test; // only for nenGraphic_Crop
                 RW::IMP::tstMyControlStruct impControlStruct;
+                RW::IMP::tstInputParams test = { 0, 0, nullptr };
+                impControlStruct.cInput = RW::IMP::cInputBase(test);
+                cv::cuda::GpuMat *pgMat = new cv::cuda::GpuMat();
+                impControlStruct.cOutput = RW::IMP::cOutputBase(pgMat);
+
                 RW::IMP::tstMyDeinitialiseControlStruct impDeinitialiseControlStruct;
 
                 RW::ENC::tstMyInitialiseControlStruct encodeInitialiseControlStruct;
@@ -106,7 +110,9 @@ int main(int argc, char* argv[])
                     sizeof(RW::IMP::tstMyDeinitialiseControlStruct), 
                     RW::CORE::tenSubModule::nenGraphic_Color) != RW::tenStatus::nenSuccess)
                     file_logger->error("nenGraphic_Color couldn't build correct");
-                
+                delete pgMat;
+
+
                 if (builder.BuildNode(&kernelManager, 
                     &encodeInitialiseControlStruct, 
                     sizeof(RW::ENC::tstMyInitialiseControlStruct),
