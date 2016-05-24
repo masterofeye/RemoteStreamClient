@@ -71,7 +71,7 @@ namespace RW{
 
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
-            file_logger->trace() << "Time to Initialise nenGraphic_Color module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+            m_Logger->trace() << "Time to Initialise nenGraphic_Color module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
 			return enStatus;
 		}
@@ -99,7 +99,7 @@ namespace RW{
 			}
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
-            file_logger->trace() << "Time to DoRender for nenGraphic_Color module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+            m_Logger->trace() << "Time to DoRender for nenGraphic_Color module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
 
 			return enStatus;
@@ -143,7 +143,7 @@ namespace RW{
 			}
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
-            file_logger->trace() << "Time to deinitialise nenGraphic_Color module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+            m_Logger->trace() << "Time to deinitialise nenGraphic_Color module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
 			return enStatus;
 		}

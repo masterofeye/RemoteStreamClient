@@ -27,7 +27,8 @@ namespace RW
             size_t size2,
             tstDeinitialiseControlStruct *DeinitialiseControlStruct,
             size_t size3,
-            tenSubModule SubModule
+            tenSubModule SubModule,
+            RW::CORE::Kernel **Kernel
             )
         {
             tenStatus status = tenStatus::nenError;
@@ -56,49 +57,55 @@ namespace RW
             m_Logger->debug(Util::ModuleName(SubModule));
             m_Logger->debug("************************");
 
-            RW::CORE::Kernel kernel(m_Context, "MyKernel", NVX_KERNEL_TEST, 4, module, m_Logger);
-            if (kernel.IsInitialized())
+            *Kernel = new RW::CORE::Kernel(m_Context, "MyKernel", NVX_KERNEL_TEST, 4, module, m_Logger);
+            if ((*Kernel)->IsInitialized())
             {
-                status = CurrentKernelManager->AddParameterToKernel(&kernel, RW::CORE::tenDir::nenInput, 0);
+                status = CurrentKernelManager->AddParameterToKernel((*Kernel), RW::CORE::tenDir::nenInput, 0);
                 if (status == tenStatus::nenError)
                 {
                     m_Logger->error("Add parameter to Kernel failed(1).");
                     return status;
                 }
 
-                status = CurrentKernelManager->AddParameterToKernel(&kernel, RW::CORE::tenDir::nenInput, 1);
+                status = CurrentKernelManager->AddParameterToKernel((*Kernel), RW::CORE::tenDir::nenInput, 1);
                 if (status == tenStatus::nenError)
                 {
                     m_Logger->error("Add parameter to Kernel failed(2).");
                     return status;
                 }
 
-                status = CurrentKernelManager->AddParameterToKernel(&kernel, RW::CORE::tenDir::nenInput, 2);
+                status = CurrentKernelManager->AddParameterToKernel((*Kernel), RW::CORE::tenDir::nenInput, 2);
                 if (status == tenStatus::nenError)
                 {
                     m_Logger->error("Add parameter to Kernel failed(3).");
                     return status;
                 }
 
-                status = CurrentKernelManager->AddParameterToKernel(&kernel, RW::CORE::tenDir::nenInput, 3);
+                status = CurrentKernelManager->AddParameterToKernel((*Kernel), RW::CORE::tenDir::nenInput, 3);
                 if (status == tenStatus::nenError)
                 {
                     m_Logger->error("Add parameter to Kernel failed(4).");
                     return status;
                 }
 
-                status = CurrentKernelManager->FinalizeKernel(&kernel);
+                status = CurrentKernelManager->FinalizeKernel((*Kernel));
                 if (status == tenStatus::nenError)
                 {
                     m_Logger->error("Finalize of the Kernel failed.");
                     return status;
                 }
 
-                RW::CORE::Node node(m_Graph, &kernel, m_Logger);
+                (*Kernel)->SetParameter(1, InitialiseControlStruct);
+                (*Kernel)->SetParameter(2, ControlStruct);
+                (*Kernel)->SetParameter(3, DeinitialiseControlStruct);
+
+
+
+                RW::CORE::Node node(m_Graph, (*Kernel), m_Logger);
                 if (node.IsInitialized())
                 {
 
-                    status = node.SetParameterByIndex(0, (void*)&kernel, sizeof(RW::CORE::Kernel), m_Context);
+                    status = node.SetParameterByIndex(0, (void*)(*Kernel), sizeof(RW::CORE::Kernel), m_Context);
                     if (status == tenStatus::nenError)
                     {
                         m_Logger->error("Set parameter for node failed(1).");

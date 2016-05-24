@@ -14,6 +14,7 @@ namespace RW
             m_Logger(Logger)
 		{
             CreateNode();
+            AssignNodeCallback();
 		}
 
 		Node::~Node()
@@ -157,6 +158,9 @@ namespace RW
                 m_Logger->alert("No valid context");
                 return tenStatus::nenError;
             }
+
+
+
             vx_enum en = vxRegisterUserStruct((*CurrentContext)(), StructSize);
             vx_array testArray = vxCreateArray((*CurrentContext)(), en, 1);
             vx_status res = vxAddArrayItems(testArray, 1, Value, StructSize);
@@ -252,6 +256,30 @@ namespace RW
 
         vx_action VX_CALLBACK Node::NodeCallback(vx_node Node)
         {
+
+            vx_array kernenArray, controlStructArray;
+            vx_parameter param[] = { vxGetParameterByIndex(Node, 0), vxGetParameterByIndex(Node, 2) };
+           
+            vx_status status = vxQueryParameter((vx_parameter)param[0], VX_PARAMETER_ATTRIBUTE_REF, &kernenArray, sizeof(kernenArray));
+            if (status != VX_SUCCESS)
+            {
+                return VX_FAILURE;
+            }
+            vx_size size = 0;
+
+            Kernel *kernel = nullptr;
+            vxAccessArrayRange(kernenArray, 0, 1, &size, (void**)&kernel, VX_READ_AND_WRITE);
+
+
+             status = vxQueryParameter((vx_parameter)param[1], VX_PARAMETER_ATTRIBUTE_REF, &controlStructArray, sizeof(controlStructArray));
+            if (status != VX_SUCCESS)
+            {
+                return VX_FAILURE;
+            }
+            RW::CORE::tstControlStruct *controlStruct = nullptr;
+            vxAccessArrayRange(controlStructArray, 0, 1, &size, (void**)&controlStruct, VX_READ_AND_WRITE);
+            memcpy(kernel->m_ControlStruct, controlStruct, size);
+            
             return VX_ACTION_CONTINUE;
         }
 	}

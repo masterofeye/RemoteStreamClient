@@ -23,6 +23,26 @@ namespace RW
 		{
 		}
 
+        void Kernel::SetParameter(int i, void* Value)
+        {
+            //TODO Sehr Unschön
+            switch (i)
+            {
+            case 0:
+                break;
+            case 1:
+                m_InitialiseControlStruct = (tstInitialiseControlStruct*)Value;
+                break;
+            case 2:
+                m_ControlStruct = (tstControlStruct*)Value;
+                break;
+            case 3:
+                m_DeinitialiseControlStruct = (tstDeinitialiseControlStruct*)Value;
+                break;
+            default:
+                break;
+            }
+        }
 
 
         vx_status VX_CALLBACK Kernel::KernelInitializeCB(vx_node Node, const vx_reference* Parameter, vx_uint32 NumberOfParameter)

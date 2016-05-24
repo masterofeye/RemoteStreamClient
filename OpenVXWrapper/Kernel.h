@@ -5,6 +5,7 @@ extern "C"{
 }
 #include "Utils.h"
 #include "spdlog\spdlog.h"
+#include "AbstractModule.hpp"
 
 namespace RW
 {
@@ -23,7 +24,15 @@ namespace RW
             uint8_t         m_CurrentParameterIndex;
             AbstractModule*  m_AbstractModule;
             std::shared_ptr<spdlog::logger> m_Logger;
+
+
+
 		public:
+            tstInitialiseControlStruct      *m_InitialiseControlStruct;
+            tstControlStruct                *m_ControlStruct;
+            tstDeinitialiseControlStruct    *m_DeinitialiseControlStruct;
+
+
             Kernel(Context *CurrentContext, std::string KernelName, uint64_t KernelEnum,  uint8_t ParameterAmount, AbstractModule const *Module, std::shared_ptr<spdlog::logger> Logger);
 			~Kernel();
 
@@ -41,6 +50,7 @@ namespace RW
                 return nullptr;
             }
 
+            void Kernel::SetParameter(int i, void* Value);
 
 			static vx_status KernelInitializeCB(vx_node Node, const vx_reference* Parameter, vx_uint32 NumberOfParameter);
             RW::tenStatus KernelInitialize(void* InitializeControlStruct);

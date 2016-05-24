@@ -6,6 +6,7 @@ extern "C"{
 #include "Utils.h"
 #include "spdlog\spdlog.h"
 
+
 namespace RW
 {
 	namespace CORE
@@ -24,6 +25,9 @@ namespace RW
             vx_kernel m_Kernel;
             std::vector<vx_reference> m_ListOfReferences;
             std::shared_ptr<spdlog::logger> m_Logger;
+
+
+
 
 		public:
             Node(Graph const *CurrentGraph, Kernel const *Kernel2Connect, std::shared_ptr<spdlog::logger> Logger);
