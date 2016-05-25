@@ -29,47 +29,113 @@ namespace RW
             int iWidth;
             int iHeight;
             void *pvImg;
+
+            stInputParams() : iWidth(0), iHeight(0), pvImg(nullptr){}
+            ~stInputParams() 
+            {
+                if (pvImg)
+                {
+                    delete pvImg;
+                    pvImg = nullptr;
+                }
+            }
         }tstInputParams;
 
         class cInputBase{
         public:
             cInputBase()
             {
-                _pstParams = NULL;
-                _pgMat = NULL;
+                _pstParams = nullptr;
+                _pgMat = nullptr;
             };
-            cInputBase(tstInputParams stInput){ *_pstParams = stInput; };
-            cInputBase(cv::cuda::GpuMat gMat){ *_pgMat = gMat; };
-            cInputBase(cInputBase oInput1, cInputBase oInput2){ *_pInput1 = oInput1; *_pInput2 = oInput2; }
+            cInputBase(tstInputParams *pstInput)
+            { 
+                _pstParams = pstInput; 
+                _pgMat = nullptr;
+            };
+            cInputBase(cv::cuda::GpuMat *pgMat)
+            { 
+                _pstParams = nullptr;
+                _pgMat = pgMat;
+            };
+            cInputBase(cInputBase *poInput1, cInputBase *poInput2)
+            { 
+                _pInput1 = poInput1; 
+                _pInput2 = poInput2; 
+            }
+            ~cInputBase()
+            {
+                if (_pstParams)
+                {
+                    delete _pstParams;
+                    _pstParams = nullptr;
+                }
+                if (_pgMat)
+                {
+                    delete _pgMat;
+                    _pgMat = nullptr;
+                }
+                if (_pInput1)
+                {
+                    delete _pInput1;
+                    _pInput1 = nullptr;
+                }
+                if (_pInput2)
+                {
+                    delete _pInput2;
+                    _pInput2 = nullptr;
+                }
+            }
+
             tstInputParams *_pstParams;
             cv::cuda::GpuMat *_pgMat;
             cInputBase *_pInput1;
             cInputBase *_pInput2;
-            bool _bNeedConversion;
         };
 
         class cOutputBase{
         public:
             cOutputBase()
             {
-                _pgMat = NULL;
-                _pcuArray = NULL;
+                _pgMat = nullptr;
+                _pcuArray = nullptr;
             };
-            cOutputBase(cv::cuda::GpuMat *pgMat){ _pgMat = pgMat; };
-            cOutputBase(cudaArray *pcuArray){ _pcuArray = pcuArray; };
+            cOutputBase(cv::cuda::GpuMat *pgMat)
+            {
+                _pgMat = pgMat;
+                _pcuArray = nullptr;
+            };
+            cOutputBase(cudaArray *pcuArray)
+            {
+                _pgMat = nullptr;
+                _pcuArray = pcuArray;
+            };
+            ~cOutputBase()
+            {
+                if (_pgMat)
+                {
+                    delete _pgMat;
+                    _pgMat = nullptr;
+                }
+                if (_pcuArray)
+                {
+                    delete _pcuArray;
+                    _pcuArray = nullptr;
+                }
+            }
             cv::cuda::GpuMat *_pgMat;
             cudaArray *_pcuArray;
         };
 
         typedef struct stMyInitialiseControlStruct : public CORE::tstInitialiseControlStruct
         {
-            stRectStruct stFrameRect;
+            stRectStruct *pstFrameRect;
         }tstMyInitialiseControlStruct;
 
         typedef struct stMyControlStruct : public CORE::tstControlStruct
         {
-            cInputBase cInput;
-            cOutputBase cOutput;
+            cInputBase *pcInput;
+            cOutputBase *pcOutput;
         }tstMyControlStruct;
 
         typedef struct stMyDeinitialiseControlStruct : public CORE::tstDeinitialiseControlStruct

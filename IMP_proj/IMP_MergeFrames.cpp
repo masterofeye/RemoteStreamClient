@@ -53,55 +53,67 @@ namespace RW{
 
 			stMyControlStruct* data = static_cast<stMyControlStruct*>(ControlStruct);
 
-			if (data == NULL)
+			if (data == nullptr)
 			{
 				m_Logger->error("DoRender: Data of stMyControlStruct is empty!");
-				enStatus = tenStatus::nenError;
-				return enStatus;
+                return tenStatus::nenError;
 			}
-            cInputBase input1 = *(data->cInput._pInput1);
-            cInputBase input2 = *(data->cInput._pInput2);
+            if (data->pcInput == nullptr)
+            {
+                m_Logger->error("DoRender: Input is empty!");
+                return tenStatus::nenError;
+            }
+
+            cv::cuda::GpuMat *pgMat1; 
+            cv::cuda::GpuMat *pgMat2;
 
             IMP_Base impBase1 = IMP_Base();
-            enStatus = impBase1.tensProcessInput(&input1);
-            if (enStatus != tenStatus::nenSuccess)
             {
-                m_Logger->error("Initialise: impBase.Initialise did not succeed!");
-                return enStatus;
+                enStatus = impBase1.tensProcessInput(data->pcInput->_pInput1);
+                pgMat1 = impBase1.cuGetGpuMat();
+                if (enStatus != tenStatus::nenSuccess || pgMat1 == nullptr)
+                {
+                    m_Logger->error("Initialise: impBase.Initialise for gMat1 did not succeed!");
+                    return enStatus;
+                }
             }
-
-            cv::cuda::GpuMat gMat1 = impBase1.cuGetGpuMat();
-
-            if (enStatus != tenStatus::nenSuccess)
             {
-                return enStatus;
+                IMP_Base impBase2 = IMP_Base();
+                enStatus = impBase2.tensProcessInput(data->pcInput->_pInput2);
+                cv::cuda::GpuMat *pgMat2 = impBase2.cuGetGpuMat();
+                if (enStatus != tenStatus::nenSuccess || pgMat2 == nullptr)
+                {
+                    m_Logger->error("Initialise: impBase.Initialise for gMat2 did not succeed!");
+                    return enStatus;
+                }
+
+                enStatus = ApplyMerge(pgMat1, pgMat2);
+
+                if (pgMat2)
+                {
+                    delete pgMat2;
+                    pgMat2 = nullptr;
+                }
+                if (enStatus != tenStatus::nenSuccess || pgMat1 == nullptr)
+                {
+                    m_Logger->error("DoRender: ApplyMerge did not succeed!");
+                    return enStatus;
+                }
             }
-            IMP_Base impBase2 = IMP_Base();
-            enStatus = impBase2.tensProcessInput(&input2);
-            if (enStatus != tenStatus::nenSuccess)
+
+            impBase1.vSetGpuMat(pgMat1);
+            enStatus = impBase1.tensProcessOutput(data->pcOutput);
+
+            if (pgMat1)
             {
-                m_Logger->error("Initialise: impBase.Initialise did not succeed!");
+                delete pgMat1;
+                pgMat1 = nullptr;
             }
-
-            cv::cuda::GpuMat gMat2 = impBase2.cuGetGpuMat();
-
-            enStatus = ApplyMerge(gMat1, gMat2, &gMat1);
-            if (enStatus != tenStatus::nenSuccess || gMat1.data == NULL)
-			{
-				m_Logger->error("DoRender: ApplyMerge did not succeed!");
-                return enStatus;
-            }
-
-            cOutputBase output = data->cOutput;
-
-            impBase1.vSetGpuMat(gMat1);
-            enStatus = impBase1.tensProcessOutput(&output);
-            if (enStatus != tenStatus::nenSuccess)
+            if (enStatus != tenStatus::nenSuccess || data->pcOutput == nullptr)
             {
                 m_Logger->error("DoRender: impBase.tensProcessOutput did not succeed!");
                 return enStatus;
             }
-            data->cOutput = output; //doppelt gemoppelt, ik
 
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
@@ -124,33 +136,43 @@ namespace RW{
             return tenStatus::nenSuccess;
 		}
 
-		tenStatus IMP_MergeFrames::ApplyMerge(cv::cuda::GpuMat gMat1, cv::cuda::GpuMat gMat2, cv::cuda::GpuMat *pgMat)
+		tenStatus IMP_MergeFrames::ApplyMerge(cv::cuda::GpuMat *pgMat1, cv::cuda::GpuMat *pgMat2)
 		{
+            if (pgMat1 == nullptr || pgMat2 == nullptr)
+            {
+                m_Logger->error("ApplyMerge: gMat1 or gMat2 is empty!");
+                return tenStatus::nenError;
+            }
+
 			tenStatus enStatus = tenStatus::nenSuccess;
-			if (gMat1.type() != gMat2.type()
-				|| gMat2.cols <= 0 || gMat2.rows <= 0
-				|| gMat1.cols <= 0 || gMat1.rows <= 0)
+			if (pgMat1->type() != pgMat2->type()
+				|| pgMat2->cols <= 0 || pgMat2->rows <= 0
+				|| pgMat1->cols <= 0 || pgMat1->rows <= 0)
 			{
-				enStatus = tenStatus::nenError;
-				m_Logger->error("ApplyMerge: Invalid frame parameters (size or type)!");
+                m_Logger->error("ApplyMerge: Invalid frame parameters (size or type)!");
+                return tenStatus::nenError;
 			}
 
-			int iRows = (gMat1.rows > gMat2.rows ? gMat1.rows : gMat2.rows);
-			cv::cuda::GpuMat gMat = cv::cuda::GpuMat();
-			gMat.create(iRows, (gMat1.cols + gMat2.cols), gMat1.type());
+            // equalizing rows
+            if (pgMat1->rows > pgMat2->rows)
+            {
+                cv::Size sSize = cv::Size(pgMat2->cols, pgMat1->rows);
+                cv::resize(*pgMat2, *pgMat2, sSize);
+            }
+            else
+            {
+                cv::Size sSize = cv::Size(pgMat1->cols, pgMat2->rows);
+                cv::resize(*pgMat1, *pgMat1, sSize);
+            }
 
-			cv::Rect rect1(0, 0, gMat1.cols, gMat1.rows);
-			cv::Rect rect2(gMat1.cols, 0, gMat2.cols, gMat2.rows);
-			cv::Rect rect(0, 0, (gMat1.cols + gMat2.cols), iRows);
+            // horizontal concatenation
+            cv::hconcat(*pgMat1, *pgMat2, *pgMat1);
 
-			gMat(rect1) = gMat1;
-			gMat(rect2) = gMat2;
-			*pgMat = gMat(rect);
-			if (pgMat == NULL)
-			{
-				enStatus = tenStatus::nenError;
-				m_Logger->error("ApplyMerge: pgMat is empty!");
-			}
+            if (pgMat1 == nullptr)
+            {
+                m_Logger->error("ApplyMerge: gMat1 is empty! Apply Merge failed.");
+                return tenStatus::nenError;
+            }
 
 			return enStatus;
 		}

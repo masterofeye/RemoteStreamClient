@@ -9,19 +9,29 @@ namespace RW
 		class IMP_Base
 		{
 		public:
-			void vSetGpuMat(cv::cuda::GpuMat cuGpuMat){ m_cuGpuMat = cuGpuMat; };
-			cv::cuda::GpuMat cuGetGpuMat(){ return m_cuGpuMat; };
+			void vSetGpuMat(cv::cuda::GpuMat *pgMat){ m_pgMat = pgMat; };
+            cv::cuda::GpuMat* cuGetGpuMat(){ return m_pgMat; };
 
             tenStatus tensProcessInput(cInputBase *pInput);
             tenStatus tensProcessOutput(cOutputBase *pOutput);
 
-			IMP_Base(){};
-			~IMP_Base(){};
+			IMP_Base()
+            {
+                m_pgMat = nullptr;
+            };
+			~IMP_Base()
+            {
+                if (m_pgMat)
+                {
+                    delete m_pgMat;
+                    m_pgMat = nullptr;
+                }
+            };
 
 		private:
-			cv::cuda::GpuMat m_cuGpuMat;
+            cv::cuda::GpuMat *m_pgMat;
 
-			tenStatus tensConvertArrayToGpuMat(int iWidth, int iHeight, void *pvImg, cv::cuda::GpuMat *pgMat);
+			tenStatus tensConvertArrayToGpuMat(int iWidth, int iHeight, void *pvImg);
 
 		};
 	}
