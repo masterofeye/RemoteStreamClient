@@ -82,7 +82,7 @@ namespace RW{
                 return tenStatus::nenError;
             }
 
-            IMP_Base impBase = IMP_Base();
+            IMP_Base impBase = IMP_Base(m_Logger);
             enStatus = impBase.tensProcessInput(data->pcInput);
             cv::cuda::GpuMat *pgMat = impBase.cuGetGpuMat();
             if (enStatus != tenStatus::nenSuccess || pgMat == nullptr)

@@ -31,7 +31,7 @@ namespace RW{
 		ENC_CudaInterop::ENC_CudaInterop(std::shared_ptr<spdlog::logger> Logger) :
 			RW::CORE::AbstractModule(Logger)
 		{
-				m_pNvHWEncoder = new CNvHWEncoder;
+                m_pNvHWEncoder = new CNvHWEncoder(m_Logger);
 
 				m_cuContext = NULL;
 				m_cuModule = NULL;
@@ -66,7 +66,7 @@ namespace RW{
                 NVENCSTATUS nvStatus = m_pNvHWEncoder->Initialize((void*)m_cuContext, NV_ENC_DEVICE_TYPE_CUDA);
                 if (nvStatus != NV_ENC_SUCCESS)
                 {
-                    m_Logger->error("Initialise: m_pNvHWEncoder->Initialize did not succeed!");
+                    m_Logger->error("Initialise: m_pNvHWEncoder->Initialize(...) did not succeed!");
                 }
 
 			}
@@ -294,8 +294,8 @@ namespace RW{
 			NVENCSTATUS nvStatus = m_pNvHWEncoder->NvEncFlushEncoderQueue(m_stEOSOutputBfr.hOutputEvent);
 			if (nvStatus != NV_ENC_SUCCESS)
 			{
-				assert(0);
-				return nvStatus;
+                m_Logger->error("FlushEncoder: m_pNvHWEncoder->NvEncFlushEncoderQueue(...) did not succeed!");
+                return nvStatus;
 			}
 
 			EncodeBuffer *pEncodeBuffer = m_EncodeBufferQueue.GetPending();
@@ -304,7 +304,7 @@ namespace RW{
 				nvStatus = m_pNvHWEncoder->ProcessOutput(pEncodeBuffer, pstBitStreamData);
 				if (nvStatus != NV_ENC_SUCCESS)
 				{
-					m_Logger->error("FlushEncoder: m_pNvHWEncoder->ProcessOutput did not succeed!");
+					m_Logger->error("FlushEncoder: m_pNvHWEncoder->ProcessOutput(...) did not succeed!");
 				}
 
 				pEncodeBuffer = m_EncodeBufferQueue.GetPending();
@@ -319,8 +319,8 @@ namespace RW{
 #if defined(NV_WINDOWS)
 			if (WaitForSingleObject(m_stEOSOutputBfr.hOutputEvent, 500) != WAIT_OBJECT_0)
 			{
-				assert(0);
-				nvStatus = NV_ENC_ERR_GENERIC;
+                m_Logger->error("FlushEncoder: WaitForSingleObject != WAIT_OBJECT_0");
+                nvStatus = NV_ENC_ERR_GENERIC;
 			}
 #endif
 			return nvStatus;
@@ -405,7 +405,7 @@ namespace RW{
 			if (nvStatus != NV_ENC_SUCCESS)
 			{
 				enStatus = tenStatus::nenError;
-				m_Logger->error("Initialise: InitCuda did not succeed!");
+				m_Logger->error("Initialise: InitCuda(...) did not succeed!");
 				return enStatus;
 			}
 
@@ -447,7 +447,7 @@ namespace RW{
 			if (nvStatus != NV_ENC_SUCCESS)
 			{
 				enStatus = tenStatus::nenError;
-				m_Logger->error("Initialise: m_pNvHWEncoder->CreateEncoder did not succeed!");
+				m_Logger->error("Initialise: m_pNvHWEncoder->CreateEncoder(...) did not succeed!");
 				return enStatus;
 			}
 
@@ -457,7 +457,7 @@ namespace RW{
 			if (nvStatus != NV_ENC_SUCCESS)
 			{
 				enStatus = tenStatus::nenError;
-				m_Logger->error("Initialise: AllocateIOBuffers did not succeed!");
+				m_Logger->error("Initialise: AllocateIOBuffers(...) did not succeed!");
 				return enStatus;
 			}
 
@@ -512,7 +512,7 @@ namespace RW{
 					if (nvStatus != NV_ENC_SUCCESS)
 					{
 						enStatus = tenStatus::nenError;
-						m_Logger->error("DoRender: m_pNvHWEncoder->ProcessOutput did not succeed!");
+						m_Logger->error("DoRender: m_pNvHWEncoder->ProcessOutput(...) did not succeed!");
 						return enStatus;
 					}
 					data->stBitStream.pBitStreamBuffer = stBitStreamData.bitstreamBufferPtr;
@@ -525,7 +525,7 @@ namespace RW{
 						if (nvStatus != NV_ENC_SUCCESS)
 						{
 							enStatus = tenStatus::nenError;
-							m_Logger->error("DoRender: m_pNvHWEncoder->NvEncUnmapInputResource did not succeed!");
+							m_Logger->error("DoRender: m_pNvHWEncoder->NvEncUnmapInputResource(...) did not succeed!");
 							return enStatus;
 						}
 
@@ -539,7 +539,7 @@ namespace RW{
 			if (nvStatus != NV_ENC_SUCCESS)
 			{
 				enStatus = tenStatus::nenError;
-				m_Logger->error("DoRender: ConvertYUVToNV12 did not succeed!");
+				m_Logger->error("DoRender: ConvertYUVToNV12(...) did not succeed!");
 				return enStatus;
 			}
 
@@ -547,7 +547,7 @@ namespace RW{
 			if (nvStatus != NV_ENC_SUCCESS)
 			{
 				enStatus = tenStatus::nenError;
-				m_Logger->error("DoRender: m_pNvHWEncoder->NvEncMapInputResource did not succeed!");
+				m_Logger->error("DoRender: m_pNvHWEncoder->NvEncMapInputResource(...) did not succeed!");
 				return enStatus;
 			}
 
@@ -555,7 +555,7 @@ namespace RW{
 			if (nvStatus != NV_ENC_SUCCESS)
 			{
 				enStatus = tenStatus::nenError;
-				m_Logger->error("DoRender: m_pNvHWEncoder->NvEncEncodeFrame did not succeed!");
+				m_Logger->error("DoRender: m_pNvHWEncoder->NvEncEncodeFrame(...) did not succeed!");
 				return enStatus;
 			}
 
@@ -599,7 +599,7 @@ namespace RW{
 			if (nvStatus != NV_ENC_SUCCESS)
 			{
 				enStatus = tenStatus::nenError;
-				m_Logger->error("DeInitialise: FlushEncoder did not succeed!");
+				m_Logger->error("DeInitialise: FlushEncoder(...) did not succeed!");
 			}
 			data->stBitStream.pBitStreamBuffer = stBitStreamData.bitstreamBufferPtr;
 			data->stBitStream.u32BitStreamSizeInBytes = stBitStreamData.bitstreamSizeInBytes;
@@ -608,21 +608,21 @@ namespace RW{
 			if (nvStatus != NV_ENC_SUCCESS)
 			{
 				enStatus = tenStatus::nenError;
-				m_Logger->error("DeInitialise: ReleaseIOBuffers did not succeed!");
+				m_Logger->error("DeInitialise: ReleaseIOBuffers(...) did not succeed!");
 			}
 
 			nvStatus = m_pNvHWEncoder->NvEncDestroyEncoder();
 			if (nvStatus != NV_ENC_SUCCESS)
 			{
 				enStatus = tenStatus::nenError;
-				m_Logger->error("DeInitialise: m_pNvHWEncoder->NvEncDestroyEncoder did not succeed!");
+				m_Logger->error("DeInitialise: m_pNvHWEncoder->NvEncDestroyEncoder(...) did not succeed!");
 			}
 
 			nvStatus = CuDestroy();
 			if (nvStatus != NV_ENC_SUCCESS)
 			{
 				enStatus = tenStatus::nenError;
-				m_Logger->error("DeInitialise: CuDestroy did not succeed!");
+				m_Logger->error("DeInitialise: CuDestroy(...) did not succeed!");
 			}
 
 #ifdef TRACE_PERFORMANCE

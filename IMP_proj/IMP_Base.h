@@ -15,7 +15,7 @@ namespace RW
             tenStatus tensProcessInput(cInputBase *pInput);
             tenStatus tensProcessOutput(cOutputBase *pOutput);
 
-			IMP_Base()
+            IMP_Base(std::shared_ptr<spdlog::logger> Logger) : m_Logger(Logger)
             {
                 m_pgMat = nullptr;
             };
@@ -30,6 +30,7 @@ namespace RW
 
 		private:
             cv::cuda::GpuMat *m_pgMat;
+            std::shared_ptr<spdlog::logger> m_Logger;
 
 			tenStatus tensConvertArrayToGpuMat(int iWidth, int iHeight, void *pvImg);
 

@@ -67,7 +67,7 @@ namespace RW{
             cv::cuda::GpuMat *pgMat1; 
             cv::cuda::GpuMat *pgMat2;
 
-            IMP_Base impBase1 = IMP_Base();
+            IMP_Base impBase1 = IMP_Base(m_Logger);
             {
                 enStatus = impBase1.tensProcessInput(data->pcInput->_pInput1);
                 pgMat1 = impBase1.cuGetGpuMat();
@@ -78,7 +78,7 @@ namespace RW{
                 }
             }
             {
-                IMP_Base impBase2 = IMP_Base();
+                IMP_Base impBase2 = IMP_Base(m_Logger);
                 enStatus = impBase2.tensProcessInput(data->pcInput->_pInput2);
                 cv::cuda::GpuMat *pgMat2 = impBase2.cuGetGpuMat();
                 if (enStatus != tenStatus::nenSuccess || pgMat2 == nullptr)

@@ -18,7 +18,7 @@ NVENCSTATUS CNvHWEncoder::NvEncOpenEncodeSession(void* device, uint32_t deviceTy
     nvStatus = m_pEncodeAPI->nvEncOpenEncodeSession(device, deviceType, &m_hEncoder);
     if (nvStatus != NV_ENC_SUCCESS)
     {
-        assert(0);
+        m_Logger->error("CNvHWEncoder::NvEncOpenEncodeSession: m_pEncodeAPI->nvEncOpenEncodeSession(...) did not succeed!");
     }
 
     return nvStatus;
@@ -31,7 +31,7 @@ NVENCSTATUS CNvHWEncoder::NvEncGetEncodeGUIDCount(uint32_t* encodeGUIDCount)
     nvStatus = m_pEncodeAPI->nvEncGetEncodeGUIDCount(m_hEncoder, encodeGUIDCount);
     if (nvStatus != NV_ENC_SUCCESS)
     {
-        assert(0);
+        m_Logger->error("CNvHWEncoder::NvEncGetEncodeGUIDCount: m_pEncodeAPI->nvEncGetEncodeGUIDCount(...) did not succeed!");
     }
 
     return nvStatus;
@@ -44,7 +44,7 @@ NVENCSTATUS CNvHWEncoder::NvEncGetEncodeProfileGUIDCount(GUID encodeGUID, uint32
     nvStatus = m_pEncodeAPI->nvEncGetEncodeProfileGUIDCount(m_hEncoder, encodeGUID, encodeProfileGUIDCount);
     if (nvStatus != NV_ENC_SUCCESS)
     {
-        assert(0);
+        m_Logger->error("CNvHWEncoder::NvEncGetEncodeProfileGUIDCount: m_pEncodeAPI->nvEncGetEncodeProfileGUIDCount(...) did not succeed!");
     }
 
     return nvStatus;
@@ -57,7 +57,7 @@ NVENCSTATUS CNvHWEncoder::NvEncGetEncodeProfileGUIDs(GUID encodeGUID, GUID* prof
     nvStatus = m_pEncodeAPI->nvEncGetEncodeProfileGUIDs(m_hEncoder, encodeGUID, profileGUIDs, guidArraySize, GUIDCount);
     if (nvStatus != NV_ENC_SUCCESS)
     {
-        assert(0);
+        m_Logger->error("CNvHWEncoder::NvEncGetEncodeProfileGUIDs: m_pEncodeAPI->nvEncGetEncodeProfileGUIDs(...) did not succeed!");
     }
 
     return nvStatus;
@@ -70,7 +70,7 @@ NVENCSTATUS CNvHWEncoder::NvEncGetEncodeGUIDs(GUID* GUIDs, uint32_t guidArraySiz
     nvStatus = m_pEncodeAPI->nvEncGetEncodeGUIDs(m_hEncoder, GUIDs, guidArraySize, GUIDCount);
     if (nvStatus != NV_ENC_SUCCESS)
     {
-        assert(0);
+        m_Logger->error("CNvHWEncoder::NvEncGetEncodeGUIDs: m_pEncodeAPI->nvEncGetEncodeGUIDs(...) did not succeed!");
     }
 
     return nvStatus;
@@ -83,7 +83,7 @@ NVENCSTATUS CNvHWEncoder::NvEncGetInputFormatCount(GUID encodeGUID, uint32_t* in
     nvStatus = m_pEncodeAPI->nvEncGetInputFormatCount(m_hEncoder, encodeGUID, inputFmtCount);
     if (nvStatus != NV_ENC_SUCCESS)
     {
-        assert(0);
+        m_Logger->error("CNvHWEncoder::NvEncGetInputFormatCount: m_pEncodeAPI->nvEncGetInputFormatCount(...) did not succeed!");
     }
 
     return nvStatus;
@@ -96,7 +96,7 @@ NVENCSTATUS CNvHWEncoder::NvEncGetInputFormats(GUID encodeGUID, NV_ENC_BUFFER_FO
     nvStatus = m_pEncodeAPI->nvEncGetInputFormats(m_hEncoder, encodeGUID, inputFmts, inputFmtArraySize, inputFmtCount);
     if (nvStatus != NV_ENC_SUCCESS)
     {
-        assert(0);
+        m_Logger->error("CNvHWEncoder::NvEncGetInputFormats: m_pEncodeAPI->nvEncGetInputFormats(...) did not succeed!");
     }
 
     return nvStatus;
@@ -109,7 +109,7 @@ NVENCSTATUS CNvHWEncoder::NvEncGetEncodeCaps(GUID encodeGUID, NV_ENC_CAPS_PARAM*
     nvStatus = m_pEncodeAPI->nvEncGetEncodeCaps(m_hEncoder, encodeGUID, capsParam, capsVal);
     if (nvStatus != NV_ENC_SUCCESS)
     {
-        assert(0);
+        m_Logger->error("CNvHWEncoder::NvEncGetEncodeCaps: m_pEncodeAPI->nvEncGetEncodeCaps(...) did not succeed!");
     }
 
     return nvStatus;
@@ -122,7 +122,7 @@ NVENCSTATUS CNvHWEncoder::NvEncGetEncodePresetCount(GUID encodeGUID, uint32_t* e
     nvStatus = m_pEncodeAPI->nvEncGetEncodePresetCount(m_hEncoder, encodeGUID, encodePresetGUIDCount);
     if (nvStatus != NV_ENC_SUCCESS)
     {
-        assert(0);
+        m_Logger->error("CNvHWEncoder::NvEncGetEncodePresetCount: m_pEncodeAPI->nvEncGetEncodePresetCount(...) did not succeed!");
     }
 
     return nvStatus;
@@ -135,7 +135,7 @@ NVENCSTATUS CNvHWEncoder::NvEncGetEncodePresetGUIDs(GUID encodeGUID, GUID* prese
     nvStatus = m_pEncodeAPI->nvEncGetEncodePresetGUIDs(m_hEncoder, encodeGUID, presetGUIDs, guidArraySize, encodePresetGUIDCount);
     if (nvStatus != NV_ENC_SUCCESS)
     {
-        assert(0);
+        m_Logger->error("CNvHWEncoder::NvEncGetEncodePresetGUIDs: m_pEncodeAPI->nvEncGetEncodePresetGUIDs(...) did not succeed!");
     }
 
     return nvStatus;
@@ -148,7 +148,7 @@ NVENCSTATUS CNvHWEncoder::NvEncGetEncodePresetConfig(GUID encodeGUID, GUID  pres
     nvStatus = m_pEncodeAPI->nvEncGetEncodePresetConfig(m_hEncoder, encodeGUID, presetGUID, presetConfig);
     if (nvStatus != NV_ENC_SUCCESS)
     {
-        assert(0);
+        m_Logger->error("CNvHWEncoder::NvEncGetEncodePresetConfig: m_pEncodeAPI->nvEncGetEncodePresetConfig(...) did not succeed!");
     }
 
     return nvStatus;
@@ -170,7 +170,7 @@ NVENCSTATUS CNvHWEncoder::NvEncCreateInputBuffer(uint32_t width, uint32_t height
     nvStatus = m_pEncodeAPI->nvEncCreateInputBuffer(m_hEncoder, &createInputBufferParams);
     if (nvStatus != NV_ENC_SUCCESS)
     {
-        assert(0);
+        m_Logger->error("CNvHWEncoder::NvEncCreateInputBuffer: m_pEncodeAPI->nvEncCreateInputBuffer(...) did not succeed!");
     }
 
     *inputBuffer = createInputBufferParams.inputBuffer;
@@ -187,7 +187,7 @@ NVENCSTATUS CNvHWEncoder::NvEncDestroyInputBuffer(NV_ENC_INPUT_PTR inputBuffer)
         nvStatus = m_pEncodeAPI->nvEncDestroyInputBuffer(m_hEncoder, inputBuffer);
         if (nvStatus != NV_ENC_SUCCESS)
         {
-            assert(0);
+            m_Logger->error("CNvHWEncoder::NvEncDestroyInputBuffer: m_pEncodeAPI->nvEncDestroyInputBuffer(...) did not succeed!");
         }
     }
 
@@ -203,7 +203,7 @@ NVENCSTATUS CNvHWEncoder::NvEncCreateMVBuffer(uint32_t size, void** bitstreamBuf
     status = m_pEncodeAPI->nvEncCreateMVBuffer(m_hEncoder, &stAllocMVBuffer);
     if (status != NV_ENC_SUCCESS)
     {
-        assert(0);
+        m_Logger->error("CNvHWEncoder::NvEncCreateMVBuffer: m_pEncodeAPI->nvEncCreateMVBuffer(...) did not succeed!");
     }
     *bitstreamBuffer = stAllocMVBuffer.MVBuffer;
     return status;
@@ -218,41 +218,41 @@ NVENCSTATUS CNvHWEncoder::NvEncDestroyMVBuffer(NV_ENC_OUTPUT_PTR bitstreamBuffer
     status = m_pEncodeAPI->nvEncDestroyMVBuffer(m_hEncoder, bitstreamBuffer);
     if (status != NV_ENC_SUCCESS)
     {
-        assert(0);
+        m_Logger->error("CNvHWEncoder::NvEncDestroyMVBuffer: m_pEncodeAPI->nvEncDestroyMVBuffer(...) did not succeed!");
     }
     bitstreamBuffer = NULL;
     return status;
 }
 
-NVENCSTATUS CNvHWEncoder::NvRunMotionEstimationOnly(EncodeBuffer *pEncodeBuffer[2], MEOnlyConfig *pMEOnly)
-{
-    NVENCSTATUS nvStatus;
-    NV_ENC_MEONLY_PARAMS stMEOnlyParams;
-    SET_VER(stMEOnlyParams,NV_ENC_MEONLY_PARAMS);
-    stMEOnlyParams.referenceFrame = pEncodeBuffer[0]->stInputBfr.hInputSurface;
-    stMEOnlyParams.inputBuffer = pEncodeBuffer[1]->stInputBfr.hInputSurface;
-    stMEOnlyParams.bufferFmt = pEncodeBuffer[1]->stInputBfr.bufferFmt;
-    stMEOnlyParams.inputWidth = pEncodeBuffer[1]->stInputBfr.dwWidth;
-    stMEOnlyParams.inputHeight = pEncodeBuffer[1]->stInputBfr.dwHeight;
-    stMEOnlyParams.outputMV = pEncodeBuffer[0]->stOutputBfr.hBitstreamBuffer;
-    nvStatus = m_pEncodeAPI->nvEncRunMotionEstimationOnly(m_hEncoder, &stMEOnlyParams);
-
-
-        //unsigned int numMBs = ((m_uMaxWidth +15) >> 4) * ((m_uMaxHeight + 15) >> 4);
-        //fprintf(m_fOutput,"Motion Vectors for input frame = %d, reference frame = %d\n", pMEOnly->inputFrameIndex, pMEOnly->referenceFrameIndex);
-        //NV_ENC_H264_MV_DATA *outputMV = (NV_ENC_H264_MV_DATA *)stMEOnlyParams.outputMV;
-        //for (unsigned int i = 0; i < numMBs; i++)
-        //{
-        //    fprintf(m_fOutput, "block = %d, mb_type = %d, partitionType = %d, MV[0].x = %d, MV[0].y = %d, MV[1].x = %d, MV[1].y = %d, MV[2].x = %d, MV[2].y = %d, MV[3].x = %d, MV[3].y = %d, cost=%d ", \
-        //        i, outputMV[i].mb_type, outputMV[i].partitionType, outputMV[i].MV[0].mvx, outputMV[i].MV[0].mvy, outputMV[i].MV[1].mvx, outputMV[i].MV[1].mvy, \
-        //        outputMV[i].MV[2].mvx, outputMV[i].MV[2].mvy, outputMV[i].MV[3].mvx, outputMV[i].MV[3].mvy, outputMV[i].MBCost);
-        //    fprintf(m_fOutput, "\n");
-        //}
-        //fprintf(m_fOutput, "\n");
-
-
-    return nvStatus;
-}
+//NVENCSTATUS CNvHWEncoder::NvRunMotionEstimationOnly(EncodeBuffer *pEncodeBuffer[2], MEOnlyConfig *pMEOnly)
+//{
+//    NVENCSTATUS nvStatus;
+//    NV_ENC_MEONLY_PARAMS stMEOnlyParams;
+//    SET_VER(stMEOnlyParams,NV_ENC_MEONLY_PARAMS);
+//    stMEOnlyParams.referenceFrame = pEncodeBuffer[0]->stInputBfr.hInputSurface;
+//    stMEOnlyParams.inputBuffer = pEncodeBuffer[1]->stInputBfr.hInputSurface;
+//    stMEOnlyParams.bufferFmt = pEncodeBuffer[1]->stInputBfr.bufferFmt;
+//    stMEOnlyParams.inputWidth = pEncodeBuffer[1]->stInputBfr.dwWidth;
+//    stMEOnlyParams.inputHeight = pEncodeBuffer[1]->stInputBfr.dwHeight;
+//    stMEOnlyParams.outputMV = pEncodeBuffer[0]->stOutputBfr.hBitstreamBuffer;
+//    nvStatus = m_pEncodeAPI->nvEncRunMotionEstimationOnly(m_hEncoder, &stMEOnlyParams);
+//
+//
+//        //unsigned int numMBs = ((m_uMaxWidth +15) >> 4) * ((m_uMaxHeight + 15) >> 4);
+//        //fprintf(m_fOutput,"Motion Vectors for input frame = %d, reference frame = %d\n", pMEOnly->inputFrameIndex, pMEOnly->referenceFrameIndex);
+//        //NV_ENC_H264_MV_DATA *outputMV = (NV_ENC_H264_MV_DATA *)stMEOnlyParams.outputMV;
+//        //for (unsigned int i = 0; i < numMBs; i++)
+//        //{
+//        //    fprintf(m_fOutput, "block = %d, mb_type = %d, partitionType = %d, MV[0].x = %d, MV[0].y = %d, MV[1].x = %d, MV[1].y = %d, MV[2].x = %d, MV[2].y = %d, MV[3].x = %d, MV[3].y = %d, cost=%d ", \
+//        //        i, outputMV[i].mb_type, outputMV[i].partitionType, outputMV[i].MV[0].mvx, outputMV[i].MV[0].mvy, outputMV[i].MV[1].mvx, outputMV[i].MV[1].mvy, \
+//        //        outputMV[i].MV[2].mvx, outputMV[i].MV[2].mvy, outputMV[i].MV[3].mvx, outputMV[i].MV[3].mvy, outputMV[i].MBCost);
+//        //    fprintf(m_fOutput, "\n");
+//        //}
+//        //fprintf(m_fOutput, "\n");
+//
+//
+//    return nvStatus;
+//}
 
 NVENCSTATUS CNvHWEncoder::NvEncCreateBitstreamBuffer(uint32_t size, void** bitstreamBuffer)
 {
@@ -268,7 +268,7 @@ NVENCSTATUS CNvHWEncoder::NvEncCreateBitstreamBuffer(uint32_t size, void** bitst
     nvStatus = m_pEncodeAPI->nvEncCreateBitstreamBuffer(m_hEncoder, &createBitstreamBufferParams);
     if (nvStatus != NV_ENC_SUCCESS)
     {
-        assert(0);
+        m_Logger->error("CNvHWEncoder::NvEncCreateBitstreamBuffer: m_pEncodeAPI->nvEncCreateBitstreamBuffer(...) did not succeed!");
     }
 
     *bitstreamBuffer = createBitstreamBufferParams.bitstreamBuffer;
@@ -285,7 +285,7 @@ NVENCSTATUS CNvHWEncoder::NvEncDestroyBitstreamBuffer(NV_ENC_OUTPUT_PTR bitstrea
         nvStatus = m_pEncodeAPI->nvEncDestroyBitstreamBuffer(m_hEncoder, bitstreamBuffer);
         if (nvStatus != NV_ENC_SUCCESS)
         {
-            assert(0);
+            m_Logger->error("CNvHWEncoder::NvEncDestroyBitstreamBuffer: m_pEncodeAPI->nvEncDestroyBitstreamBuffer(...) did not succeed!");
         }
     }
 
@@ -299,7 +299,7 @@ NVENCSTATUS CNvHWEncoder::NvEncLockBitstream(NV_ENC_LOCK_BITSTREAM* lockBitstrea
     nvStatus = m_pEncodeAPI->nvEncLockBitstream(m_hEncoder, lockBitstreamBufferParams);
     if (nvStatus != NV_ENC_SUCCESS)
     {
-        assert(0);
+        m_Logger->error("CNvHWEncoder::NvEncLockBitstream: m_pEncodeAPI->nvEncLockBitstream(...) did not succeed!");
     }
 
     return nvStatus;
@@ -312,7 +312,7 @@ NVENCSTATUS CNvHWEncoder::NvEncUnlockBitstream(NV_ENC_OUTPUT_PTR bitstreamBuffer
     nvStatus = m_pEncodeAPI->nvEncUnlockBitstream(m_hEncoder, bitstreamBuffer);
     if (nvStatus != NV_ENC_SUCCESS)
     {
-        assert(0);
+        m_Logger->error("CNvHWEncoder::NvEncUnlockBitstream: m_pEncodeAPI->nvEncUnlockBitstream(...) did not succeed!");
     }
 
     return nvStatus;
@@ -330,7 +330,7 @@ NVENCSTATUS CNvHWEncoder::NvEncLockInputBuffer(void* inputBuffer, void** bufferD
     nvStatus = m_pEncodeAPI->nvEncLockInputBuffer(m_hEncoder, &lockInputBufferParams);
     if (nvStatus != NV_ENC_SUCCESS)
     {
-        assert(0);
+        m_Logger->error("CNvHWEncoder::NvEncLockInputBuffer: m_pEncodeAPI->nvEncLockInputBuffer(...) did not succeed!");
     }
 
     *bufferDataPtr = lockInputBufferParams.bufferDataPtr;
@@ -346,7 +346,7 @@ NVENCSTATUS CNvHWEncoder::NvEncUnlockInputBuffer(NV_ENC_INPUT_PTR inputBuffer)
     nvStatus = m_pEncodeAPI->nvEncUnlockInputBuffer(m_hEncoder, inputBuffer);
     if (nvStatus != NV_ENC_SUCCESS)
     {
-        assert(0);
+        m_Logger->error("CNvHWEncoder::NvEncUnlockInputBuffer: m_pEncodeAPI->nvEncUnlockInputBuffer(...) did not succeed!");
     }
 
     return nvStatus;
@@ -359,7 +359,7 @@ NVENCSTATUS CNvHWEncoder::NvEncGetEncodeStats(NV_ENC_STAT* encodeStats)
     nvStatus = m_pEncodeAPI->nvEncGetEncodeStats(m_hEncoder, encodeStats);
     if (nvStatus != NV_ENC_SUCCESS)
     {
-        assert(0);
+        m_Logger->error("CNvHWEncoder::NvEncGetEncodeStats: m_pEncodeAPI->nvEncGetEncodeStats(...) did not succeed!");
     }
 
     return nvStatus;
@@ -372,7 +372,7 @@ NVENCSTATUS CNvHWEncoder::NvEncGetSequenceParams(NV_ENC_SEQUENCE_PARAM_PAYLOAD* 
     nvStatus = m_pEncodeAPI->nvEncGetSequenceParams(m_hEncoder, sequenceParamPayload);
     if (nvStatus != NV_ENC_SUCCESS)
     {
-        assert(0);
+        m_Logger->error("CNvHWEncoder::NvEncGetSequenceParams: m_pEncodeAPI->nvEncGetSequenceParams(...) did not succeed!");
     }
 
     return nvStatus;
@@ -394,7 +394,7 @@ NVENCSTATUS CNvHWEncoder::NvEncRegisterAsyncEvent(void** completionEvent)
     nvStatus = m_pEncodeAPI->nvEncRegisterAsyncEvent(m_hEncoder, &eventParams);
     if (nvStatus != NV_ENC_SUCCESS)
     {
-        assert(0);
+        m_Logger->error("CNvHWEncoder::NvEncRegisterAsyncEvent: m_pEncodeAPI->nvEncRegisterAsyncEvent(...) did not succeed!");
     }
 
     *completionEvent = eventParams.completionEvent;
@@ -417,7 +417,7 @@ NVENCSTATUS CNvHWEncoder::NvEncUnregisterAsyncEvent(void* completionEvent)
         nvStatus = m_pEncodeAPI->nvEncUnregisterAsyncEvent(m_hEncoder, &eventParams);
         if (nvStatus != NV_ENC_SUCCESS)
         {
-            assert(0);
+            m_Logger->error("CNvHWEncoder::NvEncUnregisterAsyncEvent: m_pEncodeAPI->nvEncUnregisterAsyncEvent(...) did not succeed!");
         }
     }
 
@@ -437,7 +437,7 @@ NVENCSTATUS CNvHWEncoder::NvEncMapInputResource(void* registeredResource, void**
     nvStatus = m_pEncodeAPI->nvEncMapInputResource(m_hEncoder, &mapInputResParams);
     if (nvStatus != NV_ENC_SUCCESS)
     {
-        assert(0);
+        m_Logger->error("CNvHWEncoder::NvEncMapInputResource: m_pEncodeAPI->nvEncMapInputResource(...) did not succeed!");
     }
 
     *mappedResource = mapInputResParams.mappedResource;
@@ -454,7 +454,7 @@ NVENCSTATUS CNvHWEncoder::NvEncUnmapInputResource(NV_ENC_INPUT_PTR mappedInputBu
         nvStatus = m_pEncodeAPI->nvEncUnmapInputResource(m_hEncoder, mappedInputBuffer);
         if (nvStatus != NV_ENC_SUCCESS)
         {
-            assert(0);
+            m_Logger->error("CNvHWEncoder::NvEncUnmapInputResource: m_pEncodeAPI->nvEncUnmapInputResource(...) did not succeed!");
         }
     }
 
@@ -503,7 +503,7 @@ NVENCSTATUS CNvHWEncoder::NvEncOpenEncodeSessionEx(void* device, NV_ENC_DEVICE_T
     nvStatus = m_pEncodeAPI->nvEncOpenEncodeSessionEx(&openSessionExParams, &m_hEncoder);
     if (nvStatus != NV_ENC_SUCCESS)
     {
-        assert(0);
+        m_Logger->error("CNvHWEncoder::NvEncOpenEncodeSessionEx: m_pEncodeAPI->nvEncOpenEncodeSessionEx(...) did not succeed!");
     }
 
     return nvStatus;
@@ -527,7 +527,7 @@ NVENCSTATUS CNvHWEncoder::NvEncRegisterResource(NV_ENC_INPUT_RESOURCE_TYPE resou
     nvStatus = m_pEncodeAPI->nvEncRegisterResource(m_hEncoder, &registerResParams);
     if (nvStatus != NV_ENC_SUCCESS)
     {
-        assert(0);
+        m_Logger->error("CNvHWEncoder::NvEncRegisterResource: m_pEncodeAPI->nvEncRegisterResource(...) did not succeed!");
     }
 
     *registeredResource = registerResParams.registeredResource;
@@ -542,7 +542,7 @@ NVENCSTATUS CNvHWEncoder::NvEncUnregisterResource(NV_ENC_REGISTERED_PTR register
     nvStatus = m_pEncodeAPI->nvEncUnregisterResource(m_hEncoder, registeredRes);
     if (nvStatus != NV_ENC_SUCCESS)
     {
-        assert(0);
+        m_Logger->error("CNvHWEncoder::NvEncUnregisterResource: m_pEncodeAPI->nvEncUnregisterResource(...) did not succeed!");
     }
 
     return nvStatus;
@@ -585,14 +585,14 @@ NVENCSTATUS CNvHWEncoder::NvEncReconfigureEncoder(const NvEncPictureCommand *pEn
         nvStatus = m_pEncodeAPI->nvEncReconfigureEncoder(m_hEncoder, &stReconfigParams);
         if (nvStatus != NV_ENC_SUCCESS)
         {
-            assert(0);
+            m_Logger->error("CNvHWEncoder::NvEncReconfigureEncoder: m_pEncodeAPI->nvEncReconfigureEncoder(...) did not succeed!");
         }
     }
 
     return nvStatus;
 }
 
-CNvHWEncoder::CNvHWEncoder()
+CNvHWEncoder::CNvHWEncoder(std::shared_ptr<spdlog::logger> Logger) : m_Logger(Logger)
 {
     m_bEncoderInitialized = false;
     m_pEncodeAPI = NULL;
@@ -636,7 +636,7 @@ CNvHWEncoder::~CNvHWEncoder()
     }
 }
 
-NVENCSTATUS CNvHWEncoder::ValidateEncodeGUID (GUID inputCodecGuid)
+NVENCSTATUS CNvHWEncoder::ValidateEncodeGUID(GUID inputCodecGuid)
 {
     unsigned int i, codecFound, encodeGUIDCount, encodeGUIDArraySize;
     NVENCSTATUS nvStatus;
@@ -645,7 +645,7 @@ NVENCSTATUS CNvHWEncoder::ValidateEncodeGUID (GUID inputCodecGuid)
     nvStatus = m_pEncodeAPI->nvEncGetEncodeGUIDCount(m_hEncoder, &encodeGUIDCount);
     if (nvStatus != NV_ENC_SUCCESS)
     {
-        assert(0);
+        m_Logger->error("CNvHWEncoder::ValidateEncodeGUID: m_pEncodeAPI->nvEncGetEncodeGUIDCount(...) did not succeed!");
         return nvStatus;
     }
 
@@ -657,11 +657,12 @@ NVENCSTATUS CNvHWEncoder::ValidateEncodeGUID (GUID inputCodecGuid)
     if (nvStatus != NV_ENC_SUCCESS)
     {
         delete[] encodeGUIDArray;
-        assert(0);
+        m_Logger->error("CNvHWEncoder::ValidateEncodeGUID: m_pEncodeAPI->nvEncGetEncodeGUIDs(...) did not succeed!");
         return nvStatus;
     }
 
-    assert(encodeGUIDArraySize <= encodeGUIDCount);
+    m_Logger->info("CNvHWEncoder::ValidateEncodeGUID: encodeGUIDArraySize <= encodeGUIDCount ?");
+    m_Logger->info(encodeGUIDArraySize <= encodeGUIDCount);
 
     codecFound = 0;
     for (i = 0; i < encodeGUIDArraySize; i++)
@@ -676,9 +677,14 @@ NVENCSTATUS CNvHWEncoder::ValidateEncodeGUID (GUID inputCodecGuid)
     delete[] encodeGUIDArray;
 
     if (codecFound)
+    {
         return NV_ENC_SUCCESS;
+    }
     else
+    {
+        m_Logger->error("CNvHWEncoder::ValidateEncodeGUID: codec not found! Invalid GUID.");
         return NV_ENC_ERR_INVALID_PARAM;
+    }
 }
 
 NVENCSTATUS CNvHWEncoder::ValidatePresetGUID(GUID inputPresetGuid, GUID inputCodecGuid)
@@ -690,7 +696,7 @@ NVENCSTATUS CNvHWEncoder::ValidatePresetGUID(GUID inputPresetGuid, GUID inputCod
     nvStatus = m_pEncodeAPI->nvEncGetEncodePresetCount(m_hEncoder, inputCodecGuid, &presetGUIDCount);
     if (nvStatus != NV_ENC_SUCCESS)
     {
-        assert(0);
+        m_Logger->error("CNvHWEncoder::ValidatePresetGUID: m_pEncodeAPI->nvEncGetEncodePresetCount(...) did not succeed!");
         return nvStatus;
     }
 
@@ -701,12 +707,13 @@ NVENCSTATUS CNvHWEncoder::ValidatePresetGUID(GUID inputPresetGuid, GUID inputCod
     nvStatus = m_pEncodeAPI->nvEncGetEncodePresetGUIDs(m_hEncoder, inputCodecGuid, presetGUIDArray, presetGUIDCount, &presetGUIDArraySize);
     if (nvStatus != NV_ENC_SUCCESS)
     {
-        assert(0);
         delete[] presetGUIDArray;
+        m_Logger->error("CNvHWEncoder::ValidatePresetGUID: m_pEncodeAPI->nvEncGetEncodePresetGUIDs(...) did not succeed!");
         return nvStatus;
     }
 
-    assert(presetGUIDArraySize <= presetGUIDCount);
+    m_Logger->info("CNvHWEncoder::ValidatePresetGUID: presetGUIDArraySize <= presetGUIDCount ?");
+    m_Logger->info(presetGUIDArraySize <= presetGUIDCount);
 
     presetFound = 0;
     for (i = 0; i < presetGUIDArraySize; i++)
@@ -721,9 +728,14 @@ NVENCSTATUS CNvHWEncoder::ValidatePresetGUID(GUID inputPresetGuid, GUID inputCod
     delete[] presetGUIDArray;
 
     if (presetFound)
+    {
         return NV_ENC_SUCCESS;
+    }
     else
+    {
+        m_Logger->error("CNvHWEncoder::ValidatePresetGUID: Present GUID not found!");
         return NV_ENC_ERR_INVALID_PARAM;
+    }
 }
 
 NVENCSTATUS CNvHWEncoder::CreateEncoder(const EncodeConfig *pEncCfg)
@@ -732,6 +744,7 @@ NVENCSTATUS CNvHWEncoder::CreateEncoder(const EncodeConfig *pEncCfg)
 
     if (pEncCfg == NULL)
     {
+        m_Logger->error("CNvHWEncoder::CreateEncoder: pEncCfg is empty!");
         return NV_ENC_ERR_INVALID_PARAM;
     }
 
@@ -748,12 +761,13 @@ NVENCSTATUS CNvHWEncoder::CreateEncoder(const EncodeConfig *pEncCfg)
 
     if (!pEncCfg->width || !pEncCfg->height )
     {
+        m_Logger->error("CNvHWEncoder::CreateEncoder: parameters invalid (width or height)!");
         return NV_ENC_ERR_INVALID_PARAM;
     }
 
     if (pEncCfg->isYuv444 && (pEncCfg->codec == NV_ENC_HEVC))
     {
-        PRINTERR("444 is not supported with HEVC \n");
+        m_Logger->error("CNvHWEncoder::CreateEncoder: 444 is not supported with HEVC");
         return NV_ENC_ERR_INVALID_PARAM;
     }
 
@@ -761,7 +775,7 @@ NVENCSTATUS CNvHWEncoder::CreateEncoder(const EncodeConfig *pEncCfg)
     nvStatus = ValidateEncodeGUID(inputCodecGUID);
     if (nvStatus != NV_ENC_SUCCESS)
     {
-        PRINTERR("codec not supported \n");
+        m_Logger->error("CNvHWEncoder::CreateEncoder: ValidateEncodeGUID did not succeed! Codec not supported.");
         return nvStatus;
     }
 
@@ -797,7 +811,7 @@ NVENCSTATUS CNvHWEncoder::CreateEncoder(const EncodeConfig *pEncCfg)
     nvStatus = m_pEncodeAPI->nvEncGetEncodePresetConfig(m_hEncoder, m_stCreateEncodeParams.encodeGUID, m_stCreateEncodeParams.presetGUID, &stPresetCfg);
     if (nvStatus != NV_ENC_SUCCESS)
     {
-        PRINTERR("nvEncGetEncodePresetConfig returned failure");
+        m_Logger->error("CNvHWEncoder::CreateEncoder: m_pEncodeAPI->nvEncGetEncodePresetConfig(...) did not succeed!");
         return nvStatus;
     }
     memcpy(&m_stEncodeConfig, &stPresetCfg.presetCfg, sizeof(NV_ENC_CONFIG));
@@ -911,18 +925,18 @@ NVENCSTATUS CNvHWEncoder::CreateEncoder(const EncodeConfig *pEncCfg)
         nvStatus = m_pEncodeAPI->nvEncGetEncodeCaps(m_hEncoder, m_stCreateEncodeParams.encodeGUID, &stCapsParam, &meonlyMode);
         if (nvStatus != NV_ENC_SUCCESS)
         {
-            PRINTERR("Encode Session Initialization failed");
+            m_Logger->error("CNvHWEncoder::CreateEncoder: m_pEncodeAPI->nvEncGetEncodeCaps(...) did not succeed! Encode Session Initialization failed");
             return nvStatus;
         }
         else
         {
             if (meonlyMode == 1)
             {
-                printf("NV_ENC_CAPS_SUPPORT_MEONLY_MODE  supported\n");
+                m_Logger->info("CNvHWEncoder::CreateEncoder: NV_ENC_CAPS_SUPPORT_MEONLY_MODE  supported\n");
             }
             else
             {
-                PRINTERR("NV_ENC_CAPS_SUPPORT_MEONLY_MODE not supported\n");
+                m_Logger->error("CNvHWEncoder::CreateEncoder: NV_ENC_CAPS_SUPPORT_MEONLY_MODE not supported");
                 return NV_ENC_ERR_UNSUPPORTED_DEVICE;
             }
         } 
@@ -931,7 +945,7 @@ NVENCSTATUS CNvHWEncoder::CreateEncoder(const EncodeConfig *pEncCfg)
     nvStatus = m_pEncodeAPI->nvEncInitializeEncoder(m_hEncoder, &m_stCreateEncodeParams);
     if (nvStatus != NV_ENC_SUCCESS)
     {
-        PRINTERR("Encode Session Initialization failed");
+        m_Logger->error("CNvHWEncoder::CreateEncoder: m_pEncodeAPI->nvEncInitializeEncoder(...) did not succeed! Encode Session Initialization failed");
         return nvStatus;
     }
     m_bEncoderInitialized = true;
@@ -967,7 +981,9 @@ GUID CNvHWEncoder::GetPresetGUID(char* encoderPreset, int codec)
     else
     {
         if (encoderPreset)
-            PRINTERR("Unsupported preset guid %s\n", encoderPreset);
+        {
+            m_Logger->error("CNvHWEncoder::GetPresetGUID: Unsupported preset guid %s\n", encoderPreset);
+        }
         presetGUID = NV_ENC_PRESET_DEFAULT_GUID;
     }
 
@@ -976,7 +992,7 @@ GUID CNvHWEncoder::GetPresetGUID(char* encoderPreset, int codec)
     if (nvStatus != NV_ENC_SUCCESS)
     {
         presetGUID = NV_ENC_PRESET_DEFAULT_GUID;
-        PRINTERR("Unsupported preset guid %s\n", encoderPreset);
+        m_Logger->error("CNvHWEncoder::GetPresetGUID: Unsupported preset guid %s\n", encoderPreset);
     }
 
     return presetGUID;
@@ -1021,7 +1037,7 @@ NVENCSTATUS CNvHWEncoder::ProcessOutput(const EncodeBuffer *pEncodeBuffer, NV_EN
     }
     else
     {
-        PRINTERR("lock bitstream function failed \n");
+        m_Logger->error("CNvHWEncoder::ProcessOutput: m_pEncodeAPI->nvEncLockBitstream(...) did not succeed! Lock bitstream function failed.");
     }
 
     return nvStatus;
@@ -1055,18 +1071,22 @@ NVENCSTATUS CNvHWEncoder::Initialize(void* device, NV_ENC_DEVICE_TYPE deviceType
 
     m_pEncodeAPI = new NV_ENCODE_API_FUNCTION_LIST;
     if (m_pEncodeAPI == NULL)
+    {
+        m_Logger->error("CNvHWEncoder::Initialize: m_pEncodeAPI is empty!");
         return NV_ENC_ERR_OUT_OF_MEMORY;
-
+    }
     memset(m_pEncodeAPI, 0, sizeof(NV_ENCODE_API_FUNCTION_LIST));
     m_pEncodeAPI->version = NV_ENCODE_API_FUNCTION_LIST_VER;
     nvStatus = nvEncodeAPICreateInstance(m_pEncodeAPI);
     if (nvStatus != NV_ENC_SUCCESS)
+    {
         return nvStatus;
-
+    }
     nvStatus = NvEncOpenEncodeSessionEx(device, deviceType);
     if (nvStatus != NV_ENC_SUCCESS)
+    {
         return nvStatus;
-
+    }
     return NV_ENC_SUCCESS;
 }
 
@@ -1114,7 +1134,7 @@ NVENCSTATUS CNvHWEncoder::NvEncEncodeFrame(EncodeBuffer *pEncodeBuffer, NvEncPic
     nvStatus = m_pEncodeAPI->nvEncEncodePicture(m_hEncoder, &encPicParams);
     if (nvStatus != NV_ENC_SUCCESS && nvStatus != NV_ENC_ERR_NEED_MORE_INPUT)
     {
-        assert(0);
+        m_Logger->error("CNvHWEncoder::NvEncEncodeFrame: m_pEncodeAPI->nvEncEncodePicture(...) did not succeed!");
         return nvStatus;
     }
 	
@@ -1134,7 +1154,7 @@ NVENCSTATUS CNvHWEncoder::NvEncFlushEncoderQueue(void *hEOSEvent)
     nvStatus = m_pEncodeAPI->nvEncEncodePicture(m_hEncoder, &encPicParams);
     if (nvStatus != NV_ENC_SUCCESS)
     {
-        assert(0);
+        m_Logger->error("CNvHWEncoder::NvEncFlushEncoderQueue: m_pEncodeAPI->nvEncEncodePicture(...) did not succeed!");
     }
     return nvStatus;
 }

@@ -21,6 +21,7 @@ namespace RW{
 
                 if (iWidth == 0 || iHeight == 0)
                 {
+                    m_Logger->error("IMP_Base::tensProcessInput: Invalid parameters (iWidth or iHeight)");
                     enStatus = tenStatus::nenError;
                 }
 
@@ -30,6 +31,7 @@ namespace RW{
                 }
                 else
                 {
+                    m_Logger->error("IMP_Base::tensProcessInput: pvImg is empty!");
                     enStatus = tenStatus::nenError;
                 }
                 return enStatus;
@@ -41,6 +43,7 @@ namespace RW{
             }
             else
             {
+                m_Logger->error("IMP_Base::tensProcessInput: _pgMat is empty!");
                 return tenStatus::nenError;
             }
 		}
@@ -58,12 +61,14 @@ namespace RW{
 
                 if (m_pgMat == nullptr)
                 {
+                    m_Logger->error("IMP_Base::tensConvertArrayToGpuMat: m_pgMat is empty!");
                     enStatus = tenStatus::nenError;
                 }
             }
 			else
 			{
-				enStatus = tenStatus::nenError;
+                m_Logger->error("IMP_Base::tensConvertArrayToGpuMat: pvImg is empty!");
+                enStatus = tenStatus::nenError;
 			}
 
 			//cudaArray *cuArr;
@@ -75,6 +80,7 @@ namespace RW{
 		{
             if (pOutput == nullptr)
             {
+                m_Logger->error("IMP_Base::tensProcessOutput: pOutput is empty!");
                 return tenStatus::nenError;
             }
 
@@ -83,8 +89,8 @@ namespace RW{
                 tenStatus enStatus = tenStatus::nenSuccess;
                 if (m_pgMat == nullptr)
                 {
-                    enStatus = tenStatus::nenError;
-                    return enStatus;
+                    m_Logger->error("IMP_Base::tensProcessOutput: m_pgMat is empty!");
+                    return tenStatus::nenError;
                 }
                 cudaError cuErr = cudaMemcpy2DToArray(pOutput->_pcuArray, 0, 0, m_pgMat->data, m_pgMat->step * sizeof(size_t), m_pgMat->cols*sizeof(int), m_pgMat->rows*sizeof(int), cudaMemcpyDeviceToDevice);
 
@@ -93,6 +99,7 @@ namespace RW{
 
                 if (pOutput->_pcuArray == nullptr || cuErr != cudaSuccess)
                 {
+                    m_Logger->error("IMP_Base::tensProcessOutput: cudaMemcpy2DToArray(...) did not succeed!");
                     enStatus = tenStatus::nenError;
                 }
                 return enStatus;
@@ -104,6 +111,7 @@ namespace RW{
             }
             else
             {
+                m_Logger->error("IMP_Base::tensProcessOutput: No valid data to process!");
                 return tenStatus::nenError;;
             }
         }
