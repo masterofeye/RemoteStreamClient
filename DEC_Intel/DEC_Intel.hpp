@@ -23,8 +23,23 @@ namespace RW{
 
         typedef struct stMyControlStruct : public CORE::tstControlStruct
         {
-            //void *inputStream;
-            //void *outputRaw;
+            BitStream *pOutput;
+            BitStream *pstEncodedStream;
+
+            stMyControlStruct() : pOutput(nullptr), pstEncodedStream(nullptr){}
+            ~stMyControlStruct()
+            {
+                if (pOutput)
+                {
+                    delete pOutput;
+                    pOutput = nullptr;
+                }
+                if (pstEncodedStream)
+                {
+                    delete pstEncodedStream;
+                    pstEncodedStream = nullptr;
+                }
+            }
         }tstMyControlStruct;
 
         typedef struct stMyDeinitialiseControlStruct : public CORE::tstDeinitialiseControlStruct
@@ -46,7 +61,6 @@ namespace RW{
             virtual tenStatus Deinitialise(CORE::tstDeinitialiseControlStruct *DeinitialiseControlStruct) Q_DECL_OVERRIDE;
 
         private:
-            sInputParams *m_pParams;
             CDecodingPipeline   m_Pipeline; // pipeline for decoding, includes input file reader, decoder and output file writer
 
         };

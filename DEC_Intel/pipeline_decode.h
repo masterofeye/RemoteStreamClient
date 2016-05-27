@@ -33,7 +33,7 @@ Copyright(c) 2005-2015 Intel Corporation. All Rights Reserved.
 #include "base_allocator.h"
 
 #include "mfxmvc.h"
-#include "mfxjpeg.h"
+//#include "mfxjpeg.h"
 #include "mfxplugin.h"
 #include "mfxplugin++.h"
 #include "mfxvideo.h"
@@ -54,13 +54,29 @@ enum eWorkMode {
   MODE_FILE_DUMP
 };
 
-struct sInputParams
+typedef struct _BitStream
+{
+    void *pBitStreamBuffer;
+    uint32_t u32BitStreamSizeInBytes;
+    _BitStream() : pBitStreamBuffer(nullptr), u32BitStreamSizeInBytes(0){}
+    ~_BitStream()
+    {
+        if (pBitStreamBuffer)
+        {
+            delete pBitStreamBuffer;
+            pBitStreamBuffer = nullptr;
+        }
+    }
+}BitStream;
+
+
+typedef struct sInputParams
 {
     mfxU32 videoType; // MFX_CODEC_AVC for h264, MFX_CODEC_HEVC for h265
     eWorkMode mode;
     MemType memType;   // SYSTEM_MEMORY or D3D9_MEMORY or D3D11_MEMORY
     bool    bUseHWLib; // true if application wants to use HW mfx library (platform specific SDK implementation)
-    bool    bIsMVC; // true if Multi-View Codec is in use
+    //bool    bIsMVC; // true if Multi-View Codec is in use. Stereoscopic Video Coding 
     bool    bLowLat; // low latency mode
     bool    bCalLat; // latency calculation
     mfxU32  nMaxFPS; //rendering limited by certain fps
@@ -73,7 +89,7 @@ struct sInputParams
     mfxU32  nWallTimeout; //timeout for -wall option
 
     mfxU32  numViews; // number of views for Multi-View Codec
-    mfxU32  nRotation; // rotation for Motion JPEG Codec
+    //mfxU32  nRotation; // rotation for Motion JPEG Codec
 
     mfxU16  nAsyncDepth; // depth of asynchronous pipeline. default value is 4. must be between 1 and 20
     mfxU16  gpuCopy; // GPU Copy mode (three-state option): MFX_GPUCOPY_DEFAULT or MFX_GPUCOPY_ON or MFX_GPUCOPY_OFF
@@ -112,7 +128,7 @@ struct sInputParams
     {
         MSDK_ZERO_MEMORY(*this);
     }
-};
+}tstInputParams;
 
 template<>struct mfx_ext_buffer_id<mfxExtMVCSeqDesc>{
     enum {id = MFX_EXTBUFF_MVC_SEQ_DESC};
@@ -156,42 +172,40 @@ public:
     CDecodingPipeline();
     virtual ~CDecodingPipeline();
 
-    virtual mfxStatus Init(sInputParams *pParams);
+    void SetInputParams(sInputParams *pParams){ m_pInputParams = pParams; }
+    void SetEncodedData(BitStream *pstEncodedStream)
+    {
+        m_mfxBS.Data       = (mfxU8*)pstEncodedStream->pBitStreamBuffer;
+        m_mfxBS.DataLength = pstEncodedStream->u32BitStreamSizeInBytes;
+        m_mfxBS.MaxLength  = pstEncodedStream->u32BitStreamSizeInBytes;
+        m_mfxBS.DataFlag   = MFX_BITSTREAM_COMPLETE_FRAME;
+    }
+    BitStream* GetOutputData(){ return m_pOutput;  }
+
+    virtual mfxStatus Init();
     virtual mfxStatus RunDecoding();
-    virtual mfxStatus ResetDecoder(sInputParams *pParams);
+    virtual mfxStatus ResetDecoder();
     virtual mfxStatus ResetDevice();
 
-    void SetMultiView();
     virtual void PrintInfo();
 
     mfxBitstream            m_mfxBS; // contains encoded data
 
 protected: // functions
-    virtual void Close();
     void SetExtBuffersFlag()       { m_bIsExtBuffers = true; }
 
-    virtual mfxStatus CreateRenderingWindow(sInputParams *pParams, bool try_s3d);
-    virtual mfxStatus InitMfxParams(sInputParams *pParams);
-
-    // function for allocating a specific external buffer
-    template <typename Buffer>
-    mfxStatus AllocateExtBuffer();
-    virtual void DeleteExtBuffers();
-
-    virtual mfxStatus AllocateExtMVCBuffers();
-    virtual void    DeallocateExtMVCBuffers();
-
-    virtual void AttachExtParam();
+    //virtual mfxStatus CreateRenderingWindow(sInputParams *pParams, bool try_s3d);
+    virtual mfxStatus InitMfxParams();
+    virtual mfxStatus InitForFirstFrame();
 
     virtual mfxStatus InitVppParams();
     virtual mfxStatus AllocAndInitVppFilters();
-    virtual bool IsVppRequired(sInputParams *pParams);
+    virtual bool IsVppRequired();
 
     virtual mfxStatus CreateAllocator();
     virtual mfxStatus CreateHWDevice();
     virtual mfxStatus AllocFrames();
     virtual void DeleteFrames();
-    virtual void DeleteAllocator();
 
     /** \brief Performs SyncOperation on the current outputsurface  with the specified timeout.
      *
@@ -209,9 +223,11 @@ protected: // functions
     static unsigned int MFX_STDCALL DeliverThreadFunc(void* ctx);
 
 protected: // variables
-    CSmplYUVWriter          m_FileWriter;
-    std::auto_ptr<CSmplBitstreamReader>  m_FileReader;
+    //CSmplYUVWriter          m_FileWriter;
+    //std::auto_ptr<CSmplBitstreamReader>  m_FileReader;
+    BitStream               *m_pOutput;
 
+    bool                    m_bFirstFrameInitialized;
     MFXVideoSession         m_mfxSession;
     mfxIMPL                 m_impl;
     MFXVideoDECODE*         m_pmfxDEC;
@@ -221,7 +237,7 @@ protected: // variables
     std::auto_ptr<MFXVideoUSER>  m_pUserModule;
     std::auto_ptr<MFXPlugin> m_pPlugin;
     std::vector<mfxExtBuffer *> m_ExtBuffers;
-
+    tstInputParams           *m_pInputParams;
     GeneralAllocator*       m_pGeneralAllocator;
     mfxAllocatorParams*     m_pmfxAllocatorParams;
     MemType                 m_memType;      // memory type of surfaces to use
@@ -264,12 +280,6 @@ protected: // variables
     std::vector<mfxExtBuffer*> m_VppExtParams;
 
     CHWDevice               *m_hwdev;
-#if D3D_SURFACES_SUPPORT
-    IGFXS3DControl          *m_pS3DControl;
-
-    CDecodeD3DRender         m_d3dRender;
-#endif
-
     bool                    m_bRenderWin;
     mfxU32                  m_nRenderWinX;
     mfxU32                  m_nRenderWinY;

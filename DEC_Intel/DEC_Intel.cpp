@@ -18,7 +18,6 @@ namespace RW{
         DEC_Intel::DEC_Intel(std::shared_ptr<spdlog::logger> Logger) :
             RW::CORE::AbstractModule(Logger)
         {
-
             }
 
         DEC_Intel::~DEC_Intel()
@@ -49,59 +48,37 @@ namespace RW{
             if (data == NULL)
             {
                 m_Logger->error("Initialise: Data of tstMyInitialiseControlStruct is empty!");
-                enStatus = tenStatus::nenError;
-                return enStatus;
+                return tenStatus::nenError;
             }
 
             mfxStatus sts = MFX_ERR_NONE; // return value check
 
-            m_pParams = &data->inputParams;
-            m_pParams->memType = D3D11_MEMORY;
-
-            if (!IsDecodeCodecSupported(m_pParams->videoType))
+            data->inputParams.memType = D3D9_MEMORY;// D3D11_MEMORY;
+            data->inputParams.videoType = MFX_CODEC_AVC;
+            data->inputParams.bLowLat = true;
+            data->inputParams.bCalLat = false;
+            data->inputParams.numViews = 1; //No multi view
+            data->inputParams.fourcc = MFX_FOURCC_RGB4;
+            
+            if (!IsDecodeCodecSupported(data->inputParams.videoType))
             {
                 m_Logger->error("Unsupported codec");
                 sts = MFX_ERR_UNSUPPORTED;
             }
-            if (m_pParams->videoType == CODEC_MVC)
+
+            if (data->inputParams.mode == MODE_RENDERING)
             {
-                m_pParams->videoType = MFX_CODEC_AVC;
-                m_pParams->bIsMVC = true;
-            }
-            if (m_pParams->mode == MODE_RENDERING)
-            {
-                if (m_pParams->memType == SYSTEM_MEMORY)
+                if (data->inputParams.memType == SYSTEM_MEMORY)
                 {
-                    m_pParams->memType = D3D9_MEMORY;
+                    data->inputParams.memType = D3D9_MEMORY;
                 }
             }
 
-            m_pParams->bWallNoTitle = false;
+            data->inputParams.bWallNoTitle = false;
 
-            if (m_pParams->bLowLat || m_pParams->bCalLat)
-            {
-                if ( !(m_pParams->videoType == MFX_CODEC_HEVC
-                    || m_pParams->videoType == MFX_CODEC_AVC
-                    || m_pParams->videoType == MFX_CODEC_JPEG) 
-                    || m_pParams->bIsMVC)
-                {
-                    m_Logger->error("low latency || calc latency mode is supported only for H.264 and JPEG codecs");
-                    sts = MFX_ERR_UNSUPPORTED;
-                }
-            }
-            if (m_pParams->videoType == MFX_CODEC_JPEG)
-            {
-                if ((m_pParams->nRotation != 0) &&(m_pParams->nRotation != 90) && (m_pParams->nRotation != 180) && (m_pParams->nRotation != 270))
-                {
-                    m_Logger->error("jpeg rotate is supported only for 0, 90, 180 and 270 angles");
-                    sts = MFX_ERR_UNSUPPORTED;
-                }
-            }
+            m_Pipeline.SetInputParams(&data->inputParams);
             
-            if (m_pParams->bIsMVC)
-                m_Pipeline.SetMultiView();
-
-            sts = m_Pipeline.Init(m_pParams);
+            sts = m_Pipeline.Init();
 
             // print stream info
             m_Pipeline.PrintInfo();
@@ -111,6 +88,11 @@ namespace RW{
                 enStatus = tenStatus::nenError;
             }
 
+            if (data)
+            {
+                delete data;
+                data = nullptr;
+            }
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
             m_Logger->trace() << "Time to Initialise for nenDecoder_INTEL module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
@@ -135,9 +117,18 @@ namespace RW{
             }
 
             mfxStatus sts = MFX_ERR_NONE; // return value check
-            sts = m_Pipeline.RunDecoding();
 
-            if (MFX_ERR_INCOMPATIBLE_VIDEO_PARAM == sts || MFX_ERR_DEVICE_LOST == sts || MFX_ERR_DEVICE_FAILED == sts)
+            m_Pipeline.SetEncodedData(data->pstEncodedStream);
+
+            sts = m_Pipeline.RunDecoding();
+            if (sts != MFX_ERR_NONE)
+            {
+                enStatus = tenStatus::nenError;
+            }
+
+            data->pOutput = m_Pipeline.GetOutputData();
+
+            if (MFX_ERR_INCOMPATIBLE_VIDEO_PARAM == sts || MFX_ERR_DEVICE_LOST == sts || MFX_ERR_DEVICE_FAILED == sts || data->pOutput == nullptr)
             {
                 if (MFX_ERR_INCOMPATIBLE_VIDEO_PARAM == sts)
                 {
@@ -149,11 +140,16 @@ namespace RW{
                     sts = m_Pipeline.ResetDevice();
                 }
 
-                sts = m_Pipeline.ResetDecoder(m_pParams);
+                sts = m_Pipeline.ResetDecoder();
             }
             if (sts != MFX_ERR_NONE)
             {
                 enStatus = tenStatus::nenError;
+            }
+            if (data)
+            {
+                delete data;
+                data = nullptr;
             }
 
 #ifdef TRACE_PERFORMANCE
