@@ -34,30 +34,30 @@ namespace RW
 
         VideoPlayer::~VideoPlayer()
         {
-            if (m_qabPlay != NULL)
+            if (m_qabPlay != nullptr)
             {
                 delete m_qabPlay;
-                m_qabPlay = NULL;
+                m_qabPlay = nullptr;
             }
-            if (m_qsPosition != NULL)
+            if (m_qsPosition != nullptr)
             {
                 delete m_qsPosition;
-                m_qsPosition = NULL;
+                m_qsPosition = nullptr;
             }
-            if (m_qlError != NULL)
+            if (m_qlError != nullptr)
             {
                 delete m_qlError;
-                m_qlError = NULL;
+                m_qlError = nullptr;
             }
-            if (m_qbArray != NULL)
+            if (m_qbArray != nullptr)
             {
                 delete m_qbArray;
-                m_qbArray = NULL;
+                m_qbArray = nullptr;
             }
-            if (m_pqWidget != NULL)
+            if (m_pqWidget != nullptr)
             {
                 delete m_pqWidget;
-                m_pqWidget = NULL;
+                m_pqWidget = nullptr;
             }
         }
 
@@ -116,7 +116,7 @@ namespace RW
             if (pVideoWidget)
             {
                 delete pVideoWidget;
-                pVideoWidget = NULL;
+                pVideoWidget = nullptr;
             }
 
 #ifdef TRACE_PERFORMANCE
@@ -134,14 +134,14 @@ namespace RW
 #endif
 
             stMyControlStruct* data = static_cast<stMyControlStruct*>(ControlStruct);
-            if (data == NULL)
+            if (data == nullptr)
             {
                 m_Logger->error("DoRender: Data of stMyControlStruct is empty!");
                 enStatus = tenStatus::nenError;
                 return enStatus;
             }
 
-            m_qbArray->setRawData((char*)data->stBitStream.pBitStreamBuffer, data->stBitStream.u32BitStreamSizeInBytes);
+            m_qbArray->setRawData((char*)data->pstBitStream->pBitStreamBuffer, data->pstBitStream->u32BitStreamSizeInBytes);
             m_qmPlayer.setMedia(QUrl::fromEncoded(*m_qbArray));
             m_qabPlay->setEnabled(true);
             m_qmPlayer.play();

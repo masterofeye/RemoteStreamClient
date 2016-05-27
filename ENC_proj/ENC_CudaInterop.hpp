@@ -18,7 +18,7 @@ namespace RW{
 
 		typedef struct _EncodeFrameConfig
 		{
-			CUarray  cuYUVArray;
+			CUarray  pcuYUVArray;
 			uint32_t stride[3];
 			uint32_t width;
 			uint32_t height;
@@ -28,23 +28,54 @@ namespace RW{
 		{
 			void *pBitStreamBuffer;
 			uint32_t u32BitStreamSizeInBytes;
+            _EncodedBitStream() : pBitStreamBuffer(nullptr), u32BitStreamSizeInBytes(0){}
+            ~_EncodedBitStream()
+            {
+                if (pBitStreamBuffer)
+                {
+                    delete pBitStreamBuffer;
+                    pBitStreamBuffer = nullptr;
+                }
+            }
 		}EncodedBitStream;
 
 		typedef struct stMyInitialiseControlStruct : public CORE::tstInitialiseControlStruct
 		{
-			EncodeConfig encodeConfig;
+			EncodeConfig *pstEncodeConfig;
+            stMyInitialiseControlStruct() : pstEncodeConfig(nullptr){}
+            ~stMyInitialiseControlStruct()
+            {
+                if (pstEncodeConfig)
+                {
+                    delete pstEncodeConfig;
+                    pstEncodeConfig = nullptr;
+                }
+            }
 		}tstMyInitialiseControlStruct;
 
 		typedef struct stMyControlStruct : public CORE::tstControlStruct
 		{
-			CUarray cuYUVArray;
-			EncodedBitStream stBitStream;			
+			CUarray pcuYUVArray;
+			EncodedBitStream *pstBitStream;	
+            stMyControlStruct() : pcuYUVArray(nullptr), pstBitStream(nullptr){}
+            ~stMyControlStruct()
+            {
+                if (pcuYUVArray)
+                {
+                    delete pcuYUVArray;
+                    pcuYUVArray = nullptr;
+                }
+                if (pstBitStream)
+                {
+                    delete pstBitStream;
+                    pstBitStream = nullptr;
+                }
+            }
 		}tstMyControlStruct;
 
 		typedef struct stMyDeinitialiseControlStruct : public CORE::tstDeinitialiseControlStruct
 		{
-			EncodedBitStream stBitStream;
-		}tstMyDeinitialiseControlStruct;
+        }tstMyDeinitialiseControlStruct;
 
 		class ENC_CudaInterop : public RW::CORE::AbstractModule
 		{
@@ -79,7 +110,7 @@ namespace RW{
 			NVENCSTATUS                                         InitCuda(uint32_t deviceID);
 			NVENCSTATUS                                         AllocateIOBuffers(uint32_t uInputWidth, uint32_t uInputHeight);
 			NVENCSTATUS                                         ReleaseIOBuffers();
-			NVENCSTATUS                                         FlushEncoder(NV_ENC_LOCK_BITSTREAM *pstBitStreamData);
+			NVENCSTATUS                                         FlushEncoder();
 			NVENCSTATUS                                         ConvertYUVToNV12(EncodeBuffer *pEncodeBuffer, CUarray cuArray, int width, int height);
 			NVENCSTATUS											PreparePreProcCuda();
 

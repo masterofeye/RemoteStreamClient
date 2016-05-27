@@ -33,10 +33,10 @@ namespace RW{
 		{
                 m_pNvHWEncoder = new CNvHWEncoder(m_Logger);
 
-				m_cuContext = NULL;
-				m_cuModule = NULL;
-				m_cuInterleaveUVFunction = NULL;
-                m_cuYUVArray = NULL;
+				m_cuContext = nullptr;
+				m_cuModule = nullptr;
+				m_cuInterleaveUVFunction = nullptr;
+                m_cuYUVArray = nullptr;
 
 				m_uEncodeBufferCount = 0;
 				//memset(&m_stEncoderInput, 0, sizeof(m_stEncoderInput));
@@ -77,8 +77,13 @@ namespace RW{
 			if (m_pNvHWEncoder)
 			{
 				delete m_pNvHWEncoder;
-				m_pNvHWEncoder = NULL;
+				m_pNvHWEncoder = nullptr;
 			}
+            if (m_cuYUVArray)
+            {
+                delete m_cuYUVArray;
+                m_cuYUVArray = nullptr;
+            }
 		}
 
 		CORE::tstModuleVersion ENC_CudaInterop::ModulVersion() {
@@ -169,7 +174,7 @@ namespace RW{
 
 			const char* exec_path = ".//data//";
 			char *ptx_path = sdkFindFilePath(PTX_FILE, exec_path);
-			if (ptx_path == NULL) {
+			if (ptx_path == nullptr) {
 				PRINTERR("Unable to find ptx file path %s\n", PTX_FILE);
 				return NV_ENC_ERR_INVALID_PARAM;
 			}
@@ -243,7 +248,7 @@ namespace RW{
 					return nvStatus;
 				m_stEncodeBuffer[i].stOutputBfr.bWaitOnEvent = true;
 #else
-				m_stEncodeBuffer[i].stOutputBfr.hOutputEvent = NULL;
+				m_stEncodeBuffer[i].stOutputBfr.hOutputEvent = nullptr;
 #endif
 			}
 
@@ -253,7 +258,7 @@ namespace RW{
 			if (nvStatus != NV_ENC_SUCCESS)
 				return nvStatus;
 #else
-			m_stEOSOutputBfr.hOutputEvent = NULL;
+			m_stEOSOutputBfr.hOutputEvent = nullptr;
 #endif
 
 			return NV_ENC_SUCCESS;
@@ -268,12 +273,12 @@ namespace RW{
 				__cu(cuMemFree(m_stEncodeBuffer[i].stInputBfr.pNV12devPtr));
 
 				m_pNvHWEncoder->NvEncDestroyBitstreamBuffer(m_stEncodeBuffer[i].stOutputBfr.hBitstreamBuffer);
-				m_stEncodeBuffer[i].stOutputBfr.hBitstreamBuffer = NULL;
+				m_stEncodeBuffer[i].stOutputBfr.hBitstreamBuffer = nullptr;
 
 #if defined(NV_WINDOWS)
 				m_pNvHWEncoder->NvEncUnregisterAsyncEvent(m_stEncodeBuffer[i].stOutputBfr.hOutputEvent);
 				nvCloseFile(m_stEncodeBuffer[i].stOutputBfr.hOutputEvent);
-				m_stEncodeBuffer[i].stOutputBfr.hOutputEvent = NULL;
+				m_stEncodeBuffer[i].stOutputBfr.hOutputEvent = nullptr;
 #endif
 			}
 
@@ -282,14 +287,14 @@ namespace RW{
 #if defined(NV_WINDOWS)
 				m_pNvHWEncoder->NvEncUnregisterAsyncEvent(m_stEOSOutputBfr.hOutputEvent);
 				nvCloseFile(m_stEOSOutputBfr.hOutputEvent);
-				m_stEOSOutputBfr.hOutputEvent = NULL;
+				m_stEOSOutputBfr.hOutputEvent = nullptr;
 #endif
 			}
 
 			return NV_ENC_SUCCESS;
 		}
 
-		NVENCSTATUS ENC_CudaInterop::FlushEncoder(NV_ENC_LOCK_BITSTREAM *pstBitStreamData)
+		NVENCSTATUS ENC_CudaInterop::FlushEncoder()
 		{
 			NVENCSTATUS nvStatus = m_pNvHWEncoder->NvEncFlushEncoderQueue(m_stEOSOutputBfr.hOutputEvent);
 			if (nvStatus != NV_ENC_SUCCESS)
@@ -301,11 +306,11 @@ namespace RW{
 			EncodeBuffer *pEncodeBuffer = m_EncodeBufferQueue.GetPending();
 			while (pEncodeBuffer)
 			{
-				nvStatus = m_pNvHWEncoder->ProcessOutput(pEncodeBuffer, pstBitStreamData);
-				if (nvStatus != NV_ENC_SUCCESS)
-				{
-					m_Logger->error("FlushEncoder: m_pNvHWEncoder->ProcessOutput(...) did not succeed!");
-				}
+				//nvStatus = m_pNvHWEncoder->ProcessOutput(pEncodeBuffer, pstBitStreamData);
+				//if (nvStatus != NV_ENC_SUCCESS)
+				//{
+				//	m_Logger->error("FlushEncoder: m_pNvHWEncoder->ProcessOutput(...) did not succeed!");
+				//}
 
 				pEncodeBuffer = m_EncodeBufferQueue.GetPending();
 
@@ -313,7 +318,7 @@ namespace RW{
 				if (pEncodeBuffer && pEncodeBuffer->stInputBfr.hInputSurface)
 				{
 					nvStatus = m_pNvHWEncoder->NvEncUnmapInputResource(pEncodeBuffer->stInputBfr.hInputSurface);
-					pEncodeBuffer->stInputBfr.hInputSurface = NULL;
+					pEncodeBuffer->stInputBfr.hInputSurface = nullptr;
 				}
 			}
 #if defined(NV_WINDOWS)
@@ -369,8 +374,8 @@ namespace RW{
 			__cu(cuLaunchKernel(m_cuInterleaveUVFunction, grid.x, grid.y, grid.z,
 				block.x, block.y, block.z,
 				0,
-				NULL, args, NULL));
-			CUresult cuResult = cuStreamQuery(NULL);
+				nullptr, args, nullptr));
+			CUresult cuResult = cuStreamQuery(nullptr);
 			if (!((cuResult == CUDA_SUCCESS) || (cuResult == CUDA_ERROR_NOT_READY)))
 			{
 				return NV_ENC_ERR_GENERIC;
@@ -389,16 +394,14 @@ namespace RW{
 			tenStatus enStatus = tenStatus::nenSuccess;
 			stMyInitialiseControlStruct* data = static_cast<stMyInitialiseControlStruct*>(InitialiseControlStruct);
 
-			if (data == NULL)
+			if (data == nullptr)
 			{
 				m_Logger->error("Initialise: Data of tstMyInitialiseControlStruct is empty!");
 				enStatus = tenStatus::nenError;
 				return enStatus;
 			}
 
-			m_encodeConfig = data->encodeConfig;
-
-
+			m_encodeConfig = *data->pstEncodeConfig;
 
 			// initialize Cuda
 			nvStatus = InitCuda(m_encodeConfig.deviceID);
@@ -466,6 +469,11 @@ namespace RW{
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
             m_Logger->trace() << "Initialise time of Module ENC DoRender: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
+            if (data)
+            {
+                delete data;
+                data = nullptr;
+            }
 
 			return enStatus;
 		}
@@ -478,15 +486,15 @@ namespace RW{
             RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
 #endif
 			stMyControlStruct* data = static_cast<stMyControlStruct*>(ControlStruct);
-			if (data == NULL)
+			if (data == nullptr)
 			{
 				m_Logger->error("DoRender: Data of stMyControlStruct is empty!");
 				enStatus = tenStatus::nenError;
 				return enStatus;
 			}
-			if (data->cuYUVArray != NULL)
+			if (data->pcuYUVArray != nullptr)
 			{
-				m_cuYUVArray = data->cuYUVArray;
+				m_cuYUVArray = data->pcuYUVArray;
 			}
 			else
 			{
@@ -505,7 +513,7 @@ namespace RW{
 			{
 				pEncodeBuffer = m_EncodeBufferQueue.GetPending();
 
-				if (pEncodeBuffer != NULL)
+				if (pEncodeBuffer != nullptr)
 				{
 					NV_ENC_LOCK_BITSTREAM stBitStreamData;
 					nvStatus = m_pNvHWEncoder->ProcessOutput(pEncodeBuffer, &stBitStreamData);
@@ -515,8 +523,8 @@ namespace RW{
 						m_Logger->error("DoRender: m_pNvHWEncoder->ProcessOutput(...) did not succeed!");
 						return enStatus;
 					}
-					data->stBitStream.pBitStreamBuffer = stBitStreamData.bitstreamBufferPtr;
-					data->stBitStream.u32BitStreamSizeInBytes = stBitStreamData.bitstreamSizeInBytes;
+					data->pstBitStream->pBitStreamBuffer = stBitStreamData.bitstreamBufferPtr;
+					data->pstBitStream->u32BitStreamSizeInBytes = stBitStreamData.bitstreamSizeInBytes;
 
 					// UnMap the input buffer after frame done
 					if (pEncodeBuffer->stInputBfr.hInputSurface)
@@ -529,7 +537,7 @@ namespace RW{
 							return enStatus;
 						}
 
-						pEncodeBuffer->stInputBfr.hInputSurface = NULL;
+						pEncodeBuffer->stInputBfr.hInputSurface = nullptr;
 					}
 				}
 				pEncodeBuffer = m_EncodeBufferQueue.GetAvailable();
@@ -551,7 +559,7 @@ namespace RW{
 				return enStatus;
 			}
 
-			nvStatus = m_pNvHWEncoder->NvEncEncodeFrame(pEncodeBuffer, NULL, m_encodeConfig.width, m_encodeConfig.height);
+			nvStatus = m_pNvHWEncoder->NvEncEncodeFrame(pEncodeBuffer, nullptr, m_encodeConfig.width, m_encodeConfig.height);
 			if (nvStatus != NV_ENC_SUCCESS)
 			{
 				enStatus = tenStatus::nenError;
@@ -566,7 +574,11 @@ namespace RW{
             m_Logger->trace() << "Time of Module ENC DoRender: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
             m_Logger->trace() << "Number of encoded files: " << m_u32NumFramesEncoded;
 #endif
-
+            if (data)
+            {
+                delete data;
+                data = nullptr;
+            }
 
 			return enStatus;
 		}
@@ -587,22 +599,19 @@ namespace RW{
 			tenStatus enStatus = tenStatus::nenSuccess;
 			stMyDeinitialiseControlStruct* data = static_cast<stMyDeinitialiseControlStruct*>(DeinitialiseControlStruct);
 
-			if (data == NULL)
+			if (data == nullptr)
 			{
 				m_Logger->error("Deinitialise: Data of stMyDeinitialiseControlStruct is empty!");
 				enStatus = tenStatus::nenError;
 				return enStatus;
 			}
 
-			NV_ENC_LOCK_BITSTREAM stBitStreamData;
-			NVENCSTATUS nvStatus = FlushEncoder(&stBitStreamData);
+			NVENCSTATUS nvStatus = FlushEncoder();
 			if (nvStatus != NV_ENC_SUCCESS)
 			{
 				enStatus = tenStatus::nenError;
 				m_Logger->error("DeInitialise: FlushEncoder(...) did not succeed!");
 			}
-			data->stBitStream.pBitStreamBuffer = stBitStreamData.bitstreamBufferPtr;
-			data->stBitStream.u32BitStreamSizeInBytes = stBitStreamData.bitstreamSizeInBytes;
 
 			nvStatus = ReleaseIOBuffers();
 			if (nvStatus != NV_ENC_SUCCESS)
@@ -629,7 +638,11 @@ namespace RW{
 			RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
 			m_Logger->trace() << "Execution Time of Module ENC: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
-
+            if (data)
+            {
+                delete data;
+                data = nullptr;
+            }
 
 			return enStatus;
 		}

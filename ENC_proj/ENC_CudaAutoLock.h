@@ -12,7 +12,7 @@ namespace RW{
 			CUcontext m_pCtx;
 		public:
 			ENC_CudaAutoLock(CUcontext pCtx) :m_pCtx(pCtx) { cuCtxPushCurrent(m_pCtx); };
-			~ENC_CudaAutoLock()  { CUcontext cuLast = NULL; cuCtxPopCurrent(&cuLast); };
+			~ENC_CudaAutoLock()  { CUcontext cuLast = nullptr; cuCtxPopCurrent(&cuLast); };
 		};
 	}
 }

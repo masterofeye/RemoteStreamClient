@@ -119,6 +119,12 @@ namespace RW{
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
             file_logger->trace() << "Time to DoRender for nenGraphic_Merge module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
+            if (data)
+            {
+                delete data;
+                data = nullptr;
+            }
+
             return enStatus;
 		}
 

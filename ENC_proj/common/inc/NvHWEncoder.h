@@ -72,6 +72,17 @@ typedef struct _EncodeConfig
     char* encoderPreset;	// possible values: "hq" "lowLatencyHP" "lowLatencyHQ" "lossless"
     int  enableMEOnly;
     //int  preloadedFrameCount; // not being used; has to be > 1; if preloadedFrameCount == 1 use enableMEOnly
+
+    _EncodeConfig() : width(0), height(0), maxWidth(0), maxHeight(0), fps(0), bitrate(0), vbvMaxBitrate(0), vbvSize(0), rcMode(0), qp(0), i_quant_factor(0.0), b_quant_factor(0.0), i_quant_offset(0.0), b_quant_offset(0.0), codec(0), invalidateRefFramesEnableFlag(0), intraRefreshEnableFlag(0), intraRefreshPeriod(0), intraRefreshDuration(0), deviceType(0), startFrameIdx(0), gopLength(0), numB(0), pictureStruct(0), deviceID(0), isYuv444(0), encoderPreset(nullptr), enableMEOnly(0) {}
+
+    ~_EncodeConfig()
+    {
+        if (encoderPreset)
+        {
+            delete encoderPreset;
+            encoderPreset = nullptr;
+        }
+    }
 }EncodeConfig;
 
 typedef struct _EncodeInputBuffer
@@ -88,6 +99,34 @@ typedef struct _EncodeInputBuffer
     void*             nvRegisteredResource;
     NV_ENC_INPUT_PTR  hInputSurface;
     NV_ENC_BUFFER_FORMAT bufferFmt;
+
+    _EncodeInputBuffer() : dwWidth(0), dwHeight(0), pNV12devPtr(0), uNV12Stride(0), pNV12TempdevPtr(0), uNV12TempStride(0), nvRegisteredResource(nullptr), hInputSurface(nullptr), bufferFmt(NV_ENC_BUFFER_FORMAT_UNDEFINED)
+    {
+#if defined (NV_WINDOWS)
+        pNV12Surface = nullptr;
+#endif
+    }
+
+    ~_EncodeInputBuffer()
+    {
+#if defined (NV_WINDOWS)
+        if (pNV12Surface)
+        {
+            delete pNV12Surface;
+            pNV12Surface = nullptr;
+        }
+#endif
+        if (nvRegisteredResource)
+        {
+            delete nvRegisteredResource;
+            nvRegisteredResource = nullptr;
+        }
+        if (hInputSurface)
+        {
+            delete hInputSurface;
+            hInputSurface = nullptr;
+        }
+    }
 }EncodeInputBuffer;
 
 typedef struct _EncodeOutputBuffer
@@ -97,6 +136,22 @@ typedef struct _EncodeOutputBuffer
     HANDLE                hOutputEvent;
     bool                  bWaitOnEvent;
     bool                  bEOSFlag;
+
+    _EncodeOutputBuffer() : dwBitstreamBufferSize(0), hBitstreamBuffer(nullptr), hOutputEvent(nullptr), bWaitOnEvent(0), bEOSFlag(0) {}
+
+    ~_EncodeOutputBuffer()
+    {
+        if (hBitstreamBuffer)
+        {
+            delete hBitstreamBuffer;
+            hBitstreamBuffer = nullptr;
+        }
+        if (hOutputEvent)
+        {
+            delete hOutputEvent;
+            hOutputEvent = nullptr;
+        }
+    }
 }EncodeOutputBuffer;
 
 typedef struct _EncodeBuffer
@@ -155,7 +210,7 @@ protected:
     bool                                                 m_bEncoderInitialized;
     GUID                                                 codecGUID;
 
-    NV_ENCODE_API_FUNCTION_LIST*                         m_pEncodeAPI;
+    NV_ENCODE_API_FUNCTION_LIST                         *m_pEncodeAPI;
     HINSTANCE                                            m_hinstLib;
     void                                                *m_hEncoder;
     NV_ENC_INITIALIZE_PARAMS                             m_stCreateEncodeParams;
@@ -206,7 +261,7 @@ public:
     NVENCSTATUS                                          NvEncEncodeFrame(EncodeBuffer *pEncodeBuffer, NvEncPictureCommand *encPicCommand,
                                                                           uint32_t width, uint32_t height,
                                                                           NV_ENC_PIC_STRUCT ePicStruct = NV_ENC_PIC_STRUCT_FRAME,
-                                                                          int8_t *qpDeltaMapArray = NULL, uint32_t qpDeltaMapArraySize = 0);
+                                                                          int8_t *qpDeltaMapArray = nullptr, uint32_t qpDeltaMapArraySize = 0);
     NVENCSTATUS                                          CreateEncoder(const EncodeConfig *pEncCfg);
     GUID                                                 GetPresetGUID(char* encoderPreset, int codec);
 	NVENCSTATUS                                          ProcessOutput(const EncodeBuffer *pEncodeBuffer, NV_ENC_LOCK_BITSTREAM *pstBitstreamData);

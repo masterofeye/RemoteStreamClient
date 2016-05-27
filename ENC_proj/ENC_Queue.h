@@ -16,7 +16,7 @@ namespace RW{
 			unsigned int m_uAvailableIdx;
 			unsigned int m_uPendingndex;
 		private:
-			ENC_Queue() : m_pBuffer(NULL), m_uSize(0), m_uPendingCount(0), m_uAvailableIdx(0),
+			ENC_Queue() : m_pBuffer(nullptr), m_uSize(0), m_uPendingCount(0), m_uAvailableIdx(0),
 				m_uPendingndex(0)
 			{
 			}
@@ -42,10 +42,10 @@ namespace RW{
 
 			T * GetAvailable()
 			{
-				T *pItem = NULL;
+				T *pItem = nullptr;
 				if (m_uPendingCount == m_uSize)
 				{
-					return NULL;
+					return nullptr;
 				}
 				pItem = m_pBuffer[m_uAvailableIdx];
 				m_uAvailableIdx = (m_uAvailableIdx + 1) % m_uSize;
@@ -57,7 +57,7 @@ namespace RW{
 			{
 				if (m_uPendingCount == 0)
 				{
-					return NULL;
+					return nullptr;
 				}
 
 				T *pItem = m_pBuffer[m_uPendingndex];

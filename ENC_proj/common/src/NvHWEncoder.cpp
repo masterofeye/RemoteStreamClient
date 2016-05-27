@@ -220,7 +220,7 @@ NVENCSTATUS CNvHWEncoder::NvEncDestroyMVBuffer(NV_ENC_OUTPUT_PTR bitstreamBuffer
     {
         m_Logger->error("CNvHWEncoder::NvEncDestroyMVBuffer: m_pEncodeAPI->nvEncDestroyMVBuffer(...) did not succeed!");
     }
-    bitstreamBuffer = NULL;
+    bitstreamBuffer = nullptr;
     return status;
 }
 
@@ -387,9 +387,9 @@ NVENCSTATUS CNvHWEncoder::NvEncRegisterAsyncEvent(void** completionEvent)
     SET_VER(eventParams, NV_ENC_EVENT_PARAMS);
 
 #if defined (NV_WINDOWS)
-    eventParams.completionEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+    eventParams.completionEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 #else
-    eventParams.completionEvent = NULL;
+    eventParams.completionEvent = nullptr;
 #endif
     nvStatus = m_pEncodeAPI->nvEncRegisterAsyncEvent(m_hEncoder, &eventParams);
     if (nvStatus != NV_ENC_SUCCESS)
@@ -497,7 +497,7 @@ NVENCSTATUS CNvHWEncoder::NvEncOpenEncodeSessionEx(void* device, NV_ENC_DEVICE_T
 
     openSessionExParams.device = device;
     openSessionExParams.deviceType = deviceType;
-    openSessionExParams.reserved = NULL;
+    openSessionExParams.reserved = nullptr;
     openSessionExParams.apiVersion = NVENCAPI_VERSION;
 
     nvStatus = m_pEncodeAPI->nvEncOpenEncodeSessionEx(&openSessionExParams, &m_hEncoder);
@@ -595,8 +595,8 @@ NVENCSTATUS CNvHWEncoder::NvEncReconfigureEncoder(const NvEncPictureCommand *pEn
 CNvHWEncoder::CNvHWEncoder(std::shared_ptr<spdlog::logger> Logger) : m_Logger(Logger)
 {
     m_bEncoderInitialized = false;
-    m_pEncodeAPI = NULL;
-    m_hinstLib = NULL;
+    m_pEncodeAPI = nullptr;
+    m_hinstLib = nullptr;
     m_EncodeIdx = 0;
     m_uCurWidth = 0;
     m_uCurHeight = 0;
@@ -617,11 +617,12 @@ CNvHWEncoder::~CNvHWEncoder()
     if (m_pEncodeAPI)
     {
         delete m_pEncodeAPI;
-        m_pEncodeAPI = NULL;
+        m_pEncodeAPI = nullptr;
     }
     if (m_hEncoder)
     {
         delete m_hEncoder;
+        m_hEncoder = nullptr;
     }
 
     if (m_hinstLib)
@@ -632,7 +633,7 @@ CNvHWEncoder::~CNvHWEncoder()
         dlclose(m_hinstLib);
 #endif
 
-        m_hinstLib = NULL;
+        m_hinstLib = nullptr;
     }
 }
 
@@ -661,8 +662,8 @@ NVENCSTATUS CNvHWEncoder::ValidateEncodeGUID(GUID inputCodecGuid)
         return nvStatus;
     }
 
-    m_Logger->info("CNvHWEncoder::ValidateEncodeGUID: encodeGUIDArraySize <= encodeGUIDCount ?");
-    m_Logger->info(encodeGUIDArraySize <= encodeGUIDCount);
+    m_Logger->debug("CNvHWEncoder::ValidateEncodeGUID: encodeGUIDArraySize <= encodeGUIDCount ?");
+    m_Logger->debug(encodeGUIDArraySize <= encodeGUIDCount);
 
     codecFound = 0;
     for (i = 0; i < encodeGUIDArraySize; i++)
@@ -712,8 +713,8 @@ NVENCSTATUS CNvHWEncoder::ValidatePresetGUID(GUID inputPresetGuid, GUID inputCod
         return nvStatus;
     }
 
-    m_Logger->info("CNvHWEncoder::ValidatePresetGUID: presetGUIDArraySize <= presetGUIDCount ?");
-    m_Logger->info(presetGUIDArraySize <= presetGUIDCount);
+    m_Logger->debug("CNvHWEncoder::ValidatePresetGUID: presetGUIDArraySize <= presetGUIDCount ?");
+    m_Logger->debug(presetGUIDArraySize <= presetGUIDCount);
 
     presetFound = 0;
     for (i = 0; i < presetGUIDArraySize; i++)
@@ -742,7 +743,7 @@ NVENCSTATUS CNvHWEncoder::CreateEncoder(const EncodeConfig *pEncCfg)
 {
     NVENCSTATUS nvStatus = NV_ENC_SUCCESS;
 
-    if (pEncCfg == NULL)
+    if (pEncCfg == nullptr)
     {
         m_Logger->error("CNvHWEncoder::CreateEncoder: pEncCfg is empty!");
         return NV_ENC_ERR_INVALID_PARAM;
@@ -757,14 +758,11 @@ NVENCSTATUS CNvHWEncoder::CreateEncoder(const EncodeConfig *pEncCfg)
     if ((m_uCurWidth > m_uMaxWidth) || (m_uCurHeight > m_uMaxHeight)) {
         return NV_ENC_ERR_INVALID_PARAM;
     }
-
-
     if (!pEncCfg->width || !pEncCfg->height )
     {
         m_Logger->error("CNvHWEncoder::CreateEncoder: parameters invalid (width or height)!");
         return NV_ENC_ERR_INVALID_PARAM;
     }
-
     if (pEncCfg->isYuv444 && (pEncCfg->codec == NV_ENC_HEVC))
     {
         m_Logger->error("CNvHWEncoder::CreateEncoder: 444 is not supported with HEVC");
@@ -932,7 +930,7 @@ NVENCSTATUS CNvHWEncoder::CreateEncoder(const EncodeConfig *pEncCfg)
         {
             if (meonlyMode == 1)
             {
-                m_Logger->info("CNvHWEncoder::CreateEncoder: NV_ENC_CAPS_SUPPORT_MEONLY_MODE  supported\n");
+                m_Logger->debug("CNvHWEncoder::CreateEncoder: NV_ENC_CAPS_SUPPORT_MEONLY_MODE  supported\n");
             }
             else
             {
@@ -1002,7 +1000,7 @@ NVENCSTATUS CNvHWEncoder::ProcessOutput(const EncodeBuffer *pEncodeBuffer, NV_EN
 {
     NVENCSTATUS nvStatus = NV_ENC_SUCCESS;
 
-    if (pEncodeBuffer->stOutputBfr.hBitstreamBuffer == NULL && pEncodeBuffer->stOutputBfr.bEOSFlag == FALSE)
+    if (pEncodeBuffer->stOutputBfr.hBitstreamBuffer == nullptr && pEncodeBuffer->stOutputBfr.bEOSFlag == FALSE)
     {
         return NV_ENC_ERR_INVALID_PARAM;
     }
@@ -1057,7 +1055,7 @@ NVENCSTATUS CNvHWEncoder::Initialize(void* device, NV_ENC_DEVICE_TYPE deviceType
 #else
     m_hinstLib = dlopen("libnvidia-encode.so.1", RTLD_LAZY);
 #endif
-    if (m_hinstLib == NULL)
+    if (m_hinstLib == nullptr)
         return NV_ENC_ERR_OUT_OF_MEMORY;
 
 #if defined(NV_WINDOWS)
@@ -1066,11 +1064,11 @@ NVENCSTATUS CNvHWEncoder::Initialize(void* device, NV_ENC_DEVICE_TYPE deviceType
     nvEncodeAPICreateInstance = (MYPROC)dlsym(m_hinstLib, "NvEncodeAPICreateInstance");
 #endif
 
-    if (nvEncodeAPICreateInstance == NULL)
+    if (nvEncodeAPICreateInstance == nullptr)
         return NV_ENC_ERR_OUT_OF_MEMORY;
 
     m_pEncodeAPI = new NV_ENCODE_API_FUNCTION_LIST;
-    if (m_pEncodeAPI == NULL)
+    if (m_pEncodeAPI == nullptr)
     {
         m_Logger->error("CNvHWEncoder::Initialize: m_pEncodeAPI is empty!");
         return NV_ENC_ERR_OUT_OF_MEMORY;

@@ -130,12 +130,35 @@ namespace RW
         typedef struct stMyInitialiseControlStruct : public CORE::tstInitialiseControlStruct
         {
             stRectStruct *pstFrameRect;
+            stMyInitialiseControlStruct() : pstFrameRect(nullptr){}
+            ~stMyInitialiseControlStruct()
+            {
+                if (pstFrameRect)
+                {
+                    delete pstFrameRect;
+                    pstFrameRect = nullptr;
+                }
+            }
         }tstMyInitialiseControlStruct;
 
         typedef struct stMyControlStruct : public CORE::tstControlStruct
         {
             cInputBase *pcInput;
             cOutputBase *pcOutput;
+            stMyControlStruct() : pcInput(nullptr), pcOutput(nullptr) {}
+            ~stMyControlStruct()
+            {
+                if (pcInput)
+                {
+                    delete pcInput;
+                    pcInput = nullptr;
+                }
+                if (pcOutput)
+                {
+                    delete pcOutput;
+                    pcOutput = nullptr;
+                }
+            }
         }tstMyControlStruct;
 
         typedef struct stMyDeinitialiseControlStruct : public CORE::tstDeinitialiseControlStruct
