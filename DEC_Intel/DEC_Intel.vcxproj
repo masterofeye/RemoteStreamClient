@@ -160,13 +160,19 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Intel_decode.hpp" />
+    <ClInclude Include="DEC_Intel.hpp" />
+    <ClInclude Include="ModuleFactory.hpp" />
     <ClInclude Include="pipeline_decode.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Intel_decode.cpp" />
-    <ClCompile Include="moc_Intel_decode.cpp" />
+    <ClCompile Include="DEC_Intel.cpp" />
+    <ClCompile Include="moc_DEC_Intel.cpp" />
+    <ClCompile Include="moc_ModuleFactory.cpp" />
+    <ClCompile Include="ModuleFactory.cpp" />
     <ClCompile Include="pipeline_decode.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="DEC.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

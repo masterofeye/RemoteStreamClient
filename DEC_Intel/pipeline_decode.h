@@ -151,6 +151,7 @@ class CDecodingPipeline:
     public CBuffering,
     public CPipelineStatistics
 {
+
 public:
     CDecodingPipeline();
     virtual ~CDecodingPipeline();
@@ -162,6 +163,8 @@ public:
 
     void SetMultiView();
     virtual void PrintInfo();
+
+    mfxBitstream            m_mfxBS; // contains encoded data
 
 protected: // functions
     virtual void Close();
@@ -190,7 +193,7 @@ protected: // functions
     virtual void DeleteFrames();
     virtual void DeleteAllocator();
 
-    /** \brief Performs SyncOperation on the current output surface with the specified timeout.
+    /** \brief Performs SyncOperation on the current outputsurface  with the specified timeout.
      *
      * @return MFX_ERR_NONE Output surface was successfully synced and delivered.
      * @return MFX_ERR_MORE_DATA Array of output surfaces is empty, need to feed decoder.
@@ -208,7 +211,6 @@ protected: // functions
 protected: // variables
     CSmplYUVWriter          m_FileWriter;
     std::auto_ptr<CSmplBitstreamReader>  m_FileReader;
-    mfxBitstream            m_mfxBS; // contains encoded data
 
     MFXVideoSession         m_mfxSession;
     mfxIMPL                 m_impl;

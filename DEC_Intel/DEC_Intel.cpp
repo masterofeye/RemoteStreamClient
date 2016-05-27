@@ -11,7 +11,7 @@ Copyright(c) 2005-2015 Intel Corporation. All Rights Reserved.
 
 **********************************************************************************/
 
-#include "Intel_decode.hpp"
+#include "DEC_Intel.hpp"
 
 namespace RW{
     namespace DEC{
@@ -97,9 +97,7 @@ namespace RW{
                     sts = MFX_ERR_UNSUPPORTED;
                 }
             }
-
-
-
+            
             if (m_pParams->bIsMVC)
                 m_Pipeline.SetMultiView();
 
