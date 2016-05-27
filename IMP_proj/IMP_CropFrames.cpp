@@ -10,12 +10,17 @@ namespace RW{
         IMP_CropFrames::IMP_CropFrames(std::shared_ptr<spdlog::logger> Logger) :
             RW::CORE::AbstractModule(Logger)
         {
-                m_pstRect = NULL;
+                m_pstRect = nullptr;
             }
 
 
 		IMP_CropFrames::~IMP_CropFrames()
 		{
+            if (m_pstRect)
+            {
+                delete m_pstRect;
+                m_pstRect = nullptr;
+            }
 		}
 
 		CORE::tstModuleVersion IMP_CropFrames::ModulVersion() {
@@ -37,21 +42,17 @@ namespace RW{
 			tenStatus enStatus = tenStatus::nenSuccess;
 			stMyInitialiseControlStruct* data = static_cast<stMyInitialiseControlStruct*>(InitialiseControlStruct);
 
-			if (data == NULL)
+			if (data == nullptr)
 			{
 				m_Logger->error("Initialise: Data of tstMyInitialiseControlStruct is empty!");
-				enStatus = tenStatus::nenError;
-				return enStatus;
+                return tenStatus::nenError;
 			}
-
-            *m_pstRect = data->stFrameRect;
-
-            if (m_pstRect == NULL)
+            if (data->pstFrameRect == nullptr)
             {
                 m_Logger->error("Initialise: Rect struct is empty!");
-                enStatus = tenStatus::nenError;
-                return enStatus;
+                return tenStatus::nenError;
             }
+            m_pstRect = data->pstFrameRect;
 
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
@@ -69,48 +70,48 @@ namespace RW{
 			tenStatus enStatus = tenStatus::nenSuccess;
 			stMyControlStruct* data = static_cast<stMyControlStruct*>(ControlStruct);
 
-			if (data == NULL)
+			if (data == nullptr)
 			{
 				m_Logger->error("DoRender: Data of stMyControlStruct is empty!");
 				enStatus = tenStatus::nenError;
 				return enStatus;
 			}
-            cInputBase input = data->cInput;
+            if (m_pstRect == nullptr)
+            {
+                m_Logger->error("DoRender: Rect struct is empty!");
+                return tenStatus::nenError;
+            }
 
-            IMP_Base impBase = IMP_Base();
-            enStatus = impBase.tensProcessInput(&input);
-            if (enStatus != tenStatus::nenSuccess)
+            IMP_Base impBase = IMP_Base(m_Logger);
+            enStatus = impBase.tensProcessInput(data->pcInput);
+            cv::cuda::GpuMat *pgMat = impBase.cuGetGpuMat();
+            if (enStatus != tenStatus::nenSuccess || pgMat == nullptr)
             {
                 m_Logger->error("DoRender: impBase.tensProcessInput did not succeed!");
                 return enStatus;
             }
 
-            cv::cuda::GpuMat gMat = impBase.cuGetGpuMat();
-            if (gMat.data == NULL)
-            {
-                enStatus = tenStatus::nenError;
-                m_Logger->error("DoRender: GpuMat is NULL!");
-                return enStatus;
-            }
-
-            if (m_pstRect->iWidth > gMat.cols || m_pstRect->iHeight > gMat.rows
+            if (m_pstRect->iWidth > pgMat->cols || m_pstRect->iHeight > pgMat->rows
                 || m_pstRect->iWidth == 0 || m_pstRect->iHeight == 0)
 			{
-				enStatus = tenStatus::nenError;
 				m_Logger->error("DoRender: Invalid frame size parameters!");
-				return enStatus;
+                return tenStatus::nenError;
 			}
-            else if (m_pstRect->iWidth < gMat.cols || m_pstRect->iHeight < gMat.rows)
+            else if (m_pstRect->iWidth < pgMat->cols || m_pstRect->iHeight < pgMat->rows)
 			{
                 cv::Rect rect(m_pstRect->iPosX, m_pstRect->iPosY, m_pstRect->iWidth, m_pstRect->iHeight);
-                gMat = gMat(rect);
+                *pgMat = (*pgMat)(rect);
 			}
 
-            cOutputBase output = data->cOutput;
+            impBase.vSetGpuMat(pgMat);
+            enStatus = impBase.tensProcessOutput(data->pcOutput);
 
-            impBase.vSetGpuMat(gMat);
-            enStatus = impBase.tensProcessOutput(&output);
-            if (enStatus != tenStatus::nenSuccess)
+            if (pgMat)
+            {
+                delete pgMat;
+                pgMat = nullptr;
+            }
+            if (enStatus != tenStatus::nenSuccess || data->pcOutput == nullptr)
             {
                 m_Logger->error("DoRender: impBase.tensProcessOutput did not succeed!");
             }

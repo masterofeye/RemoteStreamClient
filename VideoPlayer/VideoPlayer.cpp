@@ -16,11 +16,49 @@ namespace RW
             , m_qsPosition(0)
             , m_qlError(0)
         {
+                m_qbArray = new QByteArray();
+
+                m_pqWidget = new QWidget();
+                m_qabPlay = new QPushButton;
+                m_qabPlay->setEnabled(false);
+                m_qabPlay->setIcon(m_pqWidget->style()->standardIcon(QStyle::SP_MediaPlay));
+
+                m_qsPosition = new QSlider(Qt::Horizontal);
+                m_qsPosition->setRange(0, 0);
+
+                m_qlError = new QLabel;
+                m_qlError->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
+
                 QApplication app();
             }
 
         VideoPlayer::~VideoPlayer()
         {
+            if (m_qabPlay != NULL)
+            {
+                delete m_qabPlay;
+                m_qabPlay = NULL;
+            }
+            if (m_qsPosition != NULL)
+            {
+                delete m_qsPosition;
+                m_qsPosition = NULL;
+            }
+            if (m_qlError != NULL)
+            {
+                delete m_qlError;
+                m_qlError = NULL;
+            }
+            if (m_qbArray != NULL)
+            {
+                delete m_qbArray;
+                m_qbArray = NULL;
+            }
+            if (m_pqWidget != NULL)
+            {
+                delete m_pqWidget;
+                m_pqWidget = NULL;
+            }
         }
 
         CORE::tstModuleVersion VideoPlayer::ModulVersion() {
@@ -36,31 +74,21 @@ namespace RW
         tenStatus VideoPlayer::Initialise(CORE::tstInitialiseControlStruct * InitialiseControlStruct)
         {
             tenStatus enStatus = tenStatus::nenSuccess;
+
+            m_Logger->debug("Initialise nenPlayback_Simple");
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
+#endif
+
             stMyInitialiseControlStruct* data = static_cast<stMyInitialiseControlStruct*>(InitialiseControlStruct);
 
-
-            QVideoWidget *videoWidget = new QVideoWidget;
-            m_qbArray = new QByteArray();
-
-            //QAbstractButton *openButton = new QPushButton(tr("Open..."));
-            //connect(openButton, SIGNAL(clicked()), this, SLOT(openFile()));
-
-            m_pqWidget = new QWidget();
-            m_qabPlay = new QPushButton;
-            m_qabPlay->setEnabled(false);
-            m_qabPlay->setIcon(m_pqWidget->style()->standardIcon(QStyle::SP_MediaPlay));
+            QVideoWidget *pVideoWidget = new QVideoWidget;
 
             connect(m_qabPlay, SIGNAL(clicked()),
                 this, SLOT(play()));
 
-            m_qsPosition = new QSlider(Qt::Horizontal);
-            m_qsPosition->setRange(0, 0);
-
             connect(m_qsPosition, SIGNAL(sliderMoved(int)),
                 this, SLOT(setPosition(int)));
-
-            m_qlError = new QLabel;
-            m_qlError->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
 
             QBoxLayout *controlLayout = new QHBoxLayout;
             controlLayout->setMargin(0);
@@ -69,13 +97,13 @@ namespace RW
             controlLayout->addWidget(m_qsPosition);
 
             QBoxLayout *layout = new QVBoxLayout;
-            layout->addWidget(videoWidget);
+            layout->addWidget(pVideoWidget);
             layout->addLayout(controlLayout);
             layout->addWidget(m_qlError);
 
             m_pqWidget->setLayout(layout);
 
-            m_qmPlayer.setVideoOutput(videoWidget);
+            m_qmPlayer.setVideoOutput(pVideoWidget);
             connect(&m_qmPlayer, SIGNAL(stateChanged(QMediaPlayer::State)),
                 this, SLOT(mediaStateChanged(QMediaPlayer::State)));
             connect(&m_qmPlayer, SIGNAL(positionChanged(qint64)), this, SLOT(positionChanged(qint64)));
@@ -85,12 +113,25 @@ namespace RW
             m_pqWidget->resize(320, 240);
             m_pqWidget->show();
 
-            m_Logger->debug("Initialise");
+            if (pVideoWidget)
+            {
+                delete pVideoWidget;
+                pVideoWidget = NULL;
+            }
+
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
+            file_logger->trace() << "Time to Initialise for nenPlayback_Simple module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+#endif
             return enStatus;
         }
         tenStatus VideoPlayer::DoRender(CORE::tstControlStruct * ControlStruct)
         {
             tenStatus enStatus = tenStatus::nenSuccess;
+            m_Logger->debug("DoRender nenPlayback_Simple");
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
+#endif
 
             stMyControlStruct* data = static_cast<stMyControlStruct*>(ControlStruct);
             if (data == NULL)
@@ -105,17 +146,25 @@ namespace RW
             m_qabPlay->setEnabled(true);
             m_qmPlayer.play();
 
-            m_Logger->debug("DoRender");
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
+            file_logger->trace() << "Time to DoRender for nenPlayback_Simple module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+#endif
             return enStatus;
         }
 
         tenStatus VideoPlayer::Deinitialise(CORE::tstDeinitialiseControlStruct *DeinitialiseControlStruct)
         {
-            tenStatus enStatus = tenStatus::nenSuccess;
-            stMyDeinitialiseControlStruct* data = static_cast<stMyDeinitialiseControlStruct*>(DeinitialiseControlStruct);
+            m_Logger->debug("Deinitialise nenGraphic_Color");
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
+#endif
 
-            m_Logger->debug("Deinitialise");
-            return enStatus;
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
+            file_logger->trace() << "Time to Deinitialise for nenPlayback_Simple module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+#endif
+            return tenStatus::nenSuccess;
         }
 
         void VideoPlayer::play()
@@ -160,7 +209,7 @@ namespace RW
         void VideoPlayer::handleError()
         {
             m_qabPlay->setEnabled(false);
-            m_qlError->setText("Error: " + m_qmPlayer.errorString());
+            m_Logger->error(m_qmPlayer.errorString().toStdString().c_str());
         }
     }
 }

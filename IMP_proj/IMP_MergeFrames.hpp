@@ -12,12 +12,11 @@ namespace RW
 			Q_OBJECT
 
 		private:
-            tstRectStruct *m_pstRect;
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point					m_tStart;
 #endif
 
-			tenStatus ApplyMerge(cv::cuda::GpuMat gMat1, cv::cuda::GpuMat gMat2, cv::cuda::GpuMat *pgMat);
+			tenStatus ApplyMerge(cv::cuda::GpuMat *pgMat1, cv::cuda::GpuMat *pgMat2);
 
 		public:
 

@@ -12,12 +12,13 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <assert.h>
+//#include <assert.h>
 
 #include "dynlink_cuda.h" // <cuda.h>
 
 #include "nvEncodeAPI.h"
 #include "nvUtils.h"
+#include "AbstractModule.hpp"
 
 #define SET_VER(configStruct, type) {configStruct.version = type##_VER;}
 
@@ -130,15 +131,15 @@ enum
     NV_ENC_HEVC = 1,
 };
 
-struct MEOnlyConfig
-{
-    unsigned char *yuv[2][3];
-    unsigned int stride[3];
-    unsigned int width;
-    unsigned int height;
-    unsigned int inputFrameIndex;
-    unsigned int referenceFrameIndex;
-};
+//struct MEOnlyConfig
+//{
+//    unsigned char *yuv[2][3];
+//    unsigned int stride[3];
+//    unsigned int width;
+//    unsigned int height;
+//    unsigned int inputFrameIndex;
+//    unsigned int referenceFrameIndex;
+//};
 
 class CNvHWEncoder
 {
@@ -159,6 +160,7 @@ protected:
     void                                                *m_hEncoder;
     NV_ENC_INITIALIZE_PARAMS                             m_stCreateEncodeParams;
     NV_ENC_CONFIG                                        m_stEncodeConfig;
+    std::shared_ptr<spdlog::logger>                      m_Logger;
 
 public:
     NVENCSTATUS NvEncOpenEncodeSession(void* device, uint32_t deviceType);
@@ -178,7 +180,7 @@ public:
     NVENCSTATUS NvEncDestroyBitstreamBuffer(NV_ENC_OUTPUT_PTR bitstreamBuffer);
     NVENCSTATUS NvEncCreateMVBuffer(uint32_t size, void** bitstreamBuffer);
     NVENCSTATUS NvEncDestroyMVBuffer(NV_ENC_OUTPUT_PTR bitstreamBuffer);
-    NVENCSTATUS NvRunMotionEstimationOnly(EncodeBuffer *pEncodeBuffer[2], MEOnlyConfig *pMEOnly);
+    //NVENCSTATUS NvRunMotionEstimationOnly(EncodeBuffer *pEncodeBuffer[2], MEOnlyConfig *pMEOnly);
     NVENCSTATUS NvEncLockBitstream(NV_ENC_LOCK_BITSTREAM* lockBitstreamBufferParams);
     NVENCSTATUS NvEncUnlockBitstream(NV_ENC_OUTPUT_PTR bitstreamBuffer);
     NVENCSTATUS NvEncLockInputBuffer(void* inputBuffer, void** bufferDataPtr, uint32_t* pitch);
@@ -197,7 +199,7 @@ public:
     NVENCSTATUS NvEncReconfigureEncoder(const NvEncPictureCommand *pEncPicCommand);
     NVENCSTATUS NvEncFlushEncoderQueue(void *hEOSEvent);
 
-    CNvHWEncoder();
+    CNvHWEncoder(std::shared_ptr<spdlog::logger> m_Logger);
     virtual ~CNvHWEncoder();
     NVENCSTATUS                                          Initialize(void* device, NV_ENC_DEVICE_TYPE deviceType);
     NVENCSTATUS                                          Deinitialize();

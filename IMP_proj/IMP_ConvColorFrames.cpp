@@ -33,7 +33,6 @@ namespace RW{
 		tenStatus IMP_ConvColorFrames::Initialise(CORE::tstInitialiseControlStruct * InitialiseControlStruct)
 		{
             m_Logger->debug("Initialise nenGraphic_Color");
-
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
 #endif
@@ -56,41 +55,31 @@ namespace RW{
 
             stMyControlStruct* data = static_cast<stMyControlStruct*>(ControlStruct);
 
-            if (data == NULL)
+            if (data == nullptr)
             {
                 m_Logger->error("DoRender: Data of stMyControlStruct is empty!");
-                enStatus = tenStatus::nenError;
-                return enStatus;
+                return tenStatus::nenError;
             }
-            cInputBase input = data->cInput;
 
-            IMP_Base impBase = IMP_Base();
-            enStatus = impBase.tensProcessInput(&input);
-            if (enStatus != tenStatus::nenSuccess)
+            IMP_Base impBase = IMP_Base(m_Logger);
+            enStatus = impBase.tensProcessInput(data->pcInput);
+            cv::cuda::GpuMat *pgMat = impBase.cuGetGpuMat();
+            if (enStatus != tenStatus::nenSuccess || pgMat == nullptr)
             {
                 m_Logger->error("DoRender: impBase.tensProcessInput did not succeed!");
             }
 
-            cv::cuda::GpuMat gMat = impBase.cuGetGpuMat();
-            if (gMat.data == NULL)
+            cv::cuda::cvtColor(*pgMat, *pgMat, cv::COLOR_RGB2YUV);
+
+            impBase.vSetGpuMat(pgMat);
+            enStatus = impBase.tensProcessOutput(data->pcOutput);
+
+            if (pgMat)
             {
-                enStatus = tenStatus::nenError;
-                m_Logger->error("DoRender: GpuMat is NULL!");
-                return enStatus;
+                delete pgMat;
+                pgMat = nullptr;
             }
-
-            cv::cuda::cvtColor(gMat, gMat, cv::COLOR_RGB2YUV);
-            if (gMat.data == NULL)
-			{
-				m_Logger->error("DoRender: Data of cuMat is empty! cvtColor did not succeed!");
-				enStatus = tenStatus::nenError;
-			}
-
-            cOutputBase output = data->cOutput;
-
-            impBase.vSetGpuMat(gMat);
-            enStatus = impBase.tensProcessOutput(&output);
-            if (enStatus != tenStatus::nenSuccess)
+            if (enStatus != tenStatus::nenSuccess || data->pcOutput == nullptr)
             {
                 m_Logger->error("DoRender: impBase.tensProcessOutput did not succeed!");
             }
