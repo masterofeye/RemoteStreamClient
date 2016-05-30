@@ -85,7 +85,7 @@ namespace RW{
             //int  preloadedFrameCount; // not being used; has to be > 1; if preloadedFrameCount == 1 use enableMEOnly
 
             _EncodeConfig() : width(0), height(0), maxWidth(0), maxHeight(0), 
-                fps(30), bitrate(5000000), vbvMaxBitrate(0),               vbvSize(0), 
+                fps(30), bitrate(5000000), vbvMaxBitrate(0), vbvSize(0), 
                 rcMode(NV_ENC_PARAMS_RC_CONSTQP), qp(28), 
                 i_quant_factor(DEFAULT_I_QFACTOR), b_quant_factor(DEFAULT_B_QFACTOR), i_quant_offset(DEFAULT_I_QOFFSET), b_quant_offset(DEFAULT_B_QOFFSET), 
                 presetGUID(NV_ENC_PRESET_DEFAULT_GUID), 

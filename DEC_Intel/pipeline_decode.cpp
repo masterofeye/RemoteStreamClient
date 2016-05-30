@@ -56,28 +56,29 @@ namespace RW{
             m_bVppIsUsed = false;
             MSDK_ZERO_MEMORY(m_mfxBS);
 
-            m_pmfxDEC = NULL;
-            m_pmfxVPP = NULL;
+            m_pOutput = nullptr;
+            m_pmfxDEC = nullptr;
+            m_pmfxVPP = nullptr;
             m_impl = 0;
 
             MSDK_ZERO_MEMORY(m_mfxVideoParams);
             MSDK_ZERO_MEMORY(m_mfxVppVideoParams);
 
-            m_pGeneralAllocator = NULL;
-            m_pmfxAllocatorParams = NULL;
+            m_pGeneralAllocator = nullptr;
+            m_pmfxAllocatorParams = nullptr;
             m_memType = SYSTEM_MEMORY;
             m_bExternalAlloc = false;
             m_bDecOutSysmem = false;
             MSDK_ZERO_MEMORY(m_mfxResponse);
             MSDK_ZERO_MEMORY(m_mfxVppResponse);
 
-            m_pCurrentFreeSurface = NULL;
-            m_pCurrentFreeVppSurface = NULL;
-            m_pCurrentFreeOutputSurface = NULL;
-            m_pCurrentOutputSurface = NULL;
+            m_pCurrentFreeSurface = nullptr;
+            m_pCurrentFreeVppSurface = nullptr;
+            m_pCurrentFreeOutputSurface = nullptr;
+            m_pCurrentOutputSurface = nullptr;
 
-            m_pDeliverOutputSemaphore = NULL;
-            m_pDeliveredEvent = NULL;
+            m_pDeliverOutputSemaphore = nullptr;
+            m_pDeliveredEvent = nullptr;
             m_error = MFX_ERR_NONE;
             m_bStopDeliverLoop = false;
 
@@ -109,9 +110,11 @@ namespace RW{
             m_VppDeinterlacing.Header.BufferId = MFX_EXTBUFF_VPP_DEINTERLACING;
             m_VppDeinterlacing.Header.BufferSz = sizeof(m_VppDeinterlacing);
 
-            m_hwdev = NULL;
+            m_hwdev = nullptr;
 
             m_bFirstFrameInitialized = false;
+
+            m_pInputParams = nullptr;
 
 #ifdef LIBVA_SUPPORT
             m_export_mode = vaapiAllocatorParams::DONOT_EXPORT;
@@ -130,7 +133,7 @@ namespace RW{
             if (m_bIsExtBuffers)
             {
                 mfxExtMVCSeqDesc* pExtMVCBuffer = (mfxExtMVCSeqDesc*)m_mfxVideoParams.ExtParam[0];
-                if (pExtMVCBuffer != NULL)
+                if (pExtMVCBuffer != nullptr)
                 {
                     MSDK_SAFE_DELETE_ARRAY(pExtMVCBuffer->View);
                     MSDK_SAFE_DELETE_ARRAY(pExtMVCBuffer->ViewId);
@@ -158,6 +161,10 @@ namespace RW{
             MSDK_SAFE_DELETE(m_pGeneralAllocator);
             MSDK_SAFE_DELETE(m_pmfxAllocatorParams);
             MSDK_SAFE_DELETE(m_hwdev);
+            MSDK_SAFE_DELETE(m_pInputParams);
+            MSDK_SAFE_DELETE(m_pCurrentOutputSurface);
+            MSDK_SAFE_DELETE(m_pDeliverOutputSemaphore);
+            MSDK_SAFE_DELETE(m_pDeliveredEvent);
         }
 
         mfxStatus CDecodingPipeline::Init()
@@ -328,7 +335,7 @@ namespace RW{
                 if (!AreGuidsEqual(m_pInputParams->pluginParams.pluginGuid, MSDK_PLUGINGUID_NULL))
                 {
                     m_pPlugin.reset(LoadPlugin(MFX_PLUGINTYPE_VIDEO_DECODE, m_mfxSession, m_pInputParams->pluginParams.pluginGuid, 1));
-                    if (m_pPlugin.get() == NULL) sts = MFX_ERR_UNSUPPORTED;
+                    if (m_pPlugin.get() == nullptr) sts = MFX_ERR_UNSUPPORTED;
                 }
                 if (sts == MFX_ERR_UNSUPPORTED)
                 {
@@ -586,7 +593,7 @@ namespace RW{
 #if D3D_SURFACES_SUPPORT
             mfxStatus sts = MFX_ERR_NONE;
 
-            HWND window = NULL;
+            HWND window = nullptr;
             bool render = (m_eWorkMode == MODE_RENDERING);
 
 
@@ -597,7 +604,7 @@ namespace RW{
 #endif // #if MFX_D3D11_SUPPORT
                 m_hwdev = new CD3D9Device();
 
-            if (NULL == m_hwdev)
+            if (nullptr == m_hwdev)
                 return MFX_ERR_MEMORY_ALLOC;
 
             sts = m_hwdev->Init(
@@ -610,7 +617,7 @@ namespace RW{
             mfxStatus sts = MFX_ERR_NONE;
             m_hwdev = CreateVAAPIDevice(m_libvaBackend);
 
-            if (NULL == m_hwdev) {
+            if (nullptr == m_hwdev) {
                 return MFX_ERR_MEMORY_ALLOC;
             }
 
@@ -619,7 +626,7 @@ namespace RW{
 
 #if defined(LIBVA_WAYLAND_SUPPORT)
             if (m_eWorkMode == MODE_RENDERING) {
-                mfxHDL hdl = NULL;
+                mfxHDL hdl = nullptr;
                 mfxHandleType hdlw_t = (mfxHandleType)HANDLE_WAYLAND_DRIVER;
                 Wayland *wld;
                 sts = m_hwdev->GetHandle(hdlw_t, &hdl);
@@ -806,7 +813,7 @@ namespace RW{
                 MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
 
                 // provide device manager to MediaSDK
-                mfxHDL hdl = NULL;
+                mfxHDL hdl = nullptr;
                 mfxHandleType hdl_t =
 #if MFX_D3D11_SUPPORT
                     D3D11_MEMORY == m_memType ? MFX_HANDLE_D3D11_DEVICE :
@@ -852,7 +859,7 @@ namespace RW{
                    but we don't process this way */
 
                 // provide device manager to MediaSDK
-                VADisplay va_dpy = NULL;
+                VADisplay va_dpy = nullptr;
                 sts = m_hwdev->GetHandle(MFX_HANDLE_VA_DISPLAY, (mfxHDL *)&va_dpy);
                 MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
                 sts = m_mfxSession.SetHandle(MFX_HANDLE_VA_DISPLAY, va_dpy);
@@ -894,7 +901,7 @@ namespace RW{
                     MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
 
                     // provide device manager to MediaSDK
-                    VADisplay va_dpy = NULL;
+                    VADisplay va_dpy = nullptr;
                     sts = m_hwdev->GetHandle(MFX_HANDLE_VA_DISPLAY, (mfxHDL *)&va_dpy);
                     MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
                     sts = m_mfxSession.SetHandle(MFX_HANDLE_VA_DISPLAY, va_dpy);
@@ -921,10 +928,10 @@ namespace RW{
         {
             FreeBuffers();
 
-            m_pCurrentFreeSurface = NULL;
+            m_pCurrentFreeSurface = nullptr;
             MSDK_SAFE_FREE(m_pCurrentFreeOutputSurface);
 
-            m_pCurrentFreeVppSurface = NULL;
+            m_pCurrentFreeVppSurface = nullptr;
 
             // delete frames
             if (m_pGeneralAllocator)
@@ -1137,7 +1144,7 @@ namespace RW{
                 m_error = DeliverOutput(frame);
                 ReturnSurfaceToBuffers(pCurrentDeliveredSurface);
 
-                pCurrentDeliveredSurface = NULL;
+                pCurrentDeliveredSurface = nullptr;
                 ++m_output_count;
                 m_pDeliveredEvent->Signal();
             }
@@ -1230,7 +1237,7 @@ namespace RW{
                     m_pDeliveredEvent->Reset();
                     m_pDeliverOutputSemaphore->Post();
                 }
-                m_pCurrentOutputSurface = NULL;
+                m_pCurrentOutputSurface = nullptr;
             }
 
             if (MFX_ERR_NONE != sts) {
@@ -1247,13 +1254,13 @@ namespace RW{
                 InitForFirstFrame();
             }
 
-            mfxFrameSurface1*   pOutSurface = NULL;
+            mfxFrameSurface1*   pOutSurface = nullptr;
             mfxBitstream*       pBitstream = &m_mfxBS;
             mfxStatus           sts = MFX_ERR_NONE;
             bool                bErrIncompatibleVideoParams = false;
             CTimeInterval<>     decodeTimer(m_bIsCompleteFrame);
             time_t start_time = time(0);
-            MSDKThread * pDeliverThread = NULL;
+            MSDKThread * pDeliverThread = nullptr;
 
             if (m_eWorkMode == MODE_RENDERING) {
                 m_pDeliverOutputSemaphore = new MSDKSemaphore(sts);
@@ -1287,7 +1294,7 @@ namespace RW{
                 //    if (MFX_ERR_MORE_DATA == sts) {
                 //        if (!m_bIsVideoWall) {
                 //            // we almost reached end of stream, need to pull buffered data now
-                //            pBitstream = NULL;
+                //            pBitstream = nullptr;
                 //            sts = MFX_ERR_NONE;
                 //        } else {
                 //            // videowall mode: decoding in a loop
@@ -1367,7 +1374,7 @@ namespace RW{
                     if (m_bIsCompleteFrame) {
                         m_pCurrentFreeSurface->submit = m_timer_overall.Sync();
                     }
-                    pOutSurface = NULL;
+                    pOutSurface = nullptr;
                     do {
                         sts = m_pmfxDEC->DecodeFrameAsync(pBitstream, &(m_pCurrentFreeSurface->frame), &pOutSurface, &(m_pCurrentFreeOutputSurface->syncp));
                         if (pBitstream && MFX_ERR_MORE_DATA == sts && pBitstream->MaxLength == pBitstream->DataLength)
@@ -1435,7 +1442,7 @@ namespace RW{
                     else if (MFX_ERR_INCOMPATIBLE_VIDEO_PARAM == sts) {
                         bErrIncompatibleVideoParams = true;
                         // need to go to the buffering loop prior to reset procedure
-                        pBitstream = NULL;
+                        pBitstream = nullptr;
                         sts = MFX_ERR_NONE;
                         continue;
                     }
@@ -1445,7 +1452,7 @@ namespace RW{
                     // if current free surface is locked we are moving it to the used surfaces array
                     /*if (m_pCurrentFreeSurface->frame.Data.Locked)*/{
                         m_UsedSurfacesPool.AddSurface(m_pCurrentFreeSurface);
-                        m_pCurrentFreeSurface = NULL;
+                        m_pCurrentFreeSurface = nullptr;
                     }
                 }
                 if (MFX_ERR_NONE == sts) {
@@ -1469,7 +1476,7 @@ namespace RW{
                             if (m_diMode && m_pCurrentFreeVppSurface)
                                 m_pCurrentFreeVppSurface->frame.Info.PicStruct = MFX_PICSTRUCT_PROGRESSIVE;
 
-                            sts = m_pmfxVPP->RunFrameVPPAsync(pOutSurface, &(m_pCurrentFreeVppSurface->frame), NULL, &(m_pCurrentFreeOutputSurface->syncp));
+                            sts = m_pmfxVPP->RunFrameVPPAsync(pOutSurface, &(m_pCurrentFreeVppSurface->frame), nullptr, &(m_pCurrentFreeOutputSurface->syncp));
 
                             if (MFX_WRN_DEVICE_BUSY == sts) {
                                 MSDK_SLEEP(1); // just wait and then repeat the same call to RunFrameVPPAsync
@@ -1490,8 +1497,8 @@ namespace RW{
                         m_pCurrentFreeOutputSurface->surface = m_pCurrentFreeVppSurface;
                         m_OutputSurfacesPool.AddSurface(m_pCurrentFreeOutputSurface);
 
-                        m_pCurrentFreeOutputSurface = NULL;
-                        m_pCurrentFreeVppSurface = NULL;
+                        m_pCurrentFreeOutputSurface = nullptr;
+                        m_pCurrentFreeVppSurface = nullptr;
                     }
                     else
                     {
@@ -1501,7 +1508,7 @@ namespace RW{
 
                         m_pCurrentFreeOutputSurface->surface = surface;
                         m_OutputSurfacesPool.AddSurface(m_pCurrentFreeOutputSurface);
-                        m_pCurrentFreeOutputSurface = NULL;
+                        m_pCurrentFreeOutputSurface = nullptr;
                     }
                 }
             } //while processing
