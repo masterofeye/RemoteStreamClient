@@ -20,7 +20,7 @@ namespace RW{
 			switch (enModule)
 			{
             case CORE::tenSubModule::nenDecoder_INTEL:
-                Module = new DEC::DEC_Intel(m_Logger);
+                Module = new DEC_Intel(m_Logger);
 				if (Module != nullptr)
 					status = tenStatus::nenSuccess;
 				break;

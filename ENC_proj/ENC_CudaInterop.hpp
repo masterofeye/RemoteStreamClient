@@ -10,11 +10,10 @@
 
 
 
-#define MAX_ENCODE_QUEUE 32
-#define NV_ENC_CUDA 2
-
 namespace RW{
-	namespace ENC{
+    namespace ENC{
+
+#define MAX_ENCODE_QUEUE 32
 
 		typedef struct _EncodeFrameConfig
 		{

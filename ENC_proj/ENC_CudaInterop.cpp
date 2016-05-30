@@ -48,21 +48,6 @@ namespace RW{
 
 				memset(&m_encodeConfig, 0, sizeof(m_encodeConfig));
 
-				m_encodeConfig.endFrameIdx = INT_MAX;
-				m_encodeConfig.bitrate = 5000000;						//make editable
-				m_encodeConfig.rcMode = NV_ENC_PARAMS_RC_CONSTQP;
-				m_encodeConfig.gopLength = NVENC_INFINITE_GOPLENGTH;
-				m_encodeConfig.deviceType = NV_ENC_CUDA;
-				m_encodeConfig.codec = NV_ENC_H264;
-				m_encodeConfig.fps = 30;								//make editable
-				m_encodeConfig.qp = 28;
-				m_encodeConfig.i_quant_factor = DEFAULT_I_QFACTOR;
-				m_encodeConfig.b_quant_factor = DEFAULT_B_QFACTOR;
-				m_encodeConfig.i_quant_offset = DEFAULT_I_QOFFSET;
-				m_encodeConfig.b_quant_offset = DEFAULT_B_QOFFSET;
-				m_encodeConfig.presetGUID = NV_ENC_PRESET_DEFAULT_GUID;
-				m_encodeConfig.pictureStruct = NV_ENC_PIC_STRUCT_FRAME;
-
                 NVENCSTATUS nvStatus = m_pNvHWEncoder->Initialize((void*)m_cuContext, NV_ENC_DEVICE_TYPE_CUDA);
                 if (nvStatus != NV_ENC_SUCCESS)
                 {

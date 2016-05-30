@@ -18,10 +18,16 @@ namespace RW{
         DEC_Intel::DEC_Intel(std::shared_ptr<spdlog::logger> Logger) :
             RW::CORE::AbstractModule(Logger)
         {
+                m_pPipeline = new CDecodingPipeline(m_Logger);
             }
 
         DEC_Intel::~DEC_Intel()
         {
+            if (m_pPipeline)
+            {
+                delete m_pPipeline;
+                m_pPipeline = nullptr;
+            }
         }
 
         CORE::tstModuleVersion DEC_Intel::ModulVersion() {
@@ -76,12 +82,12 @@ namespace RW{
 
             data->inputParams.bWallNoTitle = false;
 
-            m_Pipeline.SetInputParams(&data->inputParams);
+            m_pPipeline->SetInputParams(&data->inputParams);
             
-            sts = m_Pipeline.Init();
+            sts = m_pPipeline->Init();
 
             // print stream info
-            m_Pipeline.PrintInfo();
+            m_pPipeline->PrintInfo();
 
             if (sts != MFX_ERR_NONE)
             {
@@ -118,15 +124,15 @@ namespace RW{
 
             mfxStatus sts = MFX_ERR_NONE; // return value check
 
-            m_Pipeline.SetEncodedData(data->pstEncodedStream);
+            m_pPipeline->SetEncodedData(data->pstEncodedStream);
 
-            sts = m_Pipeline.RunDecoding();
+            sts = m_pPipeline->RunDecoding();
             if (sts != MFX_ERR_NONE)
             {
                 enStatus = tenStatus::nenError;
             }
 
-            data->pOutput = m_Pipeline.GetOutputData();
+            data->pOutput = m_pPipeline->GetOutputData();
 
             if (MFX_ERR_INCOMPATIBLE_VIDEO_PARAM == sts || MFX_ERR_DEVICE_LOST == sts || MFX_ERR_DEVICE_FAILED == sts || data->pOutput == nullptr)
             {
@@ -137,10 +143,10 @@ namespace RW{
                 else
                 {
                     m_Logger->error("Hardware device was lost or returned unexpected error. Recovering...");
-                    sts = m_Pipeline.ResetDevice();
+                    sts = m_pPipeline->ResetDevice();
                 }
 
-                sts = m_Pipeline.ResetDecoder();
+                sts = m_pPipeline->ResetDecoder();
             }
             if (sts != MFX_ERR_NONE)
             {

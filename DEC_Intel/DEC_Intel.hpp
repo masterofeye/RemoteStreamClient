@@ -61,7 +61,7 @@ namespace RW{
             virtual tenStatus Deinitialise(CORE::tstDeinitialiseControlStruct *DeinitialiseControlStruct) Q_DECL_OVERRIDE;
 
         private:
-            CDecodingPipeline   m_Pipeline; // pipeline for decoding, includes input file reader, decoder and output file writer
+            CDecodingPipeline   *m_pPipeline; // pipeline for decoding
 
         };
     }
