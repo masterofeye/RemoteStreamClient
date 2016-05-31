@@ -1394,7 +1394,7 @@ namespace RW{
                         while ((dec_payload.NumBit != 0))
                         {
                             sts = m_pmfxDEC->GetPayload(&ts, &dec_payload);
-                            if ((sts == MFX_ERR_NONE) && (dec_payload.Type == 4))
+                            if ((sts == MFX_ERR_NONE) && (dec_payload.Type == 5))
                             {
                                 memcpy(m_pOutput->pvPayload, dec_payload.Data, dec_payload.BufSize);
 
