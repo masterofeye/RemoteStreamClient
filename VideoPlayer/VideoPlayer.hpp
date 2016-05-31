@@ -23,6 +23,7 @@ namespace RW{
         {
             void *pBitStreamBuffer;
             uint32_t u32BitStreamSizeInBytes;
+            uint64_t    TimeStamp;
 
             _EncodedBitStream() : pBitStreamBuffer(nullptr), u32BitStreamSizeInBytes(0) {}
             ~_EncodedBitStream()
@@ -72,6 +73,7 @@ namespace RW{
 
         private:
             void play();
+            void stop();
 
             void mediaStateChanged(QMediaPlayer::State state);
             void positionChanged(qint64 position);
@@ -80,10 +82,10 @@ namespace RW{
             void handleError();
 
             QMediaPlayer      m_qmPlayer;
-            QAbstractButton	  *m_qabPlay;
+            QAbstractButton	  *m_qaBtnPlay;
+            QAbstractButton	  *m_qaBtnStop;
             QSlider           *m_qsPosition;
             QLabel            *m_qlError;
-            QByteArray        *m_qbArray;
             QWidget           *m_pqWidget;
         };
     }
