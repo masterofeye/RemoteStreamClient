@@ -43,7 +43,6 @@ Copyright(c) 2005-2015 Intel Corporation. All Rights Reserved.
 
 #pragma warning(disable : 4100)
 
-
 #define __SYNC_WA // avoid sync issue on Media SDK side
 
 namespace RW{
@@ -56,7 +55,7 @@ namespace RW{
             m_bVppIsUsed = false;
             MSDK_ZERO_MEMORY(m_mfxBS);
 
-            m_pOutput = nullptr;
+            m_pOutput = new DecodedBitStream();
             m_pmfxDEC = nullptr;
             m_pmfxVPP = nullptr;
             m_impl = 0;
@@ -470,6 +469,7 @@ namespace RW{
                     sts = MFX_ERR_UNSUPPORTED;
                     m_Logger->error("CDecodingPipeline::InitMfxParams: Combination of (SW HEVC plugin in 10bit mode + HW lib VPP) isn't supported. Use -sw option.");
                 }
+
                 if (MFX_ERR_MORE_DATA == sts)
                 {
                     if (m_mfxBS.MaxLength == m_mfxBS.DataLength)
@@ -1247,7 +1247,7 @@ namespace RW{
             return sts;
         }
 
-        mfxStatus CDecodingPipeline::RunDecoding()
+        mfxStatus CDecodingPipeline::RunDecoding(uint16_t u16PayloadBufSize)
         {
             if (!m_bFirstFrameInitialized)
             {
@@ -1278,6 +1278,12 @@ namespace RW{
             {
                 pBitstream = 0;
             }
+
+            mfxPayload dec_payload;
+            mfxU64 ts;
+            dec_payload.Data = new mfxU8[u16PayloadBufSize];
+            dec_payload.BufSize = u16PayloadBufSize;
+            int count = 0;
 
             while (((sts == MFX_ERR_NONE) || (MFX_ERR_MORE_DATA == sts) || (MFX_ERR_MORE_SURFACE == sts)) && (m_nFrames > m_output_count))
             {
@@ -1381,6 +1387,21 @@ namespace RW{
                         {
                             mfxStatus status = ExtendMfxBitstream(pBitstream, pBitstream->MaxLength * 2);
                             MSDK_CHECK_RESULT(status, MFX_ERR_NONE, status);
+                        }
+
+                        dec_payload.NumBit = 100;
+
+                        while ((dec_payload.NumBit != 0))
+                        {
+                            sts = m_pmfxDEC->GetPayload(&ts, &dec_payload);
+                            if ((sts == MFX_ERR_NONE) && (dec_payload.Type == 4))
+                            {
+                                memcpy(m_pOutput->pvPayload, dec_payload.Data, dec_payload.BufSize);
+
+                                count++;
+
+                            }
+                            dec_payload.Type = 0;
                         }
 
                         if (MFX_WRN_DEVICE_BUSY == sts) {

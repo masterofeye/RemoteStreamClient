@@ -59,12 +59,15 @@ namespace RW{
             MODE_FILE_DUMP
         };
 
-        typedef struct _BitStream
+        typedef struct _EncodedBitStream
         {
             void *pBitStreamBuffer;
             uint32_t u32BitStreamSizeInBytes;
-            _BitStream() : pBitStreamBuffer(nullptr), u32BitStreamSizeInBytes(0){}
-            ~_BitStream()
+            uint16_t u16PayloadBufSize;
+
+            _EncodedBitStream() : pBitStreamBuffer(nullptr), u32BitStreamSizeInBytes(0){}
+
+            ~_EncodedBitStream()
             {
                 if (pBitStreamBuffer)
                 {
@@ -72,7 +75,30 @@ namespace RW{
                     pBitStreamBuffer = nullptr;
                 }
             }
-        }BitStream;
+        }EncodedBitStream;
+
+        typedef struct _DecodedBitStream
+        {
+            void *pBitStreamBuffer;
+            uint32_t u32BitStreamSizeInBytes;
+            void* pvPayload;
+
+            _DecodedBitStream() : pBitStreamBuffer(nullptr), u32BitStreamSizeInBytes(0){}
+            
+            ~_DecodedBitStream()
+            {
+                if (pvPayload)
+                {
+                    delete pvPayload;
+                    pvPayload = nullptr;
+                }
+                if (pBitStreamBuffer)
+                {
+                    delete pBitStreamBuffer;
+                    pBitStreamBuffer = nullptr;
+                }
+            }
+        }DecodedBitStream;
 
 
         typedef struct sInputParams
@@ -135,9 +161,9 @@ namespace RW{
             }
         }tstInputParams;
 
-        template<>struct mfx_ext_buffer_id<mfxExtMVCSeqDesc>{
-            enum { id = MFX_EXTBUFF_MVC_SEQ_DESC };
-        };
+        //template<>struct mfx_ext_buffer_id<mfxExtMVCSeqDesc>{
+        //    enum { id = MFX_EXTBUFF_MVC_SEQ_DESC };
+        //};
 
         struct CPipelineStatistics
         {
@@ -178,17 +204,17 @@ namespace RW{
             ~CDecodingPipeline();
 
             void SetInputParams(sInputParams *pParams){ m_pInputParams = pParams; }
-            void SetEncodedData(BitStream *pstEncodedStream)
+            void SetEncodedData(EncodedBitStream *pstEncodedStream)
             {
                 m_mfxBS.Data = (mfxU8*)pstEncodedStream->pBitStreamBuffer;
                 m_mfxBS.DataLength = pstEncodedStream->u32BitStreamSizeInBytes;
                 m_mfxBS.MaxLength = pstEncodedStream->u32BitStreamSizeInBytes;
                 m_mfxBS.DataFlag = MFX_BITSTREAM_COMPLETE_FRAME;
             }
-            BitStream* GetOutputData(){ return m_pOutput; }
+            DecodedBitStream* GetOutputData(){ return m_pOutput; }
 
             virtual mfxStatus Init();
-            virtual mfxStatus RunDecoding();
+            virtual mfxStatus RunDecoding(uint16_t u16PayloadBufSize);
             virtual mfxStatus ResetDecoder();
             virtual mfxStatus ResetDevice();
 
@@ -232,7 +258,7 @@ namespace RW{
 
             //CSmplYUVWriter          m_FileWriter;
             //std::auto_ptr<CSmplBitstreamReader>  m_FileReader;
-            BitStream               *m_pOutput;
+            DecodedBitStream               *m_pOutput;
 
             bool                    m_bFirstFrameInitialized;
             MFXVideoSession         m_mfxSession;

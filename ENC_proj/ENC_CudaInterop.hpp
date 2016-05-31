@@ -41,6 +41,7 @@ namespace RW{
 		typedef struct stMyInitialiseControlStruct : public CORE::tstInitialiseControlStruct
 		{
 			EncodeConfig *pstEncodeConfig;
+
             stMyInitialiseControlStruct() : pstEncodeConfig(nullptr){}
             ~stMyInitialiseControlStruct()
             {
@@ -56,7 +57,9 @@ namespace RW{
 		{
 			CUarray pcuYUVArray;
 			EncodedBitStream *pstBitStream;	
-            stMyControlStruct() : pcuYUVArray(nullptr), pstBitStream(nullptr){}
+            NV_ENC_SEI_PAYLOAD *pPayload;
+
+            stMyControlStruct() : pcuYUVArray(nullptr), pstBitStream(nullptr), pPayload(nullptr){}
             ~stMyControlStruct()
             {
                 if (pcuYUVArray)
@@ -68,6 +71,11 @@ namespace RW{
                 {
                     delete pstBitStream;
                     pstBitStream = nullptr;
+                }
+                if (pPayload)
+                {
+                    delete pPayload;
+                    pPayload = nullptr;
                 }
             }
 		}tstMyControlStruct;

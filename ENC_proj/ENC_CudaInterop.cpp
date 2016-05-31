@@ -29,16 +29,16 @@ namespace RW{
 	namespace ENC{
 
 		ENC_CudaInterop::ENC_CudaInterop(std::shared_ptr<spdlog::logger> Logger) :
-			RW::CORE::AbstractModule(Logger)
+			RW::CORE::AbstractModule(Logger) 
+            , m_cuContext(nullptr)
+            , m_cuModule(nullptr)
+            , m_cuInterleaveUVFunction(nullptr)
+            , m_cuYUVArray(nullptr)
+            , m_uEncodeBufferCount(0)
+
 		{
                 m_pNvHWEncoder = new CNvHWEncoder(m_Logger);
 
-				m_cuContext = nullptr;
-				m_cuModule = nullptr;
-				m_cuInterleaveUVFunction = nullptr;
-                m_cuYUVArray = nullptr;
-
-				m_uEncodeBufferCount = 0;
 				//memset(&m_stEncoderInput, 0, sizeof(m_stEncoderInput));
 				memset(&m_stEOSOutputBfr, 0, sizeof(m_stEOSOutputBfr));
 
@@ -544,7 +544,7 @@ namespace RW{
 				return enStatus;
 			}
 
-			nvStatus = m_pNvHWEncoder->NvEncEncodeFrame(pEncodeBuffer, nullptr, m_encodeConfig.width, m_encodeConfig.height);
+			nvStatus = m_pNvHWEncoder->NvEncEncodeFrame(pEncodeBuffer, nullptr, m_encodeConfig.width, m_encodeConfig.height, data->pPayload);
 			if (nvStatus != NV_ENC_SUCCESS)
 			{
 				enStatus = tenStatus::nenError;

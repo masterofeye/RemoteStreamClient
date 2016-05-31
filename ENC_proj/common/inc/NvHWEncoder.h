@@ -73,7 +73,7 @@ namespace RW{
             int              deviceType;   //valid parameters: NV_ENC_DX9 or NV_ENC_CUDA or NV_ENC_DX11 or NV_ENC_DX10
             int              startFrameIdx;
             int              endFrameIdx;
-            int              gopLength;  //Group of Pictures length (probabliy distancy between two I frames)
+            int              gopLength;  //Group of Pictures length. Specifies the number of pictures in one GOP. Low latency application client can set goplength to NVENC_INFINITE_GOPLENGTH so that keyframes are not inserted automatically.
             int              numB;   //Specify number of B frame
             int              pictureStruct;  //valid parameters: NV_ENC_PIC_STRUCT_FRAME or NV_ENC_PIC_STRUCT_FIELD_TOP_BOTTOM or NV_ENC_PIC_STRUCT_FIELD_BOTTOM_TOP
             int              deviceID;    // consecutive number, has to be <= deviceCount
@@ -239,34 +239,20 @@ namespace RW{
         public:
             NVENCSTATUS NvEncOpenEncodeSession(void* device, uint32_t deviceType);
             NVENCSTATUS NvEncGetEncodeGUIDCount(uint32_t* encodeGUIDCount);
-            NVENCSTATUS NvEncGetEncodeProfileGUIDCount(GUID encodeGUID, uint32_t* encodeProfileGUIDCount);
-            NVENCSTATUS NvEncGetEncodeProfileGUIDs(GUID encodeGUID, GUID* profileGUIDs, uint32_t guidArraySize, uint32_t* GUIDCount);
             NVENCSTATUS NvEncGetEncodeGUIDs(GUID* GUIDs, uint32_t guidArraySize, uint32_t* GUIDCount);
-            NVENCSTATUS NvEncGetInputFormatCount(GUID encodeGUID, uint32_t* inputFmtCount);
-            NVENCSTATUS NvEncGetInputFormats(GUID encodeGUID, NV_ENC_BUFFER_FORMAT* inputFmts, uint32_t inputFmtArraySize, uint32_t* inputFmtCount);
             NVENCSTATUS NvEncGetEncodeCaps(GUID encodeGUID, NV_ENC_CAPS_PARAM* capsParam, int* capsVal);
             NVENCSTATUS NvEncGetEncodePresetCount(GUID encodeGUID, uint32_t* encodePresetGUIDCount);
             NVENCSTATUS NvEncGetEncodePresetGUIDs(GUID encodeGUID, GUID* presetGUIDs, uint32_t guidArraySize, uint32_t* encodePresetGUIDCount);
             NVENCSTATUS NvEncGetEncodePresetConfig(GUID encodeGUID, GUID  presetGUID, NV_ENC_PRESET_CONFIG* presetConfig);
-            NVENCSTATUS NvEncCreateInputBuffer(uint32_t width, uint32_t height, void** inputBuffer, uint32_t isYuv444);
-            NVENCSTATUS NvEncDestroyInputBuffer(NV_ENC_INPUT_PTR inputBuffer);
             NVENCSTATUS NvEncCreateBitstreamBuffer(uint32_t size, void** bitstreamBuffer);
             NVENCSTATUS NvEncDestroyBitstreamBuffer(NV_ENC_OUTPUT_PTR bitstreamBuffer);
-            NVENCSTATUS NvEncCreateMVBuffer(uint32_t size, void** bitstreamBuffer);
-            NVENCSTATUS NvEncDestroyMVBuffer(NV_ENC_OUTPUT_PTR bitstreamBuffer);
-            //NVENCSTATUS NvRunMotionEstimationOnly(EncodeBuffer *pEncodeBuffer[2], MEOnlyConfig *pMEOnly);
             NVENCSTATUS NvEncLockBitstream(NV_ENC_LOCK_BITSTREAM* lockBitstreamBufferParams);
             NVENCSTATUS NvEncUnlockBitstream(NV_ENC_OUTPUT_PTR bitstreamBuffer);
-            NVENCSTATUS NvEncLockInputBuffer(void* inputBuffer, void** bufferDataPtr, uint32_t* pitch);
-            NVENCSTATUS NvEncUnlockInputBuffer(NV_ENC_INPUT_PTR inputBuffer);
-            NVENCSTATUS NvEncGetEncodeStats(NV_ENC_STAT* encodeStats);
-            NVENCSTATUS NvEncGetSequenceParams(NV_ENC_SEQUENCE_PARAM_PAYLOAD* sequenceParamPayload);
             NVENCSTATUS NvEncRegisterAsyncEvent(void** completionEvent);
             NVENCSTATUS NvEncUnregisterAsyncEvent(void* completionEvent);
             NVENCSTATUS NvEncMapInputResource(void* registeredResource, void** mappedResource);
             NVENCSTATUS NvEncUnmapInputResource(NV_ENC_INPUT_PTR mappedInputBuffer);
             NVENCSTATUS NvEncDestroyEncoder();
-            NVENCSTATUS NvEncInvalidateRefFrames(const NvEncPictureCommand *pEncPicCommand);
             NVENCSTATUS NvEncOpenEncodeSessionEx(void* device, NV_ENC_DEVICE_TYPE deviceType);
             NVENCSTATUS NvEncRegisterResource(NV_ENC_INPUT_RESOURCE_TYPE resourceType, void* resourceToRegister, uint32_t width, uint32_t height, uint32_t pitch, void** registeredResource);
             NVENCSTATUS NvEncUnregisterResource(NV_ENC_REGISTERED_PTR registeredRes);
@@ -278,7 +264,7 @@ namespace RW{
             NVENCSTATUS                                          Initialize(void* device, NV_ENC_DEVICE_TYPE deviceType);
             NVENCSTATUS                                          Deinitialize();
             NVENCSTATUS                                          NvEncEncodeFrame(EncodeBuffer *pEncodeBuffer, NvEncPictureCommand *encPicCommand,
-                uint32_t width, uint32_t height,
+                uint32_t width, uint32_t height, NV_ENC_SEI_PAYLOAD *pPayload,
                 NV_ENC_PIC_STRUCT ePicStruct = NV_ENC_PIC_STRUCT_FRAME,
                 int8_t *qpDeltaMapArray = nullptr, uint32_t qpDeltaMapArraySize = 0);
             NVENCSTATUS                                          CreateEncoder(const EncodeConfig *pEncCfg);

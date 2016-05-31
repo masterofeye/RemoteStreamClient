@@ -23,8 +23,8 @@ namespace RW{
 
         typedef struct stMyControlStruct : public CORE::tstControlStruct
         {
-            BitStream *pOutput;
-            BitStream *pstEncodedStream;
+            DecodedBitStream *pOutput;
+            EncodedBitStream *pstEncodedStream;
 
             stMyControlStruct() : pOutput(nullptr), pstEncodedStream(nullptr){}
             ~stMyControlStruct()

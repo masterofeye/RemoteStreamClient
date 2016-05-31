@@ -40,32 +40,6 @@ namespace RW{
             return nvStatus;
         }
 
-        NVENCSTATUS CNvHWEncoder::NvEncGetEncodeProfileGUIDCount(GUID encodeGUID, uint32_t* encodeProfileGUIDCount)
-        {
-            NVENCSTATUS nvStatus = NV_ENC_SUCCESS;
-
-            nvStatus = m_pEncodeAPI->nvEncGetEncodeProfileGUIDCount(m_hEncoder, encodeGUID, encodeProfileGUIDCount);
-            if (nvStatus != NV_ENC_SUCCESS)
-            {
-                m_Logger->error("CNvHWEncoder::NvEncGetEncodeProfileGUIDCount: m_pEncodeAPI->nvEncGetEncodeProfileGUIDCount(...) did not succeed!");
-            }
-
-            return nvStatus;
-        }
-
-        NVENCSTATUS CNvHWEncoder::NvEncGetEncodeProfileGUIDs(GUID encodeGUID, GUID* profileGUIDs, uint32_t guidArraySize, uint32_t* GUIDCount)
-        {
-            NVENCSTATUS nvStatus = NV_ENC_SUCCESS;
-
-            nvStatus = m_pEncodeAPI->nvEncGetEncodeProfileGUIDs(m_hEncoder, encodeGUID, profileGUIDs, guidArraySize, GUIDCount);
-            if (nvStatus != NV_ENC_SUCCESS)
-            {
-                m_Logger->error("CNvHWEncoder::NvEncGetEncodeProfileGUIDs: m_pEncodeAPI->nvEncGetEncodeProfileGUIDs(...) did not succeed!");
-            }
-
-            return nvStatus;
-        }
-
         NVENCSTATUS CNvHWEncoder::NvEncGetEncodeGUIDs(GUID* GUIDs, uint32_t guidArraySize, uint32_t* GUIDCount)
         {
             NVENCSTATUS nvStatus = NV_ENC_SUCCESS;
@@ -74,32 +48,6 @@ namespace RW{
             if (nvStatus != NV_ENC_SUCCESS)
             {
                 m_Logger->error("CNvHWEncoder::NvEncGetEncodeGUIDs: m_pEncodeAPI->nvEncGetEncodeGUIDs(...) did not succeed!");
-            }
-
-            return nvStatus;
-        }
-
-        NVENCSTATUS CNvHWEncoder::NvEncGetInputFormatCount(GUID encodeGUID, uint32_t* inputFmtCount)
-        {
-            NVENCSTATUS nvStatus = NV_ENC_SUCCESS;
-
-            nvStatus = m_pEncodeAPI->nvEncGetInputFormatCount(m_hEncoder, encodeGUID, inputFmtCount);
-            if (nvStatus != NV_ENC_SUCCESS)
-            {
-                m_Logger->error("CNvHWEncoder::NvEncGetInputFormatCount: m_pEncodeAPI->nvEncGetInputFormatCount(...) did not succeed!");
-            }
-
-            return nvStatus;
-        }
-
-        NVENCSTATUS CNvHWEncoder::NvEncGetInputFormats(GUID encodeGUID, NV_ENC_BUFFER_FORMAT* inputFmts, uint32_t inputFmtArraySize, uint32_t* inputFmtCount)
-        {
-            NVENCSTATUS nvStatus = NV_ENC_SUCCESS;
-
-            nvStatus = m_pEncodeAPI->nvEncGetInputFormats(m_hEncoder, encodeGUID, inputFmts, inputFmtArraySize, inputFmtCount);
-            if (nvStatus != NV_ENC_SUCCESS)
-            {
-                m_Logger->error("CNvHWEncoder::NvEncGetInputFormats: m_pEncodeAPI->nvEncGetInputFormats(...) did not succeed!");
             }
 
             return nvStatus;
@@ -156,106 +104,6 @@ namespace RW{
 
             return nvStatus;
         }
-
-        NVENCSTATUS CNvHWEncoder::NvEncCreateInputBuffer(uint32_t width, uint32_t height, void** inputBuffer, uint32_t isYuv444)
-        {
-            NVENCSTATUS nvStatus = NV_ENC_SUCCESS;
-            NV_ENC_CREATE_INPUT_BUFFER createInputBufferParams;
-
-            memset(&createInputBufferParams, 0, sizeof(createInputBufferParams));
-            SET_VER(createInputBufferParams, NV_ENC_CREATE_INPUT_BUFFER);
-
-            createInputBufferParams.width = width;
-            createInputBufferParams.height = height;
-            createInputBufferParams.memoryHeap = NV_ENC_MEMORY_HEAP_SYSMEM_CACHED;
-            createInputBufferParams.bufferFmt = isYuv444 ? NV_ENC_BUFFER_FORMAT_YUV444_PL : NV_ENC_BUFFER_FORMAT_NV12_PL;
-
-            nvStatus = m_pEncodeAPI->nvEncCreateInputBuffer(m_hEncoder, &createInputBufferParams);
-            if (nvStatus != NV_ENC_SUCCESS)
-            {
-                m_Logger->error("CNvHWEncoder::NvEncCreateInputBuffer: m_pEncodeAPI->nvEncCreateInputBuffer(...) did not succeed!");
-            }
-
-            *inputBuffer = createInputBufferParams.inputBuffer;
-
-            return nvStatus;
-        }
-
-        NVENCSTATUS CNvHWEncoder::NvEncDestroyInputBuffer(NV_ENC_INPUT_PTR inputBuffer)
-        {
-            NVENCSTATUS nvStatus = NV_ENC_SUCCESS;
-
-            if (inputBuffer)
-            {
-                nvStatus = m_pEncodeAPI->nvEncDestroyInputBuffer(m_hEncoder, inputBuffer);
-                if (nvStatus != NV_ENC_SUCCESS)
-                {
-                    m_Logger->error("CNvHWEncoder::NvEncDestroyInputBuffer: m_pEncodeAPI->nvEncDestroyInputBuffer(...) did not succeed!");
-                }
-            }
-
-            return nvStatus;
-        }
-
-        NVENCSTATUS CNvHWEncoder::NvEncCreateMVBuffer(uint32_t size, void** bitstreamBuffer)
-        {
-            NVENCSTATUS status;
-            NV_ENC_CREATE_MV_BUFFER stAllocMVBuffer;
-            memset(&stAllocMVBuffer, 0, sizeof(stAllocMVBuffer));
-            SET_VER(stAllocMVBuffer, NV_ENC_CREATE_MV_BUFFER);
-            status = m_pEncodeAPI->nvEncCreateMVBuffer(m_hEncoder, &stAllocMVBuffer);
-            if (status != NV_ENC_SUCCESS)
-            {
-                m_Logger->error("CNvHWEncoder::NvEncCreateMVBuffer: m_pEncodeAPI->nvEncCreateMVBuffer(...) did not succeed!");
-            }
-            *bitstreamBuffer = stAllocMVBuffer.MVBuffer;
-            return status;
-        }
-
-        NVENCSTATUS CNvHWEncoder::NvEncDestroyMVBuffer(NV_ENC_OUTPUT_PTR bitstreamBuffer)
-        {
-            NVENCSTATUS status;
-            NV_ENC_CREATE_MV_BUFFER stAllocMVBuffer;
-            memset(&stAllocMVBuffer, 0, sizeof(stAllocMVBuffer));
-            SET_VER(stAllocMVBuffer, NV_ENC_CREATE_MV_BUFFER);
-            status = m_pEncodeAPI->nvEncDestroyMVBuffer(m_hEncoder, bitstreamBuffer);
-            if (status != NV_ENC_SUCCESS)
-            {
-                m_Logger->error("CNvHWEncoder::NvEncDestroyMVBuffer: m_pEncodeAPI->nvEncDestroyMVBuffer(...) did not succeed!");
-            }
-            bitstreamBuffer = nullptr;
-            return status;
-        }
-
-        //NVENCSTATUS CNvHWEncoder::NvRunMotionEstimationOnly(EncodeBuffer *pEncodeBuffer[2], MEOnlyConfig *pMEOnly)
-        //{
-        //    NVENCSTATUS nvStatus;
-        //    NV_ENC_MEONLY_PARAMS stMEOnlyParams;
-        //    SET_VER(stMEOnlyParams,NV_ENC_MEONLY_PARAMS);
-        //    stMEOnlyParams.referenceFrame = pEncodeBuffer[0]->stInputBfr.hInputSurface;
-        //    stMEOnlyParams.inputBuffer = pEncodeBuffer[1]->stInputBfr.hInputSurface;
-        //    stMEOnlyParams.bufferFmt = pEncodeBuffer[1]->stInputBfr.bufferFmt;
-        //    stMEOnlyParams.inputWidth = pEncodeBuffer[1]->stInputBfr.dwWidth;
-        //    stMEOnlyParams.inputHeight = pEncodeBuffer[1]->stInputBfr.dwHeight;
-        //    stMEOnlyParams.outputMV = pEncodeBuffer[0]->stOutputBfr.hBitstreamBuffer;
-        //    nvStatus = m_pEncodeAPI->nvEncRunMotionEstimationOnly(m_hEncoder, &stMEOnlyParams);
-        //
-        //
-        //        //unsigned int numMBs = ((m_uMaxWidth +15) >> 4) * ((m_uMaxHeight + 15) >> 4);
-        //        //fprintf(m_fOutput,"Motion Vectors for input frame = %d, reference frame = %d\n", pMEOnly->inputFrameIndex, pMEOnly->referenceFrameIndex);
-        //        //NV_ENC_H264_MV_DATA *outputMV = (NV_ENC_H264_MV_DATA *)stMEOnlyParams.outputMV;
-        //        //for (unsigned int i = 0; i < numMBs; i++)
-        //        //{
-        //        //    fprintf(m_fOutput, "block = %d, mb_type = %d, partitionType = %d, MV[0].x = %d, MV[0].y = %d, MV[1].x = %d, MV[1].y = %d, MV[2].x = %d, MV[2].y = %d, MV[3].x = %d, MV[3].y = %d, cost=%d ", \
-        //        //        i, outputMV[i].mb_type, outputMV[i].partitionType, outputMV[i].MV[0].mvx, outputMV[i].MV[0].mvy, outputMV[i].MV[1].mvx, outputMV[i].MV[1].mvy, \
-        //        //        outputMV[i].MV[2].mvx, outputMV[i].MV[2].mvy, outputMV[i].MV[3].mvx, outputMV[i].MV[3].mvy, outputMV[i].MBCost);
-        //        //    fprintf(m_fOutput, "\n");
-        //        //}
-        //        //fprintf(m_fOutput, "\n");
-        //
-        //
-        //    return nvStatus;
-        //}
 
         NVENCSTATUS CNvHWEncoder::NvEncCreateBitstreamBuffer(uint32_t size, void** bitstreamBuffer)
         {
@@ -316,66 +164,6 @@ namespace RW{
             if (nvStatus != NV_ENC_SUCCESS)
             {
                 m_Logger->error("CNvHWEncoder::NvEncUnlockBitstream: m_pEncodeAPI->nvEncUnlockBitstream(...) did not succeed!");
-            }
-
-            return nvStatus;
-        }
-
-        NVENCSTATUS CNvHWEncoder::NvEncLockInputBuffer(void* inputBuffer, void** bufferDataPtr, uint32_t* pitch)
-        {
-            NVENCSTATUS nvStatus = NV_ENC_SUCCESS;
-            NV_ENC_LOCK_INPUT_BUFFER lockInputBufferParams;
-
-            memset(&lockInputBufferParams, 0, sizeof(lockInputBufferParams));
-            SET_VER(lockInputBufferParams, NV_ENC_LOCK_INPUT_BUFFER);
-
-            lockInputBufferParams.inputBuffer = inputBuffer;
-            nvStatus = m_pEncodeAPI->nvEncLockInputBuffer(m_hEncoder, &lockInputBufferParams);
-            if (nvStatus != NV_ENC_SUCCESS)
-            {
-                m_Logger->error("CNvHWEncoder::NvEncLockInputBuffer: m_pEncodeAPI->nvEncLockInputBuffer(...) did not succeed!");
-            }
-
-            *bufferDataPtr = lockInputBufferParams.bufferDataPtr;
-            *pitch = lockInputBufferParams.pitch;
-
-            return nvStatus;
-        }
-
-        NVENCSTATUS CNvHWEncoder::NvEncUnlockInputBuffer(NV_ENC_INPUT_PTR inputBuffer)
-        {
-            NVENCSTATUS nvStatus = NV_ENC_SUCCESS;
-
-            nvStatus = m_pEncodeAPI->nvEncUnlockInputBuffer(m_hEncoder, inputBuffer);
-            if (nvStatus != NV_ENC_SUCCESS)
-            {
-                m_Logger->error("CNvHWEncoder::NvEncUnlockInputBuffer: m_pEncodeAPI->nvEncUnlockInputBuffer(...) did not succeed!");
-            }
-
-            return nvStatus;
-        }
-
-        NVENCSTATUS CNvHWEncoder::NvEncGetEncodeStats(NV_ENC_STAT* encodeStats)
-        {
-            NVENCSTATUS nvStatus = NV_ENC_SUCCESS;
-
-            nvStatus = m_pEncodeAPI->nvEncGetEncodeStats(m_hEncoder, encodeStats);
-            if (nvStatus != NV_ENC_SUCCESS)
-            {
-                m_Logger->error("CNvHWEncoder::NvEncGetEncodeStats: m_pEncodeAPI->nvEncGetEncodeStats(...) did not succeed!");
-            }
-
-            return nvStatus;
-        }
-
-        NVENCSTATUS CNvHWEncoder::NvEncGetSequenceParams(NV_ENC_SEQUENCE_PARAM_PAYLOAD* sequenceParamPayload)
-        {
-            NVENCSTATUS nvStatus = NV_ENC_SUCCESS;
-
-            nvStatus = m_pEncodeAPI->nvEncGetSequenceParams(m_hEncoder, sequenceParamPayload);
-            if (nvStatus != NV_ENC_SUCCESS)
-            {
-                m_Logger->error("CNvHWEncoder::NvEncGetSequenceParams: m_pEncodeAPI->nvEncGetSequenceParams(...) did not succeed!");
             }
 
             return nvStatus;
@@ -473,18 +261,6 @@ namespace RW{
                 nvStatus = m_pEncodeAPI->nvEncDestroyEncoder(m_hEncoder);
 
                 m_bEncoderInitialized = false;
-            }
-
-            return nvStatus;
-        }
-
-        NVENCSTATUS CNvHWEncoder::NvEncInvalidateRefFrames(const NvEncPictureCommand *pEncPicCommand)
-        {
-            NVENCSTATUS nvStatus = NV_ENC_SUCCESS;
-
-            for (uint32_t i = 0; i < pEncPicCommand->numRefFramesToInvalidate; i++)
-            {
-                nvStatus = m_pEncodeAPI->nvEncInvalidateRefFrames(m_hEncoder, pEncPicCommand->refFrameNumbers[i]);
             }
 
             return nvStatus;
@@ -1093,7 +869,7 @@ namespace RW{
         }
 
         NVENCSTATUS CNvHWEncoder::NvEncEncodeFrame(EncodeBuffer *pEncodeBuffer, NvEncPictureCommand *encPicCommand,
-            uint32_t width, uint32_t height, NV_ENC_PIC_STRUCT ePicStruct,
+            uint32_t width, uint32_t height, NV_ENC_SEI_PAYLOAD *pPayload, NV_ENC_PIC_STRUCT ePicStruct,
             int8_t *qpDeltaMapArray, uint32_t qpDeltaMapArraySize)
         {
             NVENCSTATUS nvStatus = NV_ENC_SUCCESS;
@@ -1112,6 +888,8 @@ namespace RW{
             encPicParams.pictureStruct = ePicStruct;
             encPicParams.qpDeltaMap = qpDeltaMapArray;
             encPicParams.qpDeltaMapSize = qpDeltaMapArraySize;
+
+            encPicParams.codecPicParams.h264PicParams.seiPayloadArray = pPayload;
 
             if (encPicCommand)
             {

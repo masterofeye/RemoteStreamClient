@@ -126,7 +126,7 @@ namespace RW{
 
             m_pPipeline->SetEncodedData(data->pstEncodedStream);
 
-            sts = m_pPipeline->RunDecoding();
+            sts = m_pPipeline->RunDecoding(data->pstEncodedStream->u16PayloadBufSize);
             if (sts != MFX_ERR_NONE)
             {
                 enStatus = tenStatus::nenError;
