@@ -19,13 +19,13 @@ namespace RW{
 			tenStatus status = tenStatus::nenError;
 			switch (enModule)
 			{
-			case CORE::tenSubModule::nenStream_Productive:
+            case CORE::tenSubModule::nenTest_Test:
                 Module = new TEST::Plugin1(m_Logger);
 				if (Module != nullptr)
 					status = tenStatus::nenSuccess;
 				break;
-			case CORE::tenSubModule::nenVideoGrabber_FG_USB:
-				break;
+			//case CORE::tenSubModule::nenVideoGrabber_FG_USB:
+			//	break;
 			default:
 				//TODO Status can't find module
 				status = tenStatus::nenError;

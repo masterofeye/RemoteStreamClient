@@ -29,6 +29,16 @@ namespace RW
 			size_t nDataLength;
 			int nCurrentFrameNumber;
 			int nCurrentPositionMSec;
+
+            stVideoGrabberControlStruct() : pData(nullptr), nDataLength(0), nCurrentFrameNumber(0), nCurrentPositionMSec(0) {}
+            ~stVideoGrabberControlStruct()
+            {
+                if (pData)
+                {
+                    delete pData;
+                    pData = nullptr;
+                }
+            }
         }tstVideoGrabberControlStruct;
 
         typedef struct stVideoGrabberDeinitialiseControlStruct : public CORE::tstDeinitialiseControlStruct

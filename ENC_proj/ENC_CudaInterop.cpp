@@ -47,13 +47,6 @@ namespace RW{
 				//memset(m_cuYUVArray, 0, sizeof(m_cuYUVArray));
 
 				memset(&m_encodeConfig, 0, sizeof(m_encodeConfig));
-
-                NVENCSTATUS nvStatus = m_pNvHWEncoder->Initialize((void*)m_cuContext, NV_ENC_DEVICE_TYPE_CUDA);
-                if (nvStatus != NV_ENC_SUCCESS)
-                {
-                    m_Logger->error("Initialise: m_pNvHWEncoder->Initialize(...) did not succeed!");
-                }
-
 			}
 
 
@@ -330,7 +323,7 @@ namespace RW{
 			// copy luma
 			CUDA_MEMCPY2D copyParam;
 			memset(&copyParam, 0, sizeof(copyParam));
-			copyParam.dstMemoryType = CU_MEMORYTYPE_DEVICE;
+            copyParam.dstMemoryType = CU_MEMORYTYPE_ARRAY;
 			copyParam.dstDevice = pEncodeBuffer->stInputBfr.pNV12devPtr;
 			copyParam.dstPitch = pEncodeBuffer->stInputBfr.uNV12Stride;
 			copyParam.srcMemoryType = CU_MEMORYTYPE_HOST;
@@ -385,6 +378,12 @@ namespace RW{
 				enStatus = tenStatus::nenError;
 				return enStatus;
 			}
+            if (data->pstEncodeConfig == nullptr)
+            {
+                m_Logger->error("Initialise: EncodeConfig of Data of tstMyInitialiseControlStruct is empty!");
+                enStatus = tenStatus::nenError;
+                return enStatus;
+            }
 
 			m_encodeConfig = *data->pstEncodeConfig;
 
@@ -397,7 +396,13 @@ namespace RW{
 				return enStatus;
 			}
 
-			if ( m_encodeConfig.width == 0 || m_encodeConfig.height == 0)
+            nvStatus = m_pNvHWEncoder->Initialize((void*)m_cuContext, NV_ENC_DEVICE_TYPE_CUDA);
+            if (nvStatus != NV_ENC_SUCCESS)
+            {
+                m_Logger->error("Initialise: m_pNvHWEncoder->Initialize(...) did not succeed!");
+            }
+            
+            if (m_encodeConfig.width == 0 || m_encodeConfig.height == 0)
 			{
 				enStatus = tenStatus::nenError;
 				m_Logger->error("Initialise: Invalid frame size parameters!");
@@ -479,7 +484,7 @@ namespace RW{
 			}
 			if (data->pcuYUVArray != nullptr)
 			{
-				m_cuYUVArray = data->pcuYUVArray;
+				m_cuYUVArray = (CUarray)data->pcuYUVArray;
 			}
 			else
 			{

@@ -92,12 +92,26 @@ namespace RW{
                     m_Logger->error("IMP_Base::tensProcessOutput: m_pgMat is empty!");
                     return tenStatus::nenError;
                 }
-                cudaError cuErr = cudaMemcpy2DToArray(pOutput->_pcuArray, 0, 0, m_pgMat->data, m_pgMat->step * sizeof(size_t), m_pgMat->cols*sizeof(int), m_pgMat->rows*sizeof(int), cudaMemcpyDeviceToDevice);
+                pOutput->_pcuArray = (CUarray*)m_pgMat;
+
+                //size_t sArraySize = m_pgMat->cols *  m_pgMat->rows * sizeof(uint8_t);
+                //cuMemcpyHtoA(*pOutput->_pcuArray, 0, m_pgMat->data, sArraySize);
+
+                //CUDA_MEMCPY2D* pCopy = new CUDA_MEMCPY2D();
+                //pCopy->srcHost = m_pgMat->data;
+                //pCopy->srcMemoryType = CU_MEMORYTYPE_HOST;
+                //pCopy->dstArray = *pOutput->_pcuArray;
+                //pCopy->dstMemoryType = CU_MEMORYTYPE_ARRAY;
+                //pCopy->Height = m_pgMat->rows;
+                //pCopy->WidthInBytes = m_pgMat->cols * sizeof(uint8_t);
+                //cuMemcpy2D(pCopy);
+                
+                //cudaMemcpy2DToArray(pOutput->_pcuArray, 0, 0, m_pgMat->data, m_pgMat->step * sizeof(size_t), m_pgMat->cols*sizeof(int), m_pgMat->rows*sizeof(int), cudaMemcpyDeviceToDevice);
 
                 delete m_pgMat;
                 m_pgMat = nullptr;
 
-                if (pOutput->_pcuArray == nullptr || cuErr != cudaSuccess)
+                if (pOutput->_pcuArray == nullptr)
                 {
                     m_Logger->error("IMP_Base::tensProcessOutput: cudaMemcpy2DToArray(...) did not succeed!");
                     enStatus = tenStatus::nenError;

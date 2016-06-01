@@ -8,6 +8,7 @@
 #include <QtPlugin>
 #include "AbstractModule.hpp"
 #include "Utils.h"
+#include "..\ENC_proj\common\inc\dynlink_cuda.h"
 
 #ifdef TRACE_PERFORMANCE
 #include "HighResolution\HighResClock.h"
@@ -31,7 +32,14 @@ namespace RW
             void *pvImg;
 
             stInputParams() : iWidth(0), iHeight(0), pvImg(nullptr){}
-            ~stInputParams() 
+            stInputParams(int iWidth_, int iHeight_, void* pvImg_) 
+            {
+                iWidth = iWidth_;
+                iHeight = iHeight_;
+                pvImg = pvImg_;
+            }
+
+            ~stInputParams()
             {
                 if (pvImg)
                 {
@@ -105,7 +113,7 @@ namespace RW
                 _pgMat = pgMat;
                 _pcuArray = nullptr;
             };
-            cOutputBase(cudaArray *pcuArray)
+            cOutputBase(CUarray *pcuArray)
             {
                 _pgMat = nullptr;
                 _pcuArray = pcuArray;
@@ -124,7 +132,7 @@ namespace RW
                 }
             }
             cv::cuda::GpuMat *_pgMat;
-            cudaArray *_pcuArray;
+            CUarray *_pcuArray;
         };
 
         typedef struct stMyInitialiseControlStruct : public CORE::tstInitialiseControlStruct

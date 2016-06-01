@@ -10,7 +10,6 @@ namespace RW{
 		{
 		}
 
-
 		Plugin1::~Plugin1()
 		{
 		}
@@ -22,8 +21,9 @@ namespace RW{
 
         CORE::tenSubModule Plugin1::SubModulType()
         {
-            return CORE::tenSubModule::nenVideoGrabber_SIMU;
+            return CORE::tenSubModule::nenTest_Test;
         }
+
         tenStatus Plugin1::Initialise(CORE::tstInitialiseControlStruct * InitialiseControlStruct)
         { 
 #ifdef TRACE_PERFORMANCE

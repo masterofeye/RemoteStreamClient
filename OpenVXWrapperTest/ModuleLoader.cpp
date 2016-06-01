@@ -48,8 +48,8 @@ namespace RW{
 							AbstractModule *module = nullptr;
 							switch (moduleFactory->ModuleType())
 							{
-							case tenModule::enVideoGrabber:
-								module = moduleFactory->Module(tenSubModule::nenVideoGrabber_SIMU);
+                            case tenModule::enVideoGrabber:
+                                module = moduleFactory->Module(tenSubModule::nenVideoGrabber_SIMU);
 								if (module == nullptr)
 									m_Logger->error("Virtual video source module coudn't load correct.");
                                 m_Logger->debug("nenVideoGrabber_SIMU loaded");
@@ -103,13 +103,24 @@ namespace RW{
                                 m_Logger->debug("nenPlayback_Simple loaded");
                                 Pluginlist->append(module);
 								break;
-							default:
+                            case tenModule::enTest:
+                                module = moduleFactory->Module(tenSubModule::nenTest_Test);
+                                if (module == nullptr)
+                                    m_Logger->error("Test module coudn't load correct.");
+                                m_Logger->debug("nenTest_Test loaded");
+                                Pluginlist->append(module);
+                                break;
+                            default:
 								m_Logger->alert("This module wasn't found.");
 								break;
 
 							}
 						}
 					}
+                }
+                else
+                {
+                    m_Logger->error(fileName.toStdString().c_str()) << " was not loaded!";
                 }
 			}
             m_Logger->debug("Amount of loaded modules: ") << Pluginlist->count();
