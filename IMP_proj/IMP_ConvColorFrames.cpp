@@ -53,7 +53,7 @@ namespace RW{
             RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
 #endif
 
-            stMyControlStruct* data = static_cast<stMyControlStruct*>(ControlStruct);
+			stMyControlStruct* data = static_cast<stMyControlStruct*>(ControlStruct);
 
             if (data == nullptr)
             {
@@ -69,16 +69,11 @@ namespace RW{
                 m_Logger->error("DoRender: impBase.tensProcessInput did not succeed!");
             }
 
-            cv::cuda::cvtColor(*pgMat, *pgMat, cv::COLOR_RGB2YUV);
+			cv::cuda::cvtColor(*pgMat, *pgMat, cv::COLOR_BGR2YUV);// , 0, cv::cuda::Stream::Stream());
 
             impBase.vSetGpuMat(pgMat);
             enStatus = impBase.tensProcessOutput(data->pcOutput);
 
-            if (pgMat)
-            {
-                delete pgMat;
-                pgMat = nullptr;
-            }
             if (enStatus != tenStatus::nenSuccess || data->pcOutput == nullptr)
             {
                 m_Logger->error("DoRender: impBase.tensProcessOutput did not succeed!");
@@ -88,12 +83,6 @@ namespace RW{
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
             file_logger->trace() << "Time to DoRender for nenGraphic_Color module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
-            if (data)
-            {
-                delete data;
-                data = nullptr;
-            }
-
 			return enStatus;
 		}
 

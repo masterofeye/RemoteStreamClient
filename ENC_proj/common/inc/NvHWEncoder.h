@@ -97,7 +97,7 @@ namespace RW{
                 gopLength(NVENC_INFINITE_GOPLENGTH), 
                 numB(0), 
                 pictureStruct(NV_ENC_PIC_STRUCT_FRAME), deviceID(0), 
-                isYuv444(0), encoderPreset(nullptr), enableMEOnly(0) 
+                isYuv444(0), encoderPreset("lowLatencyHP"), enableMEOnly(0) 
             {}
 
             ~_EncodeConfig()
@@ -124,34 +124,6 @@ namespace RW{
             void*             nvRegisteredResource;
             NV_ENC_INPUT_PTR  hInputSurface;
             NV_ENC_BUFFER_FORMAT bufferFmt;
-
-            _EncodeInputBuffer() : dwWidth(0), dwHeight(0), pNV12devPtr(0), uNV12Stride(0), pNV12TempdevPtr(0), uNV12TempStride(0), nvRegisteredResource(nullptr), hInputSurface(nullptr), bufferFmt(NV_ENC_BUFFER_FORMAT_UNDEFINED)
-            {
-#if defined (NV_WINDOWS)
-                pNV12Surface = nullptr;
-#endif
-            }
-
-            ~_EncodeInputBuffer()
-            {
-#if defined (NV_WINDOWS)
-                if (pNV12Surface)
-                {
-                    delete pNV12Surface;
-                    pNV12Surface = nullptr;
-                }
-#endif
-                if (nvRegisteredResource)
-                {
-                    delete nvRegisteredResource;
-                    nvRegisteredResource = nullptr;
-                }
-                if (hInputSurface)
-                {
-                    delete hInputSurface;
-                    hInputSurface = nullptr;
-                }
-            }
         }EncodeInputBuffer;
 
         typedef struct _EncodeOutputBuffer
@@ -161,22 +133,6 @@ namespace RW{
             HANDLE                hOutputEvent;
             bool                  bWaitOnEvent;
             bool                  bEOSFlag;
-
-            _EncodeOutputBuffer() : dwBitstreamBufferSize(0), hBitstreamBuffer(nullptr), hOutputEvent(nullptr), bWaitOnEvent(0), bEOSFlag(0) {}
-
-            ~_EncodeOutputBuffer()
-            {
-                if (hBitstreamBuffer)
-                {
-                    delete hBitstreamBuffer;
-                    hBitstreamBuffer = nullptr;
-                }
-                if (hOutputEvent)
-                {
-                    delete hOutputEvent;
-                    hOutputEvent = nullptr;
-                }
-            }
         }EncodeOutputBuffer;
 
         typedef struct _EncodeBuffer

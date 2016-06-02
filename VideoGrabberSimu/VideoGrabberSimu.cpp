@@ -49,7 +49,7 @@ namespace RW
 				pControlStruct->nFrameWidth = m_videoCapture.get(CAP_PROP_FRAME_WIDTH);
 				pControlStruct->nNumberOfFrames = m_videoCapture.get(CAP_PROP_FRAME_COUNT);
 				pControlStruct->enColorSpace = nenRGB;
-				m_nFrameCounter = 0;
+				//m_nFrameCounter = 0;
 #ifdef TRACE_PERFORMANCE
                 RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
                 file_logger->trace() << "Time to load Plugins: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
@@ -84,6 +84,8 @@ namespace RW
 				return tenStatus::nenError;
 			}
 			
+			//static int nFrameCounter = 0;
+
 			Mat rawFrame;
 			if (!m_videoCapture.read(rawFrame))
 			{
@@ -94,23 +96,17 @@ namespace RW
 #endif
 				return tenStatus::nenSuccess;
 			}
-			else if (pControl->pData == NULL || pControl->nDataLength == 0)
+			else if (pControl->pData == NULL)
 			{
-				m_Logger->critical("VideoGrabberSimu::DoRender - pControlStruct->pData is NULL or pControlStruct->nDataLength is 0");
+				m_Logger->critical("VideoGrabberSimu::DoRender - pControlStruct->pData is NULL");
 				return tenStatus::nenError;
 			}
 			else
 			{
-				Mat rgbFrame;
-				cvtColor(rawFrame, rgbFrame, CV_BGR2RGB);
-				size_t nFrameSize = rgbFrame.total() * rgbFrame.elemSize();
-				size_t nActualDataLength = min(nFrameSize, pControl->nDataLength);
-				if (nActualDataLength < nFrameSize)
-				{
-					m_Logger->alert("VideoGrabberSimu::DoRender - requested data length is greater than the destination array size");
-				}
-				memcpy(pControl->pData, rgbFrame.data, nActualDataLength);
-				pControl->nCurrentFrameNumber = m_nFrameCounter++;
+				size_t nFrameSize = rawFrame.total() * rawFrame.elemSize();
+				pControl->pData = (void*)rawFrame.data;
+				pControl->nDataLength = nFrameSize;
+				pControl->nCurrentFrameNumber = m_videoCapture.get(CAP_PROP_POS_FRAMES); // nFrameCounter++;
 				pControl->nCurrentPositionMSec = m_videoCapture.get(CV_CAP_PROP_POS_MSEC);
 #ifdef TRACE_PERFORMANCE
                 RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();

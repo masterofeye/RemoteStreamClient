@@ -1607,20 +1607,20 @@ namespace RW{
             }
 
             mfxF64 dFrameRate = CalculateFrameRate(Info.FrameRateExtN, Info.FrameRateExtD);
-            m_Logger->info(("Frame rate\t%.2f\n"), dFrameRate);
+            m_Logger->info("Frame rate ") << dFrameRate;
 
             const char* sMemType = m_memType == D3D9_MEMORY ? "d3d"
                 : (m_memType == D3D11_MEMORY ? "d3d11" : "system");
-            m_Logger->info(("CDecodingPipeline::PrintInfo: Memory type\t\t%s"), sMemType);
+            m_Logger->info("CDecodingPipeline::PrintInfo: Memory type\t") << sMemType;
 
 
             const char* sImpl = (MFX_IMPL_VIA_D3D11 == MFX_IMPL_VIA_MASK(m_impl)) ? "hw_d3d11"
                 : ((MFX_IMPL_HARDWARE & m_impl) ? "hw" : "sw");
-            m_Logger->info(("CDecodingPipeline::PrintInfo: MediaSDK impl\t\t%s"), sImpl);
+            m_Logger->info("CDecodingPipeline::PrintInfo: MediaSDK impl\t") << sImpl;
 
             mfxVersion ver;
             m_mfxSession.QueryVersion(&ver);
-            m_Logger->info(("CDecodingPipeline::PrintInfo: MediaSDK version\t%d.%d"), ver.Major, ver.Minor);
+            m_Logger->info("CDecodingPipeline::PrintInfo: MediaSDK version\t") << ver.Major << ver.Minor;
 
             return;
         }

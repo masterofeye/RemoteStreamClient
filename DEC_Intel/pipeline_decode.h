@@ -64,17 +64,6 @@ namespace RW{
             void *pBitStreamBuffer;
             uint32_t u32BitStreamSizeInBytes;
             uint16_t u16PayloadBufSize;
-
-            _EncodedBitStream() : pBitStreamBuffer(nullptr), u32BitStreamSizeInBytes(0){}
-
-            ~_EncodedBitStream()
-            {
-                if (pBitStreamBuffer)
-                {
-                    delete pBitStreamBuffer;
-                    pBitStreamBuffer = nullptr;
-                }
-            }
         }EncodedBitStream;
 
         typedef struct _DecodedBitStream
@@ -82,22 +71,6 @@ namespace RW{
             void *pBitStreamBuffer;
             uint32_t u32BitStreamSizeInBytes;
             void* pvPayload;
-
-            _DecodedBitStream() : pBitStreamBuffer(nullptr), u32BitStreamSizeInBytes(0){}
-            
-            ~_DecodedBitStream()
-            {
-                if (pvPayload)
-                {
-                    delete pvPayload;
-                    pvPayload = nullptr;
-                }
-                if (pBitStreamBuffer)
-                {
-                    delete pBitStreamBuffer;
-                    pBitStreamBuffer = nullptr;
-                }
-            }
         }DecodedBitStream;
 
 

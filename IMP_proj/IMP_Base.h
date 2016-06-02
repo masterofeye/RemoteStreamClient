@@ -17,15 +17,9 @@ namespace RW
 
             IMP_Base(std::shared_ptr<spdlog::logger> Logger) : m_Logger(Logger)
             {
-                m_pgMat = nullptr;
             };
 			~IMP_Base()
             {
-                if (m_pgMat)
-                {
-                    delete m_pgMat;
-                    m_pgMat = nullptr;
-                }
             };
 
 		private:

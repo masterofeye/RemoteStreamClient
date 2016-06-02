@@ -23,7 +23,7 @@ namespace RW{
 
 			~ENC_Queue()
 			{
-				delete[] m_pBuffer;
+				//delete[] m_pBuffer;
 			}
 
 			bool Initialize(T *pItems, unsigned int uSize)

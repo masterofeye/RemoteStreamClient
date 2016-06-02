@@ -9,15 +9,17 @@ namespace RW{
 		{
             if (pInput == nullptr)
             {
-                return tenStatus::nenError;
+				m_Logger->error("IMP_Base::tensProcessInput: pInput is empty!");
+				return tenStatus::nenError;
             }
 
-            if (pInput->_pstParams)
+			int iWidth = pInput->_iWidth;
+			int iHeight = pInput->_iHeight;
+			
+			if (pInput->_pvImg)
             {
                 tenStatus enStatus = tenStatus::nenSuccess;
-                int iWidth = pInput->_pstParams->iWidth;
-                int iHeight = pInput->_pstParams->iWidth;
-                void* pvImg = pInput->_pstParams->pvImg;
+                void* pvImg = pInput->_pvImg;
 
                 if (iWidth == 0 || iHeight == 0)
                 {
@@ -38,7 +40,8 @@ namespace RW{
             }
             else if (pInput->_pgMat)
             {
-                m_pgMat = pInput->_pgMat;
+				m_pgMat = (cv::cuda::GpuMat*)pInput->_pgMat; 
+				//m_pgMat->reshape(4, iHeight).col(iWidth);
                 return tenStatus::nenSuccess;
             }
             else
@@ -54,7 +57,7 @@ namespace RW{
 
 			if (pvImg)
 			{
-                m_pgMat = new cv::cuda::GpuMat(iHeight, iWidth, /*CV_8UC3*/ 16, pvImg, cv::Mat::AUTO_STEP);
+                m_pgMat = new cv::cuda::GpuMat(iHeight, iWidth, CV_8UC4, pvImg, cv::Mat::AUTO_STEP);
 
                 delete pvImg;
                 pvImg = nullptr;

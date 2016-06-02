@@ -24,16 +24,6 @@ namespace RW{
             void *pBitStreamBuffer;
             uint32_t u32BitStreamSizeInBytes;
             uint64_t    TimeStamp;
-
-            _EncodedBitStream() : pBitStreamBuffer(nullptr), u32BitStreamSizeInBytes(0) {}
-            ~_EncodedBitStream()
-            {
-                if (pBitStreamBuffer)
-                {
-                    delete pBitStreamBuffer;
-                    pBitStreamBuffer = nullptr;
-                }
-            }
         }EncodedBitStream;
 
         typedef struct stMyInitialiseControlStruct : public CORE::tstInitialiseControlStruct
@@ -43,15 +33,6 @@ namespace RW{
         typedef struct stMyControlStruct : public CORE::tstControlStruct
         {
             EncodedBitStream *pstBitStream;
-            stMyControlStruct() : pstBitStream(nullptr) {}
-            ~stMyControlStruct()
-            {
-                if (pstBitStream)
-                {
-                    delete pstBitStream;
-                    pstBitStream = nullptr;
-                }
-            }
         }tstMyControlStruct;
 
         typedef struct stMyDeinitialiseControlStruct : public CORE::tstDeinitialiseControlStruct

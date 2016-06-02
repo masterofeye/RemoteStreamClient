@@ -16,11 +16,6 @@ namespace RW{
 
 		IMP_CropFrames::~IMP_CropFrames()
 		{
-            if (m_pstRect)
-            {
-                delete m_pstRect;
-                m_pstRect = nullptr;
-            }
 		}
 
 		CORE::tstModuleVersion IMP_CropFrames::ModulVersion() {
@@ -58,12 +53,6 @@ namespace RW{
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
             file_logger->trace() << "Time to Initialise for nenGraphic_Crop module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
-            if (data)
-            {
-                delete data;
-                data = nullptr;
-            }
-
             return enStatus;
 		}
 
@@ -112,11 +101,6 @@ namespace RW{
             impBase.vSetGpuMat(pgMat);
             enStatus = impBase.tensProcessOutput(data->pcOutput);
 
-            if (pgMat)
-            {
-                delete pgMat;
-                pgMat = nullptr;
-            }
             if (enStatus != tenStatus::nenSuccess || data->pcOutput == nullptr)
             {
                 m_Logger->error("DoRender: impBase.tensProcessOutput did not succeed!");
@@ -126,12 +110,6 @@ namespace RW{
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
             file_logger->trace() << "Time to DoRender for nenGraphic_Crop module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
-            if (data)
-            {
-                delete data;
-                data = nullptr;
-            }
-
             return enStatus;
 		}
 

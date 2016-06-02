@@ -27,30 +27,11 @@ namespace RW{
 		{
 			void *pBitStreamBuffer;
 			uint32_t u32BitStreamSizeInBytes;
-            _EncodedBitStream() : pBitStreamBuffer(nullptr), u32BitStreamSizeInBytes(0){}
-            ~_EncodedBitStream()
-            {
-                if (pBitStreamBuffer)
-                {
-                    delete pBitStreamBuffer;
-                    pBitStreamBuffer = nullptr;
-                }
-            }
 		}EncodedBitStream;
 
 		typedef struct stMyInitialiseControlStruct : public CORE::tstInitialiseControlStruct
 		{
 			EncodeConfig *pstEncodeConfig;
-
-            stMyInitialiseControlStruct() : pstEncodeConfig(nullptr){}
-            ~stMyInitialiseControlStruct()
-            {
-                if (pstEncodeConfig)
-                {
-                    delete pstEncodeConfig;
-                    pstEncodeConfig = nullptr;
-                }
-            }
 		}tstMyInitialiseControlStruct;
 
 		typedef struct stMyControlStruct : public CORE::tstControlStruct
@@ -58,26 +39,6 @@ namespace RW{
 			CUarray pcuYUVArray;
 			EncodedBitStream *pstBitStream;	
             NV_ENC_SEI_PAYLOAD *pPayload;
-
-            stMyControlStruct() : pcuYUVArray(nullptr), pstBitStream(nullptr), pPayload(nullptr){}
-            ~stMyControlStruct()
-            {
-                if (pcuYUVArray)
-                {
-                    delete pcuYUVArray;
-                    pcuYUVArray = nullptr;
-                }
-                if (pstBitStream)
-                {
-                    delete pstBitStream;
-                    pstBitStream = nullptr;
-                }
-                if (pPayload)
-                {
-                    delete pPayload;
-                    pPayload = nullptr;
-                }
-            }
 		}tstMyControlStruct;
 
 		typedef struct stMyDeinitialiseControlStruct : public CORE::tstDeinitialiseControlStruct
@@ -120,6 +81,9 @@ namespace RW{
 			NVENCSTATUS                                         FlushEncoder();
 			NVENCSTATUS                                         ConvertYUVToNV12(EncodeBuffer *pEncodeBuffer, CUarray cuArray, int width, int height);
 			NVENCSTATUS											PreparePreProcCuda();
+
+#define __cu(a) do { CUresult  ret; if ((ret = (a)) != CUDA_SUCCESS) { m_Logger->error((std::string)#a) << " has returned CUDA error " << ret; return NV_ENC_ERR_GENERIC; } } while (0)
+//#define __cu(a) do { CUresult  ret; if ((ret = (a)) != CUDA_SUCCESS) { fprintf(stderr, "%s has returned CUDA error %d\n", #a, ret); return NV_ENC_ERR_GENERIC;}} while(0)
 
 		};
 	}

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "AbstractModule.hpp"
-#include <opencv2\videoio.hpp>
+#include <opencv2/videoio.hpp>
 
 namespace RW
 {
@@ -29,16 +29,6 @@ namespace RW
 			size_t nDataLength;
 			int nCurrentFrameNumber;
 			int nCurrentPositionMSec;
-
-            stVideoGrabberControlStruct() : pData(nullptr), nDataLength(0), nCurrentFrameNumber(0), nCurrentPositionMSec(0) {}
-            ~stVideoGrabberControlStruct()
-            {
-                if (pData)
-                {
-                    delete pData;
-                    pData = nullptr;
-                }
-            }
         }tstVideoGrabberControlStruct;
 
         typedef struct stVideoGrabberDeinitialiseControlStruct : public CORE::tstDeinitialiseControlStruct
@@ -50,9 +40,9 @@ namespace RW
 			Q_OBJECT
 		private:
 			cv::VideoCapture m_videoCapture;
-			int m_nFrameCounter;
+
 		public:
-            explicit VideoGrabberSimu(std::shared_ptr<spdlog::logger> Logger);
+			explicit VideoGrabberSimu(std::shared_ptr<spdlog::logger> Logger);
 			~VideoGrabberSimu();
             virtual CORE::tenSubModule SubModulType() Q_DECL_OVERRIDE;
 			virtual CORE::tstModuleVersion ModulVersion() Q_DECL_OVERRIDE;

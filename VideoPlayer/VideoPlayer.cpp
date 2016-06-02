@@ -134,11 +134,6 @@ namespace RW
                 delete controlLayout;
                 controlLayout = nullptr;
             }
-            if (data)
-            {
-                delete data;
-                data = nullptr;
-            }
 
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
@@ -181,12 +176,6 @@ namespace RW
                     delete pqbArray;
                     pqbArray = nullptr;
                 }
-                if (data)
-                {
-                    delete data;
-                    data = nullptr;
-                }
-
             }
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();

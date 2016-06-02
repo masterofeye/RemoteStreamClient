@@ -492,8 +492,7 @@ namespace RW{
                 return nvStatus;
             }
 
-            m_Logger->debug("CNvHWEncoder::ValidatePresetGUID: presetGUIDArraySize <= presetGUIDCount ?");
-            m_Logger->debug(presetGUIDArraySize <= presetGUIDCount);
+			m_Logger->debug("CNvHWEncoder::ValidatePresetGUID: presetGUIDArraySize <= presetGUIDCount :") << (presetGUIDArraySize <= presetGUIDCount);
 
             presetFound = 0;
             for (i = 0; i < presetGUIDArraySize; i++)
@@ -760,7 +759,7 @@ namespace RW{
             {
                 if (encoderPreset)
                 {
-                    m_Logger->error("CNvHWEncoder::GetPresetGUID: Unsupported preset guid %s\n", encoderPreset);
+                    m_Logger->error("CNvHWEncoder::GetPresetGUID: Unsupported preset guid ") << encoderPreset;
                 }
                 presetGUID = NV_ENC_PRESET_DEFAULT_GUID;
             }
@@ -770,7 +769,7 @@ namespace RW{
             if (nvStatus != NV_ENC_SUCCESS)
             {
                 presetGUID = NV_ENC_PRESET_DEFAULT_GUID;
-                m_Logger->error("CNvHWEncoder::GetPresetGUID: Unsupported preset guid %s\n", encoderPreset);
+                m_Logger->error("CNvHWEncoder::GetPresetGUID: Unsupported preset guid ") << encoderPreset;
             }
 
             return presetGUID;

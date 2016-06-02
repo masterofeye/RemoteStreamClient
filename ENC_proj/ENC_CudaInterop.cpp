@@ -21,8 +21,6 @@
 
 using namespace std;
 
-#define __cu(a) do { CUresult  ret; if ((ret = (a)) != CUDA_SUCCESS) { fprintf(stderr, "%s has returned CUDA error %d\n", #a, ret); return NV_ENC_ERR_GENERIC;}} while(0)
-
 #define BITSTREAM_BUFFER_SIZE 2*1024*1024
 
 namespace RW{
@@ -57,11 +55,6 @@ namespace RW{
 				delete m_pNvHWEncoder;
 				m_pNvHWEncoder = nullptr;
 			}
-            if (m_cuYUVArray)
-            {
-                delete m_cuYUVArray;
-                m_cuYUVArray = nullptr;
-            }
 		}
 
 		CORE::tstModuleVersion ENC_CudaInterop::ModulVersion() {
@@ -99,17 +92,18 @@ namespace RW{
 
 			if (deviceID > (unsigned int)deviceCount - 1)
 			{
-				PRINTERR("Invalid Device Id = %d\n", deviceID);
+				m_Logger->error("InitCuda: Invalid Device Id = ") << deviceID;
 				return NV_ENC_ERR_INVALID_ENCODERDEVICE;
 			}
 
 			// Now we get the actual device
 			__cu(cuDeviceGet(&cuDevice, deviceID));
 
+			//on client PC this function is failing. Has to be done on server PC
 			__cu(cuDeviceComputeCapability(&SMmajor, &SMminor, deviceID));
 			if (((SMmajor << 4) + SMminor) < 0x30)
 			{
-				PRINTERR("GPU %d does not have NVENC capabilities exiting\n", deviceID);
+				m_Logger->error("InitCuda: Insufficient NVENC capabilities exiting of GPU ") << deviceID;
 				return NV_ENC_ERR_NO_ENCODE_DEVICE;
 			}
 
@@ -150,17 +144,12 @@ namespace RW{
 			int jitRegCount = 32;
 			jitOptVals[2] = (void *)(size_t)jitRegCount;
 
-			const char* exec_path = ".//data//";
-			char *ptx_path = sdkFindFilePath(PTX_FILE, exec_path);
-			if (ptx_path == nullptr) {
-				PRINTERR("Unable to find ptx file path %s\n", PTX_FILE);
-				return NV_ENC_ERR_INVALID_PARAM;
-			}
-
+			//Has to be fixed. For some reason i could not bring it to load from relative path.
+			char * ptx_path = "C:/Projekte/RemoteStreamClient/build/x64/Debug/preproc64_cuda.ptx"; //(char*)PTX_FILE;
 			FILE *fp = fopen(ptx_path, "rb");
 			if (!fp)
 			{
-				PRINTERR("Unable to read ptx file %s\n", PTX_FILE);
+				m_Logger->error("PreparePreProcCuda: Unable to read ptx file ") << ptx_path;
 				return NV_ENC_ERR_INVALID_PARAM;
 			}
 			fseek(fp, 0, SEEK_END);
@@ -410,26 +399,26 @@ namespace RW{
 
 			m_encodeConfig.presetGUID = m_pNvHWEncoder->GetPresetGUID(m_encodeConfig.encoderPreset, m_encodeConfig.codec);
 
-			m_Logger->debug("         codec           : \"%s\"\n", m_encodeConfig.codec == NV_ENC_HEVC ? "HEVC" : "H264");
-            m_Logger->debug("         size            : %dx%d\n", m_encodeConfig.width, m_encodeConfig.height);
-            m_Logger->debug("         bitrate         : %d bits/sec\n", m_encodeConfig.bitrate);
-            m_Logger->debug("         vbvMaxBitrate   : %d bits/sec\n", m_encodeConfig.vbvMaxBitrate);
-            m_Logger->debug("         vbvSize         : %d bits\n", m_encodeConfig.vbvSize);
-            m_Logger->debug("         fps             : %d frames/sec\n", m_encodeConfig.fps);
-            m_Logger->debug("         rcMode          : %s\n", m_encodeConfig.rcMode == NV_ENC_PARAMS_RC_CONSTQP ? "CONSTQP" :
-				m_encodeConfig.rcMode == NV_ENC_PARAMS_RC_VBR ? "VBR" :
-				m_encodeConfig.rcMode == NV_ENC_PARAMS_RC_CBR ? "CBR" :
-				m_encodeConfig.rcMode == NV_ENC_PARAMS_RC_VBR_MINQP ? "VBR MINQP" :
-				m_encodeConfig.rcMode == NV_ENC_PARAMS_RC_2_PASS_QUALITY ? "TWO_PASS_QUALITY" :
-				m_encodeConfig.rcMode == NV_ENC_PARAMS_RC_2_PASS_FRAMESIZE_CAP ? "TWO_PASS_FRAMESIZE_CAP" :
-				m_encodeConfig.rcMode == NV_ENC_PARAMS_RC_2_PASS_VBR ? "TWO_PASS_VBR" : "UNKNOWN");
+			m_Logger->debug(" codec            :") << ((m_encodeConfig.codec == NV_ENC_HEVC) ? "HEVC" : "H264");
+            m_Logger->debug(" size             :") << m_encodeConfig.width << m_encodeConfig.height;
+            m_Logger->debug(" bitrate (bit/sec):") << m_encodeConfig.bitrate;
+            m_Logger->debug(" vbvMaxBitrate    :") << m_encodeConfig.vbvMaxBitrate;
+            m_Logger->debug(" vbvSize (bits)   :") << m_encodeConfig.vbvSize;
+            m_Logger->debug(" fps (frame/sec)  :") << m_encodeConfig.fps;
+            m_Logger->debug(" rcMode           :") << ((m_encodeConfig.rcMode == NV_ENC_PARAMS_RC_CONSTQP) ? "CONSTQP" :
+				(m_encodeConfig.rcMode == NV_ENC_PARAMS_RC_VBR) ? "VBR" :
+				(m_encodeConfig.rcMode == NV_ENC_PARAMS_RC_CBR) ? "CBR" :
+				(m_encodeConfig.rcMode == NV_ENC_PARAMS_RC_VBR_MINQP) ? "VBR MINQP" :
+				(m_encodeConfig.rcMode == NV_ENC_PARAMS_RC_2_PASS_QUALITY) ? "TWO_PASS_QUALITY" :
+				(m_encodeConfig.rcMode == NV_ENC_PARAMS_RC_2_PASS_FRAMESIZE_CAP) ? "TWO_PASS_FRAMESIZE_CAP" :
+				(m_encodeConfig.rcMode == NV_ENC_PARAMS_RC_2_PASS_VBR) ? "TWO_PASS_VBR" : "UNKNOWN");
 			if (m_encodeConfig.gopLength == NVENC_INFINITE_GOPLENGTH)
-                m_Logger->debug("         goplength       : INFINITE GOP \n");
+                m_Logger->debug(" goplength        : INFINITE GOP \n");
 			else
-                m_Logger->debug("         goplength       : %d \n", m_encodeConfig.gopLength);
-            m_Logger->debug("         B frames        : %d \n", m_encodeConfig.numB);
-            m_Logger->debug("         QP              : %d \n", m_encodeConfig.qp);
-            m_Logger->debug("         preset          : %s\n", (m_encodeConfig.presetGUID == NV_ENC_PRESET_LOW_LATENCY_HQ_GUID) ? "LOW_LATENCY_HQ" :
+                m_Logger->debug(" goplength        :") << m_encodeConfig.gopLength;
+            m_Logger->debug(" B frames         :") << m_encodeConfig.numB;
+            m_Logger->debug(" QP               :") << m_encodeConfig.qp;
+            m_Logger->debug(" preset           :") << ((m_encodeConfig.presetGUID == NV_ENC_PRESET_LOW_LATENCY_HQ_GUID) ? "LOW_LATENCY_HQ" :
 				(m_encodeConfig.presetGUID == NV_ENC_PRESET_LOW_LATENCY_HP_GUID) ? "LOW_LATENCY_HP" :
 				(m_encodeConfig.presetGUID == NV_ENC_PRESET_HQ_GUID) ? "HQ_PRESET" :
 				(m_encodeConfig.presetGUID == NV_ENC_PRESET_HP_GUID) ? "HP_PRESET" :
@@ -459,12 +448,6 @@ namespace RW{
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
             m_Logger->trace() << "Initialise time of Module ENC DoRender: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
-            if (data)
-            {
-                delete data;
-                data = nullptr;
-            }
-
 			return enStatus;
 		}
 
@@ -564,12 +547,6 @@ namespace RW{
             m_Logger->trace() << "Time of Module ENC DoRender: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
             m_Logger->trace() << "Number of encoded files: " << m_u32NumFramesEncoded;
 #endif
-            if (data)
-            {
-                delete data;
-                data = nullptr;
-            }
-
 			return enStatus;
 		}
 
@@ -628,12 +605,6 @@ namespace RW{
 			RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
 			m_Logger->trace() << "Execution Time of Module ENC: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
-            if (data)
-            {
-                delete data;
-                data = nullptr;
-            }
-
 			return enStatus;
 		}
 

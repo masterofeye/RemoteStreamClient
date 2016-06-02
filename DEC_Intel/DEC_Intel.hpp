@@ -25,21 +25,6 @@ namespace RW{
         {
             DecodedBitStream *pOutput;
             EncodedBitStream *pstEncodedStream;
-
-            stMyControlStruct() : pOutput(nullptr), pstEncodedStream(nullptr){}
-            ~stMyControlStruct()
-            {
-                if (pOutput)
-                {
-                    delete pOutput;
-                    pOutput = nullptr;
-                }
-                if (pstEncodedStream)
-                {
-                    delete pstEncodedStream;
-                    pstEncodedStream = nullptr;
-                }
-            }
         }tstMyControlStruct;
 
         typedef struct stMyDeinitialiseControlStruct : public CORE::tstDeinitialiseControlStruct
