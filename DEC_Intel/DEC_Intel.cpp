@@ -121,13 +121,11 @@ namespace RW{
 
             m_pPipeline->SetEncodedData(data->pstEncodedStream);
 
-            sts = m_pPipeline->RunDecoding(data->pstEncodedStream->u16PayloadBufSize);
+            sts = m_pPipeline->RunDecoding(data->pPayload);
             if (sts != MFX_ERR_NONE)
             {
                 enStatus = tenStatus::nenError;
             }
-
-            data->pOutput = m_pPipeline->GetOutputData();
 
             if (MFX_ERR_INCOMPATIBLE_VIDEO_PARAM == sts || MFX_ERR_DEVICE_LOST == sts || MFX_ERR_DEVICE_FAILED == sts || data->pOutput == nullptr)
             {

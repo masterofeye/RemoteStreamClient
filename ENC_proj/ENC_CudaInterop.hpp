@@ -23,12 +23,6 @@ namespace RW{
 			uint32_t height;
 		}EncodeFrameConfig;
 
-		typedef struct _EncodedBitStream
-		{
-			void *pBitStreamBuffer;
-			uint32_t u32BitStreamSizeInBytes;
-		}EncodedBitStream;
-
 		typedef struct stMyInitialiseControlStruct : public CORE::tstInitialiseControlStruct
 		{
 			EncodeConfig *pstEncodeConfig;
@@ -37,8 +31,8 @@ namespace RW{
 		typedef struct stMyControlStruct : public CORE::tstControlStruct
 		{
 			CUarray pcuYUVArray;
-			EncodedBitStream *pstBitStream;	
-            NV_ENC_SEI_PAYLOAD *pPayload;
+            tstBitStream *pstBitStream;
+            tstBitStream *pPayload;
 		}tstMyControlStruct;
 
 		typedef struct stMyDeinitialiseControlStruct : public CORE::tstDeinitialiseControlStruct

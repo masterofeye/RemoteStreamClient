@@ -24,9 +24,9 @@ namespace RW
         }tstVideoGrabberInitialiseControlStruct;
 
         typedef struct stVideoGrabberControlStruct : public CORE::tstControlStruct
-		{			
-			void *pData;
-			size_t nDataLength;
+		{
+            tstBitStream *pOutputData;
+
 			int nCurrentFrameNumber;
 			int nCurrentPositionMSec;
         }tstVideoGrabberControlStruct;

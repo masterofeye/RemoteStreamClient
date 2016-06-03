@@ -868,7 +868,7 @@ namespace RW{
         }
 
         NVENCSTATUS CNvHWEncoder::NvEncEncodeFrame(EncodeBuffer *pEncodeBuffer, NvEncPictureCommand *encPicCommand,
-            uint32_t width, uint32_t height, NV_ENC_SEI_PAYLOAD *pPayload, NV_ENC_PIC_STRUCT ePicStruct,
+            uint32_t width, uint32_t height, tstBitStream *pPayload, NV_ENC_PIC_STRUCT ePicStruct,
             int8_t *qpDeltaMapArray, uint32_t qpDeltaMapArraySize)
         {
             NVENCSTATUS nvStatus = NV_ENC_SUCCESS;
@@ -888,7 +888,11 @@ namespace RW{
             encPicParams.qpDeltaMap = qpDeltaMapArray;
             encPicParams.qpDeltaMapSize = qpDeltaMapArraySize;
 
-            encPicParams.codecPicParams.h264PicParams.seiPayloadArray = pPayload;
+            NV_ENC_SEI_PAYLOAD *pnvPayload = new NV_ENC_SEI_PAYLOAD();
+            pnvPayload->payload = (uint8_t*)pPayload->pBuffer;
+            pnvPayload->payloadSize = pPayload->u32Size;
+            pnvPayload->payloadType = 5;
+            encPicParams.codecPicParams.h264PicParams.seiPayloadArray = pnvPayload;
 
             if (encPicCommand)
             {

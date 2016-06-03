@@ -96,7 +96,7 @@ namespace RW
 #endif
 				return tenStatus::nenSuccess;
 			}
-			else if (pControl->pData == NULL)
+			else if (pControl->pOutputData->pBuffer == NULL)
 			{
 				m_Logger->critical("VideoGrabberSimu::DoRender - pControlStruct->pData is NULL");
 				return tenStatus::nenError;
@@ -104,8 +104,8 @@ namespace RW
 			else
 			{
 				size_t nFrameSize = rawFrame.total() * rawFrame.elemSize();
-				pControl->pData = (void*)rawFrame.data;
-				pControl->nDataLength = nFrameSize;
+                pControl->pOutputData->pBuffer = (void*)rawFrame.data;
+				pControl->pOutputData->u32Size = nFrameSize;
 				pControl->nCurrentFrameNumber = m_videoCapture.get(CAP_PROP_POS_FRAMES); // nFrameCounter++;
 				pControl->nCurrentPositionMSec = m_videoCapture.get(CV_CAP_PROP_POS_MSEC);
 #ifdef TRACE_PERFORMANCE

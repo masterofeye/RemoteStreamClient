@@ -1,7 +1,5 @@
 #pragma once
 
-#include "mfx_samples_config.h"
-
 #include <sstream>
 #include <QtCore>
 #include <QtPlugin>
@@ -23,8 +21,9 @@ namespace RW{
 
         typedef struct stMyControlStruct : public CORE::tstControlStruct
         {
-            DecodedBitStream *pOutput;
-            EncodedBitStream *pstEncodedStream;
+            tstBitStream *pOutput;
+            tstBitStream *pstEncodedStream;
+            tstBitStream *pPayload;
         }tstMyControlStruct;
 
         typedef struct stMyDeinitialiseControlStruct : public CORE::tstDeinitialiseControlStruct

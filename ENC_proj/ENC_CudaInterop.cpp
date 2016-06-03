@@ -496,8 +496,8 @@ namespace RW{
 						m_Logger->error("DoRender: m_pNvHWEncoder->ProcessOutput(...) did not succeed!");
 						return enStatus;
 					}
-					data->pstBitStream->pBitStreamBuffer = stBitStreamData.bitstreamBufferPtr;
-					data->pstBitStream->u32BitStreamSizeInBytes = stBitStreamData.bitstreamSizeInBytes;
+					data->pstBitStream->pBuffer = stBitStreamData.bitstreamBufferPtr;
+                    data->pstBitStream->u32Size = stBitStreamData.bitstreamSizeInBytes;
 
 					// UnMap the input buffer after frame done
 					if (pEncodeBuffer->stInputBfr.hInputSurface)

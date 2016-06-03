@@ -11,10 +11,8 @@ Copyright(c) 2005-2015 Intel Corporation. All Rights Reserved.
 
 *****************************************************************************/
 
-#ifndef __PIPELINE_DECODE_H__
-#define __PIPELINE_DECODE_H__
-
-#include "sample_defs.h"
+#pragma once 
+//#include "sample_defs.h"
 
 #if D3D_SURFACES_SUPPORT
 #pragma warning(disable : 4201)
@@ -58,21 +56,6 @@ namespace RW{
             MODE_RENDERING,
             MODE_FILE_DUMP
         };
-
-        typedef struct _EncodedBitStream
-        {
-            void *pBitStreamBuffer;
-            uint32_t u32BitStreamSizeInBytes;
-            uint16_t u16PayloadBufSize;
-        }EncodedBitStream;
-
-        typedef struct _DecodedBitStream
-        {
-            void *pBitStreamBuffer;
-            uint32_t u32BitStreamSizeInBytes;
-            void* pvPayload;
-        }DecodedBitStream;
-
 
         typedef struct sInputParams
         {
@@ -177,17 +160,17 @@ namespace RW{
             ~CDecodingPipeline();
 
             void SetInputParams(sInputParams *pParams){ m_pInputParams = pParams; }
-            void SetEncodedData(EncodedBitStream *pstEncodedStream)
+            void SetEncodedData(tstBitStream *pstEncodedStream)
             {
-                m_mfxBS.Data = (mfxU8*)pstEncodedStream->pBitStreamBuffer;
-                m_mfxBS.DataLength = pstEncodedStream->u32BitStreamSizeInBytes;
-                m_mfxBS.MaxLength = pstEncodedStream->u32BitStreamSizeInBytes;
+                m_mfxBS.Data = (mfxU8*)pstEncodedStream->pBuffer;
+                m_mfxBS.DataLength = pstEncodedStream->u32Size;
+                m_mfxBS.MaxLength = pstEncodedStream->u32Size;
                 m_mfxBS.DataFlag = MFX_BITSTREAM_COMPLETE_FRAME;
             }
-            DecodedBitStream* GetOutputData(){ return m_pOutput; }
+            tstBitStream *GetOutput(){ return m_pOutput; }
 
             virtual mfxStatus Init();
-            virtual mfxStatus RunDecoding(uint16_t u16PayloadBufSize);
+            virtual mfxStatus RunDecoding(tstBitStream *pPayload);
             virtual mfxStatus ResetDecoder();
             virtual mfxStatus ResetDevice();
 
@@ -231,7 +214,8 @@ namespace RW{
 
             //CSmplYUVWriter          m_FileWriter;
             //std::auto_ptr<CSmplBitstreamReader>  m_FileReader;
-            DecodedBitStream               *m_pOutput;
+
+            tstBitStream           *m_pOutput;
 
             bool                    m_bFirstFrameInitialized;
             MFXVideoSession         m_mfxSession;
@@ -305,4 +289,3 @@ namespace RW{
         };
     }
 }
-#endif // __PIPELINE_DECODE_H__

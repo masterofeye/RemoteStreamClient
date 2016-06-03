@@ -220,7 +220,7 @@ namespace RW{
             NVENCSTATUS                                          Initialize(void* device, NV_ENC_DEVICE_TYPE deviceType);
             NVENCSTATUS                                          Deinitialize();
             NVENCSTATUS                                          NvEncEncodeFrame(EncodeBuffer *pEncodeBuffer, NvEncPictureCommand *encPicCommand,
-                uint32_t width, uint32_t height, NV_ENC_SEI_PAYLOAD *pPayload,
+                uint32_t width, uint32_t height, tstBitStream *pPayload,
                 NV_ENC_PIC_STRUCT ePicStruct = NV_ENC_PIC_STRUCT_FRAME,
                 int8_t *qpDeltaMapArray = nullptr, uint32_t qpDeltaMapArraySize = 0);
             NVENCSTATUS                                          CreateEncoder(const EncodeConfig *pEncCfg);

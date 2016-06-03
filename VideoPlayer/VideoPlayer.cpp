@@ -157,7 +157,7 @@ namespace RW
                 return enStatus;
             }
             QByteArray *pqbArray = new QByteArray();
-            pqbArray->setRawData((char*)data->pstBitStream->pBitStreamBuffer, data->pstBitStream->u32BitStreamSizeInBytes);
+            pqbArray->setRawData((char*)data->pstBitStream->pBuffer, data->pstBitStream->u32Size);
             QBuffer qBuffer(pqbArray);
             m_qmPlayer.setMedia(QMediaContent(), &qBuffer);
             m_qaBtnPlay->setEnabled(true);

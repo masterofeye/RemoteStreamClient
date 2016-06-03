@@ -19,20 +19,14 @@ QT_END_NAMESPACE
 namespace RW{
     namespace VPL{
 
-        typedef struct _EncodedBitStream
-        {
-            void *pBitStreamBuffer;
-            uint32_t u32BitStreamSizeInBytes;
-            uint64_t    TimeStamp;
-        }EncodedBitStream;
-
         typedef struct stMyInitialiseControlStruct : public CORE::tstInitialiseControlStruct
         {
         }tstMyInitialiseControlStruct;
 
         typedef struct stMyControlStruct : public CORE::tstControlStruct
         {
-            EncodedBitStream *pstBitStream;
+            tstBitStream *pstBitStream;
+            uint64_t    TimeStamp;
         }tstMyControlStruct;
 
         typedef struct stMyDeinitialiseControlStruct : public CORE::tstDeinitialiseControlStruct

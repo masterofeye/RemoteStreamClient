@@ -55,7 +55,8 @@ namespace RW{
             m_bVppIsUsed = false;
             MSDK_ZERO_MEMORY(m_mfxBS);
 
-            m_pOutput = new DecodedBitStream();
+            //m_pOutput = new tstBitStream();
+            //m_pPayload = new tstBitStream();
             m_pmfxDEC = nullptr;
             m_pmfxVPP = nullptr;
             m_impl = 0;
@@ -147,7 +148,8 @@ namespace RW{
                     delete *it;
                 m_ExtBuffers.clear();
             }
-            MSDK_SAFE_DELETE(m_pOutput);
+            //MSDK_SAFE_DELETE(m_pOutput);
+            //MSDK_SAFE_DELETE(m_pPayload);
 
             m_pPlugin.reset();
             m_mfxSession.Close();
@@ -1012,54 +1014,54 @@ namespace RW{
                 switch (frame->Info.FourCC)
                 {
                 case MFX_FOURCC_YV12:
-                    m_pOutput->u32BitStreamSizeInBytes += frame->Info.CropW * frame->Info.CropH;
+                    m_pOutput->u32Size += frame->Info.CropW * frame->Info.CropH;
 
                     for (mfxU32 i = 0; i < frame->Info.CropH; i++)
                     {
-                        memcpy(m_pOutput->pBitStreamBuffer, frame->Data.Y + (frame->Info.CropY * frame->Data.Pitch + frame->Info.CropX) + i * frame->Data.Pitch, frame->Info.CropW);
+                        memcpy(m_pOutput->pBuffer, frame->Data.Y + (frame->Info.CropY * frame->Data.Pitch + frame->Info.CropX) + i * frame->Data.Pitch, frame->Info.CropW);
                     }
 
                     w = frame->Info.CropW / 2;
                     h = frame->Info.CropH / 2;
 
-                    m_pOutput->u32BitStreamSizeInBytes += (w * h) + (w * h);
+                    m_pOutput->u32Size += (w * h) + (w * h);
 
                     for (mfxU32 i = 0; i < h; i++)
                     {
-                        memcpy(m_pOutput->pBitStreamBuffer, (frame->Data.U + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX / 2) + i * frame->Data.Pitch / 2), w);
+                        memcpy(m_pOutput->pBuffer, (frame->Data.U + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX / 2) + i * frame->Data.Pitch / 2), w);
                     }
                     for (mfxU32 i = 0; i < h; i++)
                     {
-                        memcpy(m_pOutput->pBitStreamBuffer, (frame->Data.V + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX / 2) + i * frame->Data.Pitch / 2), w);
+                        memcpy(m_pOutput->pBuffer, (frame->Data.V + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX / 2) + i * frame->Data.Pitch / 2), w);
                     }
                     break;
 
                 case MFX_FOURCC_NV12:
 
-                    m_pOutput->u32BitStreamSizeInBytes += frame->Info.CropW * frame->Info.CropH;
+                    m_pOutput->u32Size += frame->Info.CropW * frame->Info.CropH;
 
                     for (mfxU32 i = 0; i < frame->Info.CropH; i++)
                     {
-                        memcpy(m_pOutput->pBitStreamBuffer, frame->Data.Y + (frame->Info.CropY * frame->Data.Pitch + frame->Info.CropX) + i * frame->Data.Pitch, frame->Info.CropW);
+                        memcpy(m_pOutput->pBuffer, frame->Data.Y + (frame->Info.CropY * frame->Data.Pitch + frame->Info.CropX) + i * frame->Data.Pitch, frame->Info.CropW);
                     }
 
                     h = frame->Info.CropH / 2;
                     w = frame->Info.CropW;
 
-                    m_pOutput->u32BitStreamSizeInBytes += (w * h) + (w * h);
+                    m_pOutput->u32Size += (w * h) + (w * h);
 
                     for (mfxU32 i = 0; i < h; i++)
                     {
                         for (mfxU32 j = 0; j < w; j += 2)
                         {
-                            memcpy(m_pOutput->pBitStreamBuffer, (frame->Data.UV + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX) + i * frame->Data.Pitch + j), 1);
+                            memcpy(m_pOutput->pBuffer, (frame->Data.UV + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX) + i * frame->Data.Pitch + j), 1);
                         }
                     }
                     for (mfxU32 i = 0; i < h; i++)
                     {
                         for (mfxU32 j = 0; j < w; j += 2)
                         {
-                            memcpy(m_pOutput->pBitStreamBuffer, (frame->Data.UV + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX) + i * frame->Data.Pitch + j), 1);
+                            memcpy(m_pOutput->pBuffer, (frame->Data.UV + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX) + i * frame->Data.Pitch + j), 1);
                         }
                     }
 
@@ -1067,21 +1069,21 @@ namespace RW{
 
                 case MFX_FOURCC_P010:
 
-                    m_pOutput->u32BitStreamSizeInBytes += 2 * frame->Info.CropW * frame->Info.CropH;
+                    m_pOutput->u32Size += 2 * frame->Info.CropW * frame->Info.CropH;
 
                     for (mfxU32 i = 0; i < frame->Info.CropH; i++)
                     {
-                        memcpy(m_pOutput->pBitStreamBuffer, (frame->Data.Y + (frame->Info.CropY * frame->Data.Pitch + frame->Info.CropX) + i * frame->Data.Pitch), 2 * frame->Info.CropW);
+                        memcpy(m_pOutput->pBuffer, (frame->Data.Y + (frame->Info.CropY * frame->Data.Pitch + frame->Info.CropX) + i * frame->Data.Pitch), 2 * frame->Info.CropW);
                     }
 
                     h = frame->Info.CropH / 2;
                     w = frame->Info.CropW;
 
-                    m_pOutput->u32BitStreamSizeInBytes += 2 * w * h;
+                    m_pOutput->u32Size += 2 * w * h;
 
                     for (mfxU32 i = 0; i < h; i++)
                     {
-                        memcpy(m_pOutput->pBitStreamBuffer, (frame->Data.UV + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX) + i * frame->Data.Pitch), 2 * w);
+                        memcpy(m_pOutput->pBuffer, (frame->Data.UV + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX) + i * frame->Data.Pitch), 2 * w);
                     }
                     break;
 
@@ -1104,11 +1106,11 @@ namespace RW{
                     ptr = MSDK_MIN(MSDK_MIN(frame->Data.R, frame->Data.G), frame->Data.B);
                     ptr = ptr + frame->Info.CropX + frame->Info.CropY * frame->Data.Pitch;
 
-                    m_pOutput->u32BitStreamSizeInBytes += 4 * w * h;
+                    m_pOutput->u32Size += 4 * w * h;
 
                     for (mfxU32 i = 0; i < h; i++)
                     {
-                        memcpy(m_pOutput->pBitStreamBuffer, (ptr + i * frame->Data.Pitch), 4 * w);
+                        memcpy(m_pOutput->pBuffer, (ptr + i * frame->Data.Pitch), 4 * w);
                     }
 
                     break;
@@ -1247,7 +1249,7 @@ namespace RW{
             return sts;
         }
 
-        mfxStatus CDecodingPipeline::RunDecoding(uint16_t u16PayloadBufSize)
+        mfxStatus CDecodingPipeline::RunDecoding(tstBitStream *pPayload)
         {
             if (!m_bFirstFrameInitialized)
             {
@@ -1281,8 +1283,8 @@ namespace RW{
 
             mfxPayload dec_payload;
             mfxU64 ts;
-            dec_payload.Data = new mfxU8[u16PayloadBufSize];
-            dec_payload.BufSize = u16PayloadBufSize;
+            dec_payload.Data = new mfxU8[pPayload->u32Size];
+            dec_payload.BufSize = pPayload->u32Size;
             int count = 0;
 
             while (((sts == MFX_ERR_NONE) || (MFX_ERR_MORE_DATA == sts) || (MFX_ERR_MORE_SURFACE == sts)) && (m_nFrames > m_output_count))
@@ -1396,7 +1398,7 @@ namespace RW{
                             sts = m_pmfxDEC->GetPayload(&ts, &dec_payload);
                             if ((sts == MFX_ERR_NONE) && (dec_payload.Type == 5))
                             {
-                                memcpy(m_pOutput->pvPayload, dec_payload.Data, dec_payload.BufSize);
+                                memcpy(pPayload->pBuffer, dec_payload.Data, dec_payload.BufSize);
 
                                 count++;
 
@@ -1575,7 +1577,7 @@ namespace RW{
 
         void CDecodingPipeline::PrintInfo()
         {
-            char *cTmp;
+            char *cTmp = new char();
             wcstombs(cTmp, MSDK_SAMPLE_VERSION, sizeof(*MSDK_SAMPLE_VERSION));
             m_Logger->info(("CDecodingPipeline::PrintInfo: Decoding Sample Version %s\n"), cTmp);
 
@@ -1591,6 +1593,9 @@ namespace RW{
                 wcstombs(cTmp, CodecIdToStr(m_mfxVideoParams.mfx.FrameInfo.FourCC).c_str(), sizeof(*CodecIdToStr(m_mfxVideoParams.mfx.FrameInfo.FourCC).c_str()));
                 m_Logger->info(("CDecodingPipeline::PrintInfo: Output format\t%s"), cTmp);
             }
+
+            delete cTmp;
+            cTmp = nullptr;
 
             mfxFrameInfo Info = m_mfxVideoParams.mfx.FrameInfo;
             m_Logger->info("CDecodingPipeline::PrintInfo: Input:");
