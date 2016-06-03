@@ -8,7 +8,7 @@
 #include "VideoGrabberSimu.hpp"
 #include "IMP_CropFrames.hpp"
 #include "IMP_ConvColorFrames.hpp"
-//#include "DEC_Intel.hpp"
+#include "DEC_Intel.hpp"
 #include "VideoPlayer.hpp"
 
 #include "HighResolution\HighResClock.h"

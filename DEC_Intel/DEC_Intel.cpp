@@ -12,6 +12,7 @@ Copyright(c) 2005-2015 Intel Corporation. All Rights Reserved.
 **********************************************************************************/
 
 #include "DEC_Intel.hpp"
+#include "pipeline_decode.h"
 
 namespace RW{
     namespace DEC{
@@ -59,30 +60,30 @@ namespace RW{
 
             mfxStatus sts = MFX_ERR_NONE; // return value check
 
-            data->inputParams.memType = D3D9_MEMORY;// D3D11_MEMORY;
-            data->inputParams.videoType = MFX_CODEC_AVC;
-            data->inputParams.bLowLat = true;
-            data->inputParams.bCalLat = false;
-            data->inputParams.numViews = 1; //No multi view
-            data->inputParams.fourcc = MFX_FOURCC_RGB4;
+            data->inputParams->memType = D3D9_MEMORY;// D3D11_MEMORY;
+            data->inputParams->videoType = MFX_CODEC_AVC;
+            data->inputParams->bLowLat = true;
+            data->inputParams->bCalLat = false;
+            data->inputParams->numViews = 1; //No multi view
+            data->inputParams->fourcc = MFX_FOURCC_RGB4;
             
-            if (!IsDecodeCodecSupported(data->inputParams.videoType))
+            if (!IsDecodeCodecSupported(data->inputParams->videoType))
             {
                 m_Logger->error("Unsupported codec");
                 sts = MFX_ERR_UNSUPPORTED;
             }
 
-            if (data->inputParams.mode == MODE_RENDERING)
+            if (data->inputParams->mode == MODE_RENDERING)
             {
-                if (data->inputParams.memType == SYSTEM_MEMORY)
+                if (data->inputParams->memType == SYSTEM_MEMORY)
                 {
-                    data->inputParams.memType = D3D9_MEMORY;
+                    data->inputParams->memType = D3D9_MEMORY;
                 }
             }
 
-            data->inputParams.bWallNoTitle = false;
+            data->inputParams->bWallNoTitle = false;
 
-            m_pPipeline->SetInputParams(&data->inputParams);
+            m_pPipeline->SetInputParams(data->inputParams);
             
             sts = m_pPipeline->Init();
 

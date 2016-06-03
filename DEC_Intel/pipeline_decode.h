@@ -44,7 +44,6 @@ Copyright(c) 2005-2015 Intel Corporation. All Rights Reserved.
 namespace RW{
     namespace DEC{
 
-
         enum MemType {
             SYSTEM_MEMORY = 0x00,
             D3D9_MEMORY = 0x01,

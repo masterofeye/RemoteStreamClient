@@ -5,7 +5,6 @@
 #include <QtPlugin>
 #include "AbstractModule.hpp"
 #include "Utils.h"
-#include "pipeline_decode.h"
 
 #ifdef TRACE_PERFORMANCE
 #include "HighResolution\HighResClock.h"
@@ -14,9 +13,12 @@
 namespace RW{
     namespace DEC{
 
+        struct sInputParams;
+        class CDecodingPipeline;
+
         typedef struct stMyInitialiseControlStruct : public CORE::tstInitialiseControlStruct
         {
-            sInputParams inputParams;
+            sInputParams *inputParams;
         }tstMyInitialiseControlStruct;
 
         typedef struct stMyControlStruct : public CORE::tstControlStruct

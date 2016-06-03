@@ -48,7 +48,6 @@ Copyright(c) 2005-2015 Intel Corporation. All Rights Reserved.
 namespace RW{
     namespace DEC{
 
-
         CDecodingPipeline::CDecodingPipeline(std::shared_ptr<spdlog::logger> Logger) :
             m_Logger(Logger)
         {
