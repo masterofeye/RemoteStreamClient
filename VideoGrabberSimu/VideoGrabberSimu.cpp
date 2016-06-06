@@ -46,7 +46,7 @@ namespace RW
 				m_Logger->info("The " + sFileName + " was opened succesfully");
 				pControlStruct->nFPS = m_videoCapture.get(CAP_PROP_FPS);
 				pControlStruct->nFrameHeight = m_videoCapture.get(CAP_PROP_FRAME_HEIGHT);
-				pControlStruct->nFrameWidth = m_videoCapture.get(CAP_PROP_FRAME_WIDTH);
+                pControlStruct->nFrameWidth = m_videoCapture.get(CAP_PROP_FRAME_WIDTH);
 				pControlStruct->nNumberOfFrames = m_videoCapture.get(CAP_PROP_FRAME_COUNT);
 				//m_nFrameCounter = 0;
 #ifdef TRACE_PERFORMANCE
@@ -106,7 +106,7 @@ namespace RW
                 pControl->pOutputData->pBuffer = (void*)rawFrame.data;
 				pControl->pOutputData->u32Size = nFrameSize;
 				pControl->nCurrentFrameNumber = m_videoCapture.get(CAP_PROP_POS_FRAMES); // nFrameCounter++;
-				pControl->nCurrentPositionMSec = m_videoCapture.get(CV_CAP_PROP_POS_MSEC);
+                pControl->nCurrentPositionMSec = m_videoCapture.get(CAP_PROP_POS_MSEC);
 #ifdef TRACE_PERFORMANCE
                 RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
                 file_logger->trace() << "DoRender time for module nenVideoGrabber_SIMU: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
