@@ -9,6 +9,7 @@
 #include "IMP_CropFrames.hpp"
 #include "IMP_ConvColorFrames.hpp"
 #include "DEC_Intel.hpp"
+#include "DEC_inputs.h"
 #include "VideoPlayer.hpp"
 
 #include "HighResolution\HighResClock.h"
@@ -17,6 +18,7 @@
 #include "common\inc\dynlink_cuda.h"
 
 #include <QApplication>
+#include "vld.h"
 
 #define TRACE 1
 #define TRACE_PERFORMANCE
@@ -45,9 +47,9 @@ typedef struct stPipelineParams
     RW::ENC::tstMyControlStruct encodeControlStruct;
     RW::ENC::tstMyDeinitialiseControlStruct encodeDeinitialiseControlStruct;
 
-    //RW::DEC::tstMyInitialiseControlStruct decodeInitialiseControlStruct;
-    //RW::DEC::tstMyControlStruct decodeControlStruct;
-    //RW::DEC::tstMyDeinitialiseControlStruct decodeDeinitialiseControlStruct;
+    RW::DEC::tstMyInitialiseControlStruct decodeInitialiseControlStruct;
+    RW::DEC::tstMyControlStruct decodeControlStruct;
+    RW::DEC::tstMyDeinitialiseControlStruct decodeDeinitialiseControlStruct;
 
     RW::VPL::tstMyInitialiseControlStruct playerInitialiseControlStruct;
     RW::VPL::tstMyControlStruct playerControlStruct;
@@ -70,6 +72,11 @@ int pipeline(tstPipelineParams params)
     file_logger->debug("******************");
     file_logger->debug("*Applicationstart*");
     file_logger->debug("******************");
+
+	char *testLeak = new char[1000000];
+	testLeak = nullptr;
+
+
     try
     {
         RW::tenStatus status = RW::tenStatus::nenError;
@@ -192,31 +199,35 @@ int pipeline(tstPipelineParams params)
                          RW::CORE::tenSubModule::nenEncode_NVIDIA) != RW::tenStatus::nenSuccess)
                          file_logger->error("nenEncode_NVIDIA couldn't build correct");
 
-            //RW::DEC::tstMyInitialiseControlStruct decodeInitCtrl;
-            //{
-            //    decodeInitCtrl.inputParams = RW::DEC::sInputParams{};
-            //}
-            //RW::DEC::tstMyControlStruct decodeCtrl;
-            //{
-            //    decodeCtrl.pstEncodedStream = encodeControlStruct.pstBitStream;
-            //    decodeCtrl.pPayload = encodeControlStruct.pPayload;
-            //}
-            //RW::DEC::tstMyDeinitialiseControlStruct decodeDeinitCtrl;
+            RW::DEC::tstMyInitialiseControlStruct decodeInitCtrl;
+            {
+				decodeInitCtrl.inputParams = new RW::DEC::tstInputParams();
+				decodeInitCtrl.inputParams->Height = videoGrabberInitialiseControlStruct.nFrameHeight;
+				decodeInitCtrl.inputParams->Width = videoGrabberInitialiseControlStruct.nFrameWidth;
+				decodeInitCtrl.inputParams->nFrames = videoGrabberInitialiseControlStruct.nNumberOfFrames;
+				decodeInitCtrl.inputParams->nMaxFPS = videoGrabberInitialiseControlStruct.nFPS;
+            }
+            RW::DEC::tstMyControlStruct decodeCtrl;
+            {
+                decodeCtrl.pstEncodedStream = encodeControlStruct.pstBitStream;
+                decodeCtrl.pPayload = encodeControlStruct.pPayload;
+            }
+            RW::DEC::tstMyDeinitialiseControlStruct decodeDeinitCtrl;
 
-            //if (builder.BuildNode(&kernelManager,
-            //    &decodeInitCtrl,
-            //    sizeof(RW::DEC::tstMyInitialiseControlStruct),
-            //    &decodeCtrl,
-            //    sizeof(RW::DEC::tstMyControlStruct),
-            //    &decodeDeinitCtrl,
-            //    sizeof(RW::DEC::tstMyDeinitialiseControlStruct),
-            //    RW::CORE::tenSubModule::nenDecoder_INTEL) != RW::tenStatus::nenSuccess)
-            //    file_logger->error("nenDecoder_INTEL couldn't build correct");
+            if (builder.BuildNode(&kernelManager,
+                &decodeInitCtrl,
+                sizeof(RW::DEC::tstMyInitialiseControlStruct),
+                &decodeCtrl,
+                sizeof(RW::DEC::tstMyControlStruct),
+                &decodeDeinitCtrl,
+                sizeof(RW::DEC::tstMyDeinitialiseControlStruct),
+                RW::CORE::tenSubModule::nenDecoder_INTEL) != RW::tenStatus::nenSuccess)
+                file_logger->error("nenDecoder_INTEL couldn't build correct");
 
             RW::VPL::tstMyInitialiseControlStruct playerInitCtrl;
             RW::VPL::tstMyControlStruct playerCtrl;
             {
-                playerCtrl.pstBitStream = nullptr;// decodeCtrl.pOutput;
+                playerCtrl.pstBitStream = decodeCtrl.pOutput;
                 playerCtrl.TimeStamp = videoGrabberControlStruct.nCurrentPositionMSec;
             }
             RW::VPL::tstMyDeinitialiseControlStruct playerDeinitCtrl;
@@ -228,8 +239,8 @@ int pipeline(tstPipelineParams params)
                 sizeof(RW::VPL::tstMyControlStruct),
                 &playerDeinitCtrl,
                 sizeof(RW::VPL::tstMyDeinitialiseControlStruct),
-                RW::CORE::tenSubModule::nenDecoder_INTEL) != RW::tenStatus::nenSuccess)
-                file_logger->error("nenDecoder_INTEL couldn't build correct");
+                RW::CORE::tenSubModule::nenPlayback_Simple) != RW::tenStatus::nenSuccess)
+                file_logger->error("nenPlayback_Simple couldn't build correct");
 
 
             if (graph.VerifyGraph() == RW::tenStatus::nenSuccess)
@@ -309,6 +320,10 @@ int pipeline(tstPipelineParams params)
 				delete encodeControlStruct.pPayload;
 				encodeControlStruct.pPayload = nullptr;
 			}
+			if (decodeInitCtrl.inputParams)
+			{
+				delete decodeInitCtrl.inputParams;
+			}
         }
     }
     catch (...)
@@ -332,7 +347,6 @@ int main(int argc, char* argv[])
 
         RW::VG::tstVideoGrabberInitialiseControlStruct videoGrabberInitialiseControlStruct;
         {
-            videoGrabberInitialiseControlStruct.enColorSpace = RW::VG::nenRGB;
             videoGrabberInitialiseControlStruct.nFPS = 30;
             videoGrabberInitialiseControlStruct.nFrameHeight = 1920;
             videoGrabberInitialiseControlStruct.nFrameWidth = 1080;

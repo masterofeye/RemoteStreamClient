@@ -167,11 +167,12 @@ namespace RW{
             MSDK_SAFE_DELETE(m_pDeliveredEvent);
         }
 
-        mfxStatus CDecodingPipeline::Init()
+        mfxStatus CDecodingPipeline::Init(tstInputParams *pInput)
         {
-            MSDK_CHECK_POINTER(m_pInputParams, MFX_ERR_NULL_PTR);
-
             mfxStatus sts = MFX_ERR_NONE;
+
+			MSDK_CHECK_POINTER(pInput, MFX_ERR_NULL_PTR);
+			m_pInputParams = pInput;
 
             // prepare input stream file reader
             // for VP8 complete and single frame reader is a requirement
@@ -1576,25 +1577,15 @@ namespace RW{
 
         void CDecodingPipeline::PrintInfo()
         {
-            char *cTmp = new char();
-            wcstombs(cTmp, MSDK_SAMPLE_VERSION, sizeof(*MSDK_SAMPLE_VERSION));
-            m_Logger->info(("CDecodingPipeline::PrintInfo: Decoding Sample Version %s\n"), cTmp);
-
-            wcstombs(cTmp, CodecIdToStr(m_mfxVideoParams.mfx.CodecId).c_str(), sizeof(*CodecIdToStr(m_mfxVideoParams.mfx.CodecId).c_str()));
-            m_Logger->info(("CDecodingPipeline::PrintInfo: Input video\t%s"), cTmp);
+			m_Logger->info("CDecodingPipeline::PrintInfo: Input video\t%s") << m_mfxVideoParams.mfx.CodecId;//CodecIdToStr(m_mfxVideoParams.mfx.CodecId).c_str();
             if (m_bVppIsUsed)
             {
-                wcstombs(cTmp, CodecIdToStr(m_mfxVppVideoParams.vpp.Out.FourCC).c_str(), sizeof(*CodecIdToStr(m_mfxVppVideoParams.vpp.Out.FourCC).c_str()));
-                m_Logger->info(("CDecodingPipeline::PrintInfo: Output format\t%s (using vpp)"), cTmp);
+				m_Logger->info("CDecodingPipeline::PrintInfo: Output format\t%s (using vpp)") << m_mfxVppVideoParams.vpp.Out.FourCC;// CodecIdToStr(m_mfxVppVideoParams.vpp.Out.FourCC).c_str();
             }
             else
             {
-                wcstombs(cTmp, CodecIdToStr(m_mfxVideoParams.mfx.FrameInfo.FourCC).c_str(), sizeof(*CodecIdToStr(m_mfxVideoParams.mfx.FrameInfo.FourCC).c_str()));
-                m_Logger->info(("CDecodingPipeline::PrintInfo: Output format\t%s"), cTmp);
+				m_Logger->info("CDecodingPipeline::PrintInfo: Output format\t%s") << m_mfxVideoParams.mfx.FrameInfo.FourCC;//CodecIdToStr(m_mfxVideoParams.mfx.FrameInfo.FourCC).c_str(); 
             }
-
-            delete cTmp;
-            cTmp = nullptr;
 
             mfxFrameInfo Info = m_mfxVideoParams.mfx.FrameInfo;
             m_Logger->info("CDecodingPipeline::PrintInfo: Input:");

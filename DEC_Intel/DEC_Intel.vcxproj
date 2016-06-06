@@ -160,6 +160,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DEC_inputs.h" />
     <ClInclude Include="DEC_Intel.hpp" />
     <ClInclude Include="ModuleFactory.hpp" />
     <ClInclude Include="pipeline_decode.h" />

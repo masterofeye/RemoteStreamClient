@@ -83,9 +83,7 @@ namespace RW{
 
             data->inputParams->bWallNoTitle = false;
 
-            m_pPipeline->SetInputParams(data->inputParams);
-            
-            sts = m_pPipeline->Init();
+			sts = m_pPipeline->Init(data->inputParams);
 
             // print stream info
             m_pPipeline->PrintInfo();

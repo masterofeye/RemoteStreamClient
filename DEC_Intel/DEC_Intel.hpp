@@ -5,20 +5,16 @@
 #include <QtPlugin>
 #include "AbstractModule.hpp"
 #include "Utils.h"
-
-#ifdef TRACE_PERFORMANCE
-#include "HighResolution\HighResClock.h"
-#endif
+#include "DEC_inputs.h"
 
 namespace RW{
     namespace DEC{
 
-        struct sInputParams;
-        class CDecodingPipeline;
+		class CDecodingPipeline;
 
-        typedef struct stMyInitialiseControlStruct : public CORE::tstInitialiseControlStruct
+		typedef struct stMyInitialiseControlStruct : public CORE::tstInitialiseControlStruct
         {
-            sInputParams *inputParams;
+			tstInputParams *inputParams;
         }tstMyInitialiseControlStruct;
 
         typedef struct stMyControlStruct : public CORE::tstControlStruct

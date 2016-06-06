@@ -7,19 +7,12 @@ namespace RW
 {
 	namespace VG
 	{
-		typedef enum tenColorSpace
-		{
-			nenRGB,
-			nenUnknown
-		};
-
         typedef struct stVideoGrabberInitialiseControlStruct : public CORE::stInitialiseControlStruct
 		{
 			int nFrameWidth;
 			int nFrameHeight;
 			int nFPS;
 			int nNumberOfFrames;
-			tenColorSpace enColorSpace;
 			std::string sFileName;
         }tstVideoGrabberInitialiseControlStruct;
 

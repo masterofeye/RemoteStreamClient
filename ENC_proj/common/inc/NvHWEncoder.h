@@ -102,11 +102,6 @@ namespace RW{
 
             ~_EncodeConfig()
             {
-                if (encoderPreset)
-                {
-                    delete encoderPreset;
-                    encoderPreset = nullptr;
-                }
             }
         }EncodeConfig;
 

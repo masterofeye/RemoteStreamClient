@@ -48,7 +48,6 @@ namespace RW
 				pControlStruct->nFrameHeight = m_videoCapture.get(CAP_PROP_FRAME_HEIGHT);
 				pControlStruct->nFrameWidth = m_videoCapture.get(CAP_PROP_FRAME_WIDTH);
 				pControlStruct->nNumberOfFrames = m_videoCapture.get(CAP_PROP_FRAME_COUNT);
-				pControlStruct->enColorSpace = nenRGB;
 				//m_nFrameCounter = 0;
 #ifdef TRACE_PERFORMANCE
                 RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
