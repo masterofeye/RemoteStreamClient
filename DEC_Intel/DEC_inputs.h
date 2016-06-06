@@ -79,7 +79,7 @@ namespace RW{
 			//{
 			//    MSDK_ZERO_MEMORY(*this);
 			//}
-			stInputParams() : videoType(MFX_CODEC_AVC), mode(MODE_PERFORMANCE), memType(D3D9_MEMORY), bUseHWLib(false), bLowLat(true), bCalLat(true),
+			stInputParams() : videoType(MFX_CODEC_AVC), mode(MODE_PERFORMANCE), memType(D3D9_MEMORY), bUseHWLib(true), bLowLat(true), bCalLat(true),
                 nThreadsNum(1), SchedulingType(NORMAL_PRIORITY_CLASS), Priority(THREAD_PRIORITY_NORMAL),
 				nAsyncDepth(4), gpuCopy(MFX_GPUCOPY_DEFAULT), fourcc(MFX_FOURCC_RGB4), nFrames(0), eDeinterlace(MFX_DEINTERLACING_BOB), bRenderWin(false)
 			{}
