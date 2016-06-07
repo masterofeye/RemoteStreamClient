@@ -56,7 +56,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>REMOTE_EXPORT;WIN32;_DEBUG;_WINDOWS;_USRDLL;OPENVXWRAPPER_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\RWPluginInterface;..\Plugin1;C:\Projekte\RemoteStreamClient\VideoGrabberSimu;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\RWPluginInterface;..\Plugin1;C:\Projekte\RemoteStreamClient\IMP_proj;C:\Tool\RemotePkg\CUDA\CUDAToolkit\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

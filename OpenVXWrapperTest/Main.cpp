@@ -378,8 +378,7 @@ int pipeline(tstPipelineParams params)
 
 			if (decodeInitCtrl.inputParams)
 			{
-				delete decodeInitCtrl.inputParams;
-                decodeInitCtrl.inputParams = nullptr;
+				delete var;
 			}
         }
     }
