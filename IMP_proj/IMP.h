@@ -2,7 +2,7 @@
 
 #include "stdint.h"
 #include "opencv2/opencv.hpp"
-#include "opencv2/cudev/common.hpp"
+
 #include <exception>
 #include <QtCore>
 #include <QtPlugin>
@@ -14,7 +14,7 @@
 #include "HighResolution\HighResClock.h"
 #endif
 
-#include "IMP"
+
 
 namespace RW
 {
@@ -87,30 +87,12 @@ namespace RW
 			stRectStruct *pstFrameRect;
 		}tstMyInitialiseControlStruct;
 
-		typedef struct stMyControlStruct : public CORE::tstControlStruct
+        typedef struct REMOTE_API stMyControlStruct : public CORE::tstControlStruct
 		{
 			cInputBase *pcInput;
 			cOutputBase *pcOutput;
-			void UpdateData(void * Data)
-			{
-				void UpdateData(CORE::tstControlStruct* Data, CORE::tenSubModule SubModuleType)
-				{
-					switch (SubModuleType)
-					{
-					case CORE::tenSubModule::nenDecoder_NVIDIA:
-					{
-						RW:: *data = static_cast<VG::tstVideoGrabberControlStruct*>(Data);
-						data->
-						break;
-					}
-					case CORE::tenSubModule::nenGraphic_Crop:
+            void UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType);
 
-						break;
-					default:
-
-					}
-				}
-			}
 		}tstMyControlStruct;
 
 		typedef struct stCropDeinitialiseControlStruct : public CORE::tstDeinitialiseControlStruct

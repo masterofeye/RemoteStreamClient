@@ -16,6 +16,7 @@
 #include "spdlog\spdlog.h"
 #include <thread>
 #include "common\inc\dynlink_cuda.h"
+#include "opencv2/cudev/common.hpp"
 
 #include <QApplication>
 
@@ -171,7 +172,7 @@ int pipeline(tstPipelineParams params)
             	RW::CORE::tenSubModule::nenGraphic_Color) != RW::tenStatus::nenSuccess)
             	file_logger->error("nenGraphic_Color couldn't build correct");
 
-            RW::ENC::tstMyInitialiseControlStruct encodeInitialiseControlStruct;
+           /* RW::ENC::tstMyInitialiseControlStruct encodeInitialiseControlStruct;
             {
                 encodeInitialiseControlStruct.pstEncodeConfig = new RW::ENC::EncodeConfig();
                 encodeInitialiseControlStruct.pstEncodeConfig->width = videoGrabberInitialiseControlStruct.nFrameWidth;
@@ -200,7 +201,7 @@ int pipeline(tstPipelineParams params)
                          &encodeDeinitialiseControlStruct,
                          sizeof(RW::ENC::tstMyDeinitialiseControlStruct),
                          RW::CORE::tenSubModule::nenEncode_NVIDIA) != RW::tenStatus::nenSuccess)
-                         file_logger->error("nenEncode_NVIDIA couldn't build correct");
+                         file_logger->error("nenEncode_NVIDIA couldn't build correct");*/
 
           /*  RW::DEC::tstMyInitialiseControlStruct decodeInitCtrl;
             {
@@ -315,16 +316,16 @@ int pipeline(tstPipelineParams params)
 				delete impColorControlStruct.pcOutput;
 				impColorControlStruct.pcOutput = nullptr;
             }
-			if (encodeInitialiseControlStruct.pstEncodeConfig)
-			{
-				delete encodeInitialiseControlStruct.pstEncodeConfig;
-				encodeInitialiseControlStruct.pstEncodeConfig = nullptr;
-			}
-			if (encodeControlStruct.pPayload)
-			{
-				delete encodeControlStruct.pPayload;
-				encodeControlStruct.pPayload = nullptr;
-			}
+			//if (encodeInitialiseControlStruct.pstEncodeConfig)
+			//{
+			//	delete encodeInitialiseControlStruct.pstEncodeConfig;
+			//	encodeInitialiseControlStruct.pstEncodeConfig = nullptr;
+			//}
+			//if (encodeControlStruct.pPayload)
+			//{
+			//	delete encodeControlStruct.pPayload;
+			//	encodeControlStruct.pPayload = nullptr;
+			//}
 			//if (decodeInitCtrl.inputParams)
 			//{
 			//	delete decodeInitCtrl.inputParams;
@@ -362,7 +363,7 @@ int main(int argc, char* argv[])
             videoGrabberInitialiseControlStruct.nFrameHeight = 1920;
             videoGrabberInitialiseControlStruct.nFrameWidth = 1080;
             videoGrabberInitialiseControlStruct.nNumberOfFrames = 1000;
-            videoGrabberInitialiseControlStruct.sFileName = "E:\\Video\\BR213_24bbp_5.avi";
+            videoGrabberInitialiseControlStruct.sFileName = "C:\\Projekte\\BR213_24bbp_5.avi";
         }
 
         tstPipelineParams params;

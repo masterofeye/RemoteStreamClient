@@ -1,5 +1,6 @@
 #include "IMP_Base.h"
 #include "cuda_runtime_api.h"
+#include "opencv2/cudev/common.hpp"
 
 
 namespace RW{
@@ -59,8 +60,8 @@ namespace RW{
 			{
                 m_pgMat = new cv::cuda::GpuMat(iHeight, iWidth, CV_8UC4, pvImg, cv::Mat::AUTO_STEP);
 
-                delete pvImg;
-                pvImg = nullptr;
+                //delete pvImg;
+                //pvImg = nullptr;
 
                 if (m_pgMat == nullptr)
                 {

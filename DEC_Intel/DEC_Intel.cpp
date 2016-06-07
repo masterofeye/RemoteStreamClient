@@ -16,6 +16,12 @@ Copyright(c) 2005-2015 Intel Corporation. All Rights Reserved.
 
 namespace RW{
     namespace DEC{
+        void stMyControlStruct::UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType)
+        {
+        }
+
+
+
         DEC_Intel::DEC_Intel(std::shared_ptr<spdlog::logger> Logger) :
             RW::CORE::AbstractModule(Logger)
         {

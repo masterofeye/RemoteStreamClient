@@ -9,6 +9,10 @@ namespace RW
 {
     namespace VPL
     {
+        void stMyControlStruct::UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType)
+        {
+        }
+
         VideoPlayer::VideoPlayer(std::shared_ptr<spdlog::logger> Logger) :
             RW::CORE::AbstractModule(Logger)
             , m_qmPlayer(0, QMediaPlayer::VideoSurface)

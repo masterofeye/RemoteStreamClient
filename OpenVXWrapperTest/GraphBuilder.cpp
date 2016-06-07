@@ -1,6 +1,7 @@
 #include "GraphBuilder.h"
 #include "OpenVXWrapper.h"
 #include "AbstractModule.hpp"
+#include "Kernel.h"
 
 namespace RW
 {
@@ -57,7 +58,7 @@ namespace RW
             m_Logger->debug(Util::ModuleName(SubModule));
             m_Logger->debug("************************");
 
-			RW::CORE::Kernel *kernel = new Kernel(m_Context, ControlStruct,  "MyKernel", NVX_KERNEL_TEST, 4, module, m_Logger);
+            RW::CORE::Kernel *kernel = new RW::CORE::Kernel(m_Context, ControlStruct, "MyKernel", NVX_KERNEL_TEST, 4, module, m_Logger);
             if (kernel->IsInitialized())
             {
 
@@ -103,9 +104,10 @@ namespace RW
 				}
 				else
 				{
-					if (IndexOfParent != -1);
+					if (IndexOfParent != -1)
 						CurrentKernelManager->NodeByIndex(IndexOfParent)->SetNextNode(node);
 
+                    kernel->SetCurrentNode(node);
 					if (node->IsInitialized())
 					{
 						CurrentKernelManager->AddNode(node);

@@ -60,7 +60,7 @@
       <PreprocessorDefinitions>TRACE_PERFORMANCE;_WINDOWS;UNICODE;WIN32;WIN64;QT_PLUGIN;QT_GUI_LIB;QT_CORE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <AdditionalIncludeDirectories>C:\TOOL\RemotePkg\OpenCV\build\include;C:\TOOL\RemotePkg\OpenCV\build\include\opencv2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\TOOL\RemotePkg\OpenCV\build\include;C:\TOOL\RemotePkg\OpenCV\build\include\opencv2;..\IMP_proj;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

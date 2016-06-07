@@ -14,14 +14,14 @@ namespace RW
         class Context;
         class Graph;
         class Kernel;
-
+        class Node;
 
         class REMOTE_API Node
 		{
 		private:
 			bool m_Initialize;
 			vx_node m_Node;
-			vx_node m_NextNode;
+            vx_node m_NextNode;
             vx_graph m_Graph;
             vx_kernel m_Kernel;
             std::vector<vx_reference> m_ListOfReferences;
@@ -57,7 +57,8 @@ namespace RW
 			/*
 			*@brief Set a reference of the following node in the graph execution
 			*/
-			inline void SetNextNode(Node *FollowingNode){ m_NextNode = (*FollowingNode)(); }
+            inline void SetNextNode(Node *FollowingNode){ m_NextNode = (*FollowingNode)(); }
+            inline vx_node NexttNode(){ return m_NextNode; }
 
         private: 
             tenStatus CreateNode();

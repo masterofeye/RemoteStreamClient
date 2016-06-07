@@ -5,7 +5,6 @@
 #include <Utils.h>
 #include "spdlog\spdlog.h"
 
-
 namespace RW{
     typedef struct stBitStream
     {
@@ -19,9 +18,9 @@ namespace RW{
 		{
         }tstInitialiseControlStruct;
 
-		typedef struct stControlStruct
+        typedef struct stControlStruct
         {
-			virtual void UpdateData(void *Data) = 0;
+            virtual void UpdateData(struct stControlStruct** Data, tenSubModule SubModuleType) = 0;
         }tstControlStruct;
 
         typedef struct stDeinitialiseControlStruct

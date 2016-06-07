@@ -8,8 +8,6 @@
 #include "AbstractModule.hpp"
 #include "Utils.h"
 
-#include "IMP_Base.h"
-#include "VideoGrabberSimu.hpp"
 
 
 namespace RW{
@@ -30,23 +28,15 @@ namespace RW{
 			EncodeConfig *pstEncodeConfig;
 		}tstMyInitialiseControlStruct;
 
-		typedef struct stMyControlStruct : public CORE::tstControlStruct
+        typedef struct REMOTE_API stMyControlStruct : public CORE::tstControlStruct
 		{
 			CUarray pcuYUVArray;
             tstBitStream *pstBitStream;
             tstBitStream *pPayload;
-			void UpdateData(CORE::tstControlStruct* Data, CORE::tenSubModule SubModuleType)
+			void UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType)
 			{
 				switch (SubModuleType)
 				{
-				case CORE::tenSubModule::nenVideoGrabber_SIMU:
-				{
-					VG::tstVideoGrabberControlStruct *data = static_cast<VG::tstVideoGrabberControlStruct*>(Data);
-					break;
-				case CORE::tenSubModule::nenGraphic_Crop:
-
-					break;
-				default:
 				}
 			}
 		}tstMyControlStruct;

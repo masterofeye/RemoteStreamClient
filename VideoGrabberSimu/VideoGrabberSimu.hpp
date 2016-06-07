@@ -3,6 +3,7 @@
 #include "AbstractModule.hpp"
 #include <opencv2/videoio.hpp>
 
+
 namespace RW
 {
 	namespace VG
@@ -16,13 +17,13 @@ namespace RW
 			std::string sFileName;
         }tstVideoGrabberInitialiseControlStruct;
 
-        typedef struct stVideoGrabberControlStruct : public CORE::tstControlStruct
+        typedef struct REMOTE_API stVideoGrabberControlStruct : public CORE::tstControlStruct
 		{
             tstBitStream *pOutputData;
 
 			int nCurrentFrameNumber;
 			int nCurrentPositionMSec;
-			void UpdateData(void* Data){}
+            void UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType);
         }tstVideoGrabberControlStruct;
 
         typedef struct stVideoGrabberDeinitialiseControlStruct : public CORE::tstDeinitialiseControlStruct

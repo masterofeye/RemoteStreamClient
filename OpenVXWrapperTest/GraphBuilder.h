@@ -29,8 +29,7 @@ namespace RW
                 size_t size2,
                 tstDeinitialiseControlStruct *DeinitialiseControlStruct,
                 size_t size3,
-                tenSubModule SubModule,
-                RW::CORE::Kernel **Kernel);
+                tenSubModule SubModule);
         };
     }
 }

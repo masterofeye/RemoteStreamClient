@@ -17,11 +17,12 @@ namespace RW{
 			tstInputParams *inputParams;
         }tstMyInitialiseControlStruct;
 
-        typedef struct stMyControlStruct : public CORE::tstControlStruct
+        typedef struct REMOTE_API stMyControlStruct : public CORE::tstControlStruct
         {
             tstBitStream *pOutput;
             tstBitStream *pstEncodedStream;
             tstBitStream *pPayload;
+            void UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType);
         }tstMyControlStruct;
 
         typedef struct stMyDeinitialiseControlStruct : public CORE::tstDeinitialiseControlStruct
