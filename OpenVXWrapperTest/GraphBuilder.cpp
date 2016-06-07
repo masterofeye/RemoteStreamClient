@@ -56,69 +56,70 @@ namespace RW
             m_Logger->debug(Util::ModuleName(SubModule));
             m_Logger->debug("************************");
 
-            RW::CORE::Kernel kernel(m_Context, "MyKernel", NVX_KERNEL_TEST, 4, module, m_Logger);
-            if (kernel.IsInitialized())
+			RW::CORE::Kernel *kernel = new Kernel(m_Context, ControlStruct,  "MyKernel", NVX_KERNEL_TEST, 4, module, m_Logger);
+            if (kernel->IsInitialized())
             {
-                status = CurrentKernelManager->AddParameterToKernel(&kernel, RW::CORE::tenDir::nenInput, 0);
+
+                status = CurrentKernelManager->AddParameterToKernel(kernel, RW::CORE::tenDir::nenInput, 0);
                 if (status == tenStatus::nenError)
                 {
                     m_Logger->error("Add parameter to Kernel failed(1).");
                     return status;
                 }
 
-                status = CurrentKernelManager->AddParameterToKernel(&kernel, RW::CORE::tenDir::nenInput, 1);
+                status = CurrentKernelManager->AddParameterToKernel(kernel, RW::CORE::tenDir::nenInput, 1);
                 if (status == tenStatus::nenError)
                 {
                     m_Logger->error("Add parameter to Kernel failed(2).");
                     return status;
                 }
 
-                status = CurrentKernelManager->AddParameterToKernel(&kernel, RW::CORE::tenDir::nenInput, 2);
+                status = CurrentKernelManager->AddParameterToKernel(kernel, RW::CORE::tenDir::nenInput, 2);
                 if (status == tenStatus::nenError)
                 {
                     m_Logger->error("Add parameter to Kernel failed(3).");
                     return status;
                 }
 
-                status = CurrentKernelManager->AddParameterToKernel(&kernel, RW::CORE::tenDir::nenInput, 3);
+                status = CurrentKernelManager->AddParameterToKernel(kernel, RW::CORE::tenDir::nenInput, 3);
                 if (status == tenStatus::nenError)
                 {
                     m_Logger->error("Add parameter to Kernel failed(4).");
                     return status;
                 }
 
-                status = CurrentKernelManager->FinalizeKernel(&kernel);
+                status = CurrentKernelManager->FinalizeKernel(kernel);
                 if (status == tenStatus::nenError)
                 {
                     m_Logger->error("Finalize of the Kernel failed.");
                     return status;
                 }
 
-                RW::CORE::Node node(m_Graph, &kernel, m_Logger);
-                if (node.IsInitialized())
+                RW::CORE::Node *node = new Node(m_Graph, kernel, m_Logger);
+                if (node->IsInitialized())
                 {
-
-                    status = node.SetParameterByIndex(0, (void*)&kernel, sizeof(RW::CORE::Kernel), m_Context);
+					CurrentKernelManager->AddNode(node);
+                    status = node->SetParameterByIndex(0, (void*)kernel, sizeof(RW::CORE::Kernel), m_Context);
                     if (status == tenStatus::nenError)
                     {
                         m_Logger->error("Set parameter for node failed(1).");
                         return status;
                     }
-                    status = node.SetParameterByIndex(1, (void*)InitialiseControlStruct, size1, m_Context);
+                    status = node->SetParameterByIndex(1, (void*)InitialiseControlStruct, size1, m_Context);
                     if (status == tenStatus::nenError)
                     {
                         m_Logger->error("Set parameter for node failed(2).");
                         return status;
                     }
 
-                    status = node.SetParameterByIndex(2, (void*)ControlStruct, size2, m_Context);
+                    status = node->SetParameterByIndex(2, (void*)ControlStruct, size2, m_Context);
                     if (status == tenStatus::nenError)
                     {
                         m_Logger->error("Set parameter for node failed(3).");
                         return status;
                     }
 
-                    status = node.SetParameterByIndex(3, (void*)DeinitialiseControlStruct, size3, m_Context);
+                    status = node->SetParameterByIndex(3, (void*)DeinitialiseControlStruct, size3, m_Context);
                     if (status == tenStatus::nenError)
                     {
                         m_Logger->error("Set parameter for node failed(4).");

@@ -51,7 +51,7 @@ namespace RW
 				//m_nFrameCounter = 0;
 #ifdef TRACE_PERFORMANCE
                 RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
-                file_logger->trace() << "Time to load Plugins: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+				m_Logger->trace() << "Time to load Plugins: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
 				return tenStatus::nenSuccess;
 			}
@@ -91,7 +91,7 @@ namespace RW
 				m_Logger->info("VideoGrabberSimu::DoRender - end of the file");
 #ifdef TRACE_PERFORMANCE
                 RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
-                file_logger->trace() << "DoRender time for module nenVideoGrabber_SIMU: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+				m_Logger->trace() << "DoRender time for module nenVideoGrabber_SIMU: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
 				return tenStatus::nenSuccess;
 			}
@@ -109,7 +109,7 @@ namespace RW
                 pControl->nCurrentPositionMSec = m_videoCapture.get(CAP_PROP_POS_MSEC);
 #ifdef TRACE_PERFORMANCE
                 RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
-                file_logger->trace() << "DoRender time for module nenVideoGrabber_SIMU: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+				m_Logger->trace() << "DoRender time for module nenVideoGrabber_SIMU: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
 				return tenStatus::nenSuccess;
 			}

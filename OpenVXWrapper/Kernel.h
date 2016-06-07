@@ -12,6 +12,9 @@ namespace RW
 	{
         class Context;
         class AbstractModule;
+		struct stControlStruct;
+		typedef struct stControlStruct tstControlStruct;
+
         class REMOTE_API Kernel
 		{
 		private:
@@ -21,10 +24,11 @@ namespace RW
             std::string     m_KernelName;
             uint64_t        m_KernelEnum;
             uint8_t         m_CurrentParameterIndex;
-            AbstractModule*  m_AbstractModule;
-            std::shared_ptr<spdlog::logger> m_Logger;
+            AbstractModule* m_AbstractModule;
+			RW::CORE::tstControlStruct *m_ControlStruct;
+			std::shared_ptr<spdlog::logger> m_Logger;
 		public:
-            Kernel(Context *CurrentContext, std::string KernelName, uint64_t KernelEnum,  uint8_t ParameterAmount, AbstractModule const *Module, std::shared_ptr<spdlog::logger> Logger);
+			Kernel(Context *CurrentContext, RW::CORE::tstControlStruct *ControlStruct, std::string KernelName, uint64_t KernelEnum, uint8_t ParameterAmount, AbstractModule const *Module, std::shared_ptr<spdlog::logger> Logger);
 			~Kernel();
 
 
@@ -33,6 +37,7 @@ namespace RW
 			inline uint64_t KernelEnum() const { return m_KernelEnum; }
 			inline void SetKernel(vx_kernel Kernel) { m_Kernel = Kernel; }
 			inline bool IsInitialized() const { return m_Initialize; }
+			inline RW::CORE::tstControlStruct *GetControlStruct(){ return m_ControlStruct; }
 
 			vx_kernel operator()() const
             {
