@@ -1,9 +1,16 @@
 
 #include "VideoPlayer.hpp"
+#include "qbuffer.h"
+#include "qboxlayout.h"
+#include "qpushbutton.h"
 
 #include <qvideowidget.h>
 #include <qvideosurfaceformat.h>
 #include "qobject.h"
+#include "qslider.h"
+#include "qlabel.h"
+#include "qwidget.h"
+#include "qstyle.h"
 
 namespace RW
 {
@@ -76,7 +83,7 @@ namespace RW
             RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
 #endif
 
-            stMyInitialiseControlStruct* data = static_cast<stMyInitialiseControlStruct*>(InitialiseControlStruct);
+            //stMyInitialiseControlStruct* data = static_cast<stMyInitialiseControlStruct*>(InitialiseControlStruct);
 
             m_qsPosition->setRange(0, 0);
             m_qaBtnPlay->setEnabled(false);
@@ -119,21 +126,21 @@ namespace RW
             m_pqWidget->resize(320, 240);
             m_pqWidget->show();
 
-            if (pVideoWidget)
-            {
-                delete pVideoWidget;
-                pVideoWidget = nullptr;
-            }
-            if (layout)
-            {
-                delete layout;
-                layout = nullptr;
-            }
-            if (controlLayout)
-            {
-                delete controlLayout;
-                controlLayout = nullptr;
-            }
+            //if (pVideoWidget)
+            //{
+            //    delete pVideoWidget;
+            //    pVideoWidget = nullptr;
+            //}
+            //if (controlLayout)
+            //{
+            //    delete controlLayout;
+            //    controlLayout = nullptr;
+            //}
+            //if (layout)
+            //{
+            //    delete layout;
+            //    layout = nullptr;
+            //}
 
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
@@ -255,7 +262,7 @@ namespace RW
         {
             m_qaBtnPlay->setEnabled(false);
             m_qaBtnStop->setEnabled(false);
-            m_Logger->error(m_qmPlayer.errorString().toStdString().c_str());
+            m_Logger->error() << m_qmPlayer.errorString().toStdString().c_str();
         }
     }
 }

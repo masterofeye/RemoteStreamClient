@@ -1,14 +1,7 @@
 #pragma once
 
 #include <qmediaplayer.h>
-
-#include <QtGui/QMovie>
-#include <QtCore>
-#include <QtPlugin>
 #include "AbstractModule.hpp"
-#include "Utils.h"
-#include <QtWidgets>
-#include <QtWidgets/QWidget>
 
 QT_BEGIN_NAMESPACE
 class QAbstractButton;

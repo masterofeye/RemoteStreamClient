@@ -1,9 +1,5 @@
 #include "IMP_CropFrames.hpp"
 
-#ifdef TRACE_PERFORMANCE
-#include "HighResolution\HighResClock.h"
-#endif
-
 namespace RW{
 	namespace IMP{
 
@@ -78,7 +74,7 @@ namespace RW{
             }
 
             IMP_Base impBase = IMP_Base(m_Logger);
-            enStatus = impBase.tensProcessInput(data->pcInput);
+            enStatus = impBase.tensProcessInput(data->pcInput, data->pcOutput);
             cv::cuda::GpuMat *pgMat = impBase.cuGetGpuMat();
             if (enStatus != tenStatus::nenSuccess || pgMat == nullptr)
             {
