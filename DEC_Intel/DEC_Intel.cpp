@@ -1,15 +1,4 @@
-/*********************************************************************************
 
-INTEL CORPORATION PROPRIETARY INFORMATION
-This software is supplied under the terms of a license agreement or nondisclosure
-agreement with Intel Corporation and may not be copied or disclosed except in
-accordance with the terms of that agreement.
-This sample was distributed or derived from the Intel's Media Samples package.
-The original version of this sample may be obtained from https://software.intel.com/en-us/intel-media-server-studio
-or https://software.intel.com/en-us/media-client-solutions-support.
-Copyright(c) 2005-2015 Intel Corporation. All Rights Reserved.
-
-**********************************************************************************/
 
 #include "DEC_Intel.hpp"
 #include "pipeline_decode.h"
@@ -19,7 +8,7 @@ namespace RW{
         DEC_Intel::DEC_Intel(std::shared_ptr<spdlog::logger> Logger) :
             RW::CORE::AbstractModule(Logger)
         {
-                m_pPipeline = new CDecodingPipeline(m_Logger);
+            m_pPipeline = new CDecodingPipeline(m_Logger);
             }
 
         DEC_Intel::~DEC_Intel()
@@ -60,28 +49,11 @@ namespace RW{
 
             mfxStatus sts = MFX_ERR_NONE; // return value check
 
-            data->inputParams->memType = D3D9_MEMORY;// D3D11_MEMORY;
-            data->inputParams->videoType = MFX_CODEC_AVC;
-            data->inputParams->bLowLat = true;
-            data->inputParams->bCalLat = false;
-            data->inputParams->numViews = 1; //No multi view
-            data->inputParams->fourcc = MFX_FOURCC_RGB4;
-            
             if (!IsDecodeCodecSupported(data->inputParams->videoType))
             {
                 m_Logger->error("Unsupported codec");
                 sts = MFX_ERR_UNSUPPORTED;
             }
-
-            if (data->inputParams->mode == MODE_RENDERING)
-            {
-                if (data->inputParams->memType == SYSTEM_MEMORY)
-                {
-                    data->inputParams->memType = D3D9_MEMORY;
-                }
-            }
-
-            data->inputParams->bWallNoTitle = false;
 
 			sts = m_pPipeline->Init(data->inputParams);
 
@@ -95,7 +67,7 @@ namespace RW{
 
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
-            m_Logger->trace() << "Time to Initialise for nenDecoder_INTEL module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+            m_Logger->trace() << "Time to Initialise for nenDecoder_INTEL module: " << (RW::CORE::HighResClock::diffMilli(t1, t2).count()) << "ms.";
 #endif
             return enStatus;
         }

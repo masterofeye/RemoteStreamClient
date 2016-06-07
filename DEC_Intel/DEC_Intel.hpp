@@ -1,10 +1,6 @@
 #pragma once
 
-#include <sstream>
-#include <QtCore>
-#include <QtPlugin>
 #include "AbstractModule.hpp"
-#include "Utils.h"
 #include "DEC_inputs.h"
 
 namespace RW{

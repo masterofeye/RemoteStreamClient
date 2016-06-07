@@ -23,6 +23,8 @@
 #define TRACE 1
 #define TRACE_PERFORMANCE
 
+
+
 void logtest()
 {
     auto logger = spdlog::get("file_logger");
@@ -231,7 +233,7 @@ int pipeline(tstPipelineParams params)
             pPayload->u32Size = sizeof(stPayloadMsg);
 
             RW::DEC::tstMyInitialiseControlStruct decodeInitCtrl;
-            {
+            { 
 				decodeInitCtrl.inputParams = new RW::DEC::tstInputParams();
                 decodeInitCtrl.inputParams->Height = 738;
                     //videoGrabberInitialiseControlStruct.nFrameHeight;
@@ -241,6 +243,7 @@ int pipeline(tstPipelineParams params)
                     //videoGrabberInitialiseControlStruct.nNumberOfFrames;
                 decodeInitCtrl.inputParams->nMaxFPS = 60;
                     //videoGrabberInitialiseControlStruct.nFPS;
+                decodeInitCtrl.inputParams->bUseHWLib = false;
             }
             RW::DEC::tstMyControlStruct decodeCtrl;
             {

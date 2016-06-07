@@ -4,79 +4,64 @@ INTEL CORPORATION PROPRIETARY INFORMATION
 This software is supplied under the terms of a license agreement or
 nondisclosure agreement with Intel Corporation and may not be copied
 or disclosed except in accordance with the terms of that agreement.
-This sample was distributed or derived from the Intel's Media Samples package.
-The original version of this sample may be obtained from https://software.intel.com/en-us/intel-media-server-studio
-or https://software.intel.com/en-us/media-client-solutions-support.
-Copyright(c) 2005-2015 Intel Corporation. All Rights Reserved.
+Copyright(c) 2005-2014 Intel Corporation. All Rights Reserved.
 
 *****************************************************************************/
 
-#pragma once 
-//#include "sample_defs.h"
+#ifndef __PIPELINE_DECODE_H__
+#define __PIPELINE_DECODE_H__
 
-#if D3D_SURFACES_SUPPORT
-#pragma warning(disable : 4201)
-#include <d3d9.h>
-#include <dxva2api.h>
-#endif
-
-#include <vector>
-#include "hw_device.h"
-#include "decode_render.h"
 #include "mfx_buffering.h"
-#include <memory>
-
-#include "sample_utils.h"
-#include "sample_params.h"
-#include "base_allocator.h"
-
 #include "mfxmvc.h"
-//#include "mfxjpeg.h"
-#include "mfxplugin.h"
-#include "mfxplugin++.h"
-#include "mfxvideo.h"
-#include "mfxvideo++.h"
-
-#include "plugin_loader.h"
-#include "general_allocator.h"
 #include "AbstractModule.hpp"
-#include "DEC_inputs.h"
+
+class MFXFrameAllocator;
+struct mfxAllocatorParams;
+class MFXVideoUSER;
+struct MFXPlugin;
+class IGFXS3DControl;
+class CHWDevice;
+
+template<>struct mfx_ext_buffer_id<mfxExtMVCSeqDesc>{
+    enum { id = MFX_EXTBUFF_MVC_SEQ_DESC };
+};
+
+struct CPipelineStatistics
+{
+    CPipelineStatistics() :
+        m_input_count(0),
+        m_output_count(0),
+        m_synced_count(0),
+        m_tick_overall(0),
+        m_tick_fread(0),
+        m_tick_fwrite(0),
+        m_timer_overall(m_tick_overall)
+    {
+    }
+    virtual ~CPipelineStatistics(){}
+
+    mfxU32 m_input_count;     // number of received incoming packets (frames or bitstreams)
+    mfxU32 m_output_count;    // number of delivered outgoing packets (frames or bitstreams)
+    mfxU32 m_synced_count;
+
+    msdk_tick m_tick_overall; // overall time passed during processing
+    msdk_tick m_tick_fread;   // part of tick_overall: time spent to receive incoming data
+    msdk_tick m_tick_fwrite;  // part of tick_overall: time spent to deliver outgoing data
+
+    CAutoTimer m_timer_overall; // timer which corresponds to m_tick_overall
+
+private:
+    CPipelineStatistics(const CPipelineStatistics&);
+    void operator=(const CPipelineStatistics&);
+};
 
 namespace RW{
     namespace DEC{
 
-        //template<>struct mfx_ext_buffer_id<mfxExtMVCSeqDesc>{
-        //    enum { id = MFX_EXTBUFF_MVC_SEQ_DESC };
-        //};
+        typedef struct stInputParams tstInputParams;
+        enum MemType;
+        enum eWorkMode;
 
-        struct CPipelineStatistics
-        {
-            CPipelineStatistics() :
-            m_input_count(0),
-            m_output_count(0),
-            m_synced_count(0),
-            m_tick_overall(0),
-            m_tick_fread(0),
-            m_tick_fwrite(0),
-            m_timer_overall(m_tick_overall)
-            {
-            }
-            virtual ~CPipelineStatistics(){}
-
-            mfxU32 m_input_count;     // number of received incoming packets (frames or bitstreams)
-            mfxU32 m_output_count;    // number of delivered outgoing packets (frames or bitstreams)
-            mfxU32 m_synced_count;
-
-            msdk_tick m_tick_overall; // overall time passed during processing
-            msdk_tick m_tick_fread;   // part of tick_overall: time spent to receive incoming data
-            msdk_tick m_tick_fwrite;  // part of tick_overall: time spent to deliver outgoing data
-
-            CAutoTimer m_timer_overall; // timer which corresponds to m_tick_overall
-
-        private:
-            CPipelineStatistics(const CPipelineStatistics&);
-            void operator=(const CPipelineStatistics&);
-        };
 
         class CDecodingPipeline :
             public CBuffering,
@@ -85,8 +70,8 @@ namespace RW{
 
         public:
             CDecodingPipeline(std::shared_ptr<spdlog::logger> Logger);
-            ~CDecodingPipeline();
-
+            //CDecodingPipeline();
+            virtual ~CDecodingPipeline();
             void SetEncodedData(tstBitStream *pstEncodedStream)
             {
                 m_mfxBS.Data = (mfxU8*)pstEncodedStream->pBuffer;
@@ -96,32 +81,38 @@ namespace RW{
             }
             tstBitStream *GetOutput(){ return m_pOutput; }
 
-            virtual mfxStatus Init(tstInputParams *pInput);
+            virtual mfxStatus Init(tstInputParams *pParams);
             virtual mfxStatus RunDecoding(tstBitStream *pPayload);
+
+            virtual void PrintInfo();
             virtual mfxStatus ResetDecoder();
             virtual mfxStatus ResetDevice();
 
-            virtual void PrintInfo();
+        protected: // functions
+            virtual void Close();
 
-            mfxBitstream            m_mfxBS; // contains encoded data
-
-        private: // functions
             void SetExtBuffersFlag()       { m_bIsExtBuffers = true; }
-
-            //virtual mfxStatus CreateRenderingWindow(sInputParams *pParams, bool try_s3d);
             virtual mfxStatus InitMfxParams();
-            virtual mfxStatus InitForFirstFrame();
 
-            virtual mfxStatus InitVppParams();
-            virtual mfxStatus AllocAndInitVppFilters();
-            virtual bool IsVppRequired();
+            // function for allocating a specific external buffer
+            template <typename Buffer>
+            mfxStatus AllocateExtBuffer();
+            virtual void DeleteExtBuffers();
+
+            virtual mfxStatus AllocateExtMVCBuffers();
+            virtual void    DeallocateExtMVCBuffers();
+
+            virtual void AttachExtParam();
 
             virtual mfxStatus CreateAllocator();
             virtual mfxStatus CreateHWDevice();
             virtual mfxStatus AllocFrames();
             virtual void DeleteFrames();
+            virtual void DeleteAllocator();
+            mfxStatus InitForFirstFrame();
 
-            /** \brief Performs SyncOperation on the current outputsurface  with the specified timeout.
+
+            /** \brief Performs SyncOperation on the current output surface with the specified timeout.
              *
              * @return MFX_ERR_NONE Output surface was successfully synced and delivered.
              * @return MFX_ERR_MORE_DATA Array of output surfaces is empty, need to feed decoder.
@@ -136,79 +127,48 @@ namespace RW{
 
             static unsigned int MFX_STDCALL DeliverThreadFunc(void* ctx);
 
-        private: // variables
+
+        protected: // variables
             std::shared_ptr<spdlog::logger> m_Logger;
-
-            //CSmplYUVWriter          m_FileWriter;
-            //std::auto_ptr<CSmplBitstreamReader>  m_FileReader;
-
-            tstBitStream           *m_pOutput;
-
+            mfxBitstream            m_mfxBS; // contains encoded data m_mfxBS
             bool                    m_bFirstFrameInitialized;
-            MFXVideoSession         m_mfxSession;
-            mfxIMPL                 m_impl;
-            MFXVideoDECODE          *m_pmfxDEC;
-            MFXVideoVPP             *m_pmfxVPP;
-            mfxVideoParam           m_mfxVideoParams;
-            mfxVideoParam           m_mfxVppVideoParams;
-            //std::auto_ptr<MFXVideoUSER>  m_pUserModule;
-            std::auto_ptr<MFXPlugin> m_pPlugin;
-            std::vector<mfxExtBuffer*> m_ExtBuffers;
             tstInputParams          *m_pInputParams;
-            GeneralAllocator        *m_pGeneralAllocator;
-            mfxAllocatorParams      *m_pmfxAllocatorParams;
+            RW::tstBitStream        *m_pOutput;
+
+            MFXVideoSession         m_mfxSession;
+            MFXVideoDECODE*         m_pmfxDEC;
+            mfxVideoParam           m_mfxVideoParams;
+            std::auto_ptr<MFXVideoUSER>  m_pUserModule;
+            std::auto_ptr<MFXPlugin> m_pPlugin;
+            std::vector<mfxExtBuffer *> m_ExtBuffers;
+
+            MFXFrameAllocator*      m_pMFXAllocator;
+            mfxAllocatorParams*     m_pmfxAllocatorParams;
             MemType                 m_memType;      // memory type of surfaces to use
             bool                    m_bExternalAlloc; // use memory allocator as external for Media SDK
-            bool                    m_bDecOutSysmem; // use system memory between Decoder and VPP, if false - video memory
             mfxFrameAllocResponse   m_mfxResponse; // memory allocation response for decoder
-            mfxFrameAllocResponse   m_mfxVppResponse;   // memory allocation response for vpp
 
-            msdkFrameSurface        *m_pCurrentFreeSurface; // surface detached from free surfaces array
-            msdkFrameSurface        *m_pCurrentFreeVppSurface; // VPP surface detached from free VPP surfaces array
-            msdkOutputSurface       *m_pCurrentFreeOutputSurface; // surface detached from free output surfaces array
-            msdkOutputSurface       *m_pCurrentOutputSurface; // surface detached from output surfaces array
+            msdkFrameSurface*       m_pCurrentFreeSurface; // surface detached from free surfaces array
+            msdkOutputSurface*      m_pCurrentFreeOutputSurface; // surface detached from free output surfaces array
+            msdkOutputSurface*      m_pCurrentOutputSurface; // surface detached from output surfaces array
 
-            MSDKSemaphore           *m_pDeliverOutputSemaphore; // to access to DeliverOutput method
-            MSDKEvent               *m_pDeliveredEvent; // to signal when output surfaces will be processed
+            MSDKSemaphore*          m_pDeliverOutputSemaphore; // to access to DeliverOutput method
+            MSDKEvent*              m_pDeliveredEvent; // to signal when output surfaces will be processed
             mfxStatus               m_error; // error returned by DeliverOutput method
             bool                    m_bStopDeliverLoop;
 
-            eWorkMode               m_eWorkMode; // work mode for the pipeline
-            bool                    m_bIsMVC; // enables MVC mode (need to support several files as an output)
             bool                    m_bIsExtBuffers; // indicates if external buffers were allocated
             bool                    m_bIsVideoWall; // indicates special mode: decoding will be done in a loop
             bool                    m_bIsCompleteFrame;
-            mfxU32                  m_fourcc; // color format of vpp out, i420 by default
             bool                    m_bPrintLatency;
-
-            mfxU16                  m_vppOutWidth;
-            mfxU16                  m_vppOutHeight;
 
             mfxU32                  m_nTimeout; // enables timeout for video playback, measured in seconds
             mfxU32                  m_nMaxFps; // limit of fps, if isn't specified equal 0.
             mfxU32                  m_nFrames; //limit number of output frames
 
-            mfxU16                  m_diMode;
-            bool                    m_bVppIsUsed;
             std::vector<msdk_tick>  m_vLatency;
 
-            mfxExtVPPDoNotUse       m_VppDoNotUse;      // for disabling VPP algorithms
-            mfxExtVPPDeinterlacing  m_VppDeinterlacing;
-            std::vector<mfxExtBuffer*> m_VppExtParams;
-
             CHWDevice               *m_hwdev;
-            bool                    m_bRenderWin;
-            mfxU32                  m_nRenderWinX;
-            mfxU32                  m_nRenderWinY;
-            mfxU32                  m_nRenderWinW;
-            mfxU32                  m_nRenderWinH;
-
-            mfxU32                  m_export_mode;
-            mfxI32                  m_monitorType;
-#if defined(LIBVA_SUPPORT)
-            mfxI32                  m_libvaBackend;
-            bool                    m_bPerfMode;
-#endif // defined(MFX_LIBVA_SUPPORT)
 
         private:
             CDecodingPipeline(const CDecodingPipeline&);
@@ -216,3 +176,4 @@ namespace RW{
         };
     }
 }
+#endif // __PIPELINE_DECODE_H__
