@@ -22,6 +22,7 @@ namespace RW
 
         tenStatus GraphBuilder::BuildNode(KernelManager *CurrentKernelManager,
             tstInitialiseControlStruct* InitialiseControlStruct,
+			int IndexOfParent,
             size_t size1,
             tstControlStruct *ControlStruct,
             size_t size2,
@@ -96,37 +97,46 @@ namespace RW
                 }
 
                 RW::CORE::Node *node = new Node(m_Graph, kernel, m_Logger);
-                if (node->IsInitialized())
-                {
-					CurrentKernelManager->AddNode(node);
-                    status = node->SetParameterByIndex(0, (void*)kernel, sizeof(RW::CORE::Kernel), m_Context);
-                    if (status == tenStatus::nenError)
-                    {
-                        m_Logger->error("Set parameter for node failed(1).");
-                        return status;
-                    }
-                    status = node->SetParameterByIndex(1, (void*)InitialiseControlStruct, size1, m_Context);
-                    if (status == tenStatus::nenError)
-                    {
-                        m_Logger->error("Set parameter for node failed(2).");
-                        return status;
-                    }
+				if (node == nullptr)
+				{
+					m_Logger->error("Couldn't create node.");
+				}
+				else
+				{
+					if (IndexOfParent != -1);
+						CurrentKernelManager->NodeByIndex(IndexOfParent)->SetNextNode(node);
 
-                    status = node->SetParameterByIndex(2, (void*)ControlStruct, size2, m_Context);
-                    if (status == tenStatus::nenError)
-                    {
-                        m_Logger->error("Set parameter for node failed(3).");
-                        return status;
-                    }
+					if (node->IsInitialized())
+					{
+						CurrentKernelManager->AddNode(node);
+						status = node->SetParameterByIndex(0, (void*)kernel, sizeof(RW::CORE::Kernel), m_Context);
+						if (status == tenStatus::nenError)
+						{
+							m_Logger->error("Set parameter for node failed(1).");
+							return status;
+						}
+						status = node->SetParameterByIndex(1, (void*)InitialiseControlStruct, size1, m_Context);
+						if (status == tenStatus::nenError)
+						{
+							m_Logger->error("Set parameter for node failed(2).");
+							return status;
+						}
 
-                    status = node->SetParameterByIndex(3, (void*)DeinitialiseControlStruct, size3, m_Context);
-                    if (status == tenStatus::nenError)
-                    {
-                        m_Logger->error("Set parameter for node failed(4).");
-                        return status;
-                    }
+						status = node->SetParameterByIndex(2, (void*)ControlStruct, size2, m_Context);
+						if (status == tenStatus::nenError)
+						{
+							m_Logger->error("Set parameter for node failed(3).");
+							return status;
+						}
 
-                }
+						status = node->SetParameterByIndex(3, (void*)DeinitialiseControlStruct, size3, m_Context);
+						if (status == tenStatus::nenError)
+						{
+							m_Logger->error("Set parameter for node failed(4).");
+							return status;
+						}
+					}
+				}
             }
             m_Logger->debug("Node successful created.");
             return tenStatus::nenSuccess;

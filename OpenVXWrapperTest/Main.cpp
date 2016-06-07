@@ -113,6 +113,7 @@ int pipeline(tstPipelineParams params)
 
             if (builder.BuildNode(&kernelManager,
                 &videoGrabberInitialiseControlStruct,
+				-1,
                 sizeof(videoGrabberInitialiseControlStruct),
                 &videoGrabberControlStruct,
                 sizeof(RW::VG::tstVideoGrabberControlStruct),
@@ -138,6 +139,7 @@ int pipeline(tstPipelineParams params)
 
             if (builder.BuildNode(&kernelManager,
             	&impCropInitialiseControlStruct,
+				0,
             	sizeof(RW::IMP::tstMyInitialiseControlStruct),
             	&impCropControlStruct,
             	sizeof(RW::IMP::tstMyControlStruct),
@@ -160,6 +162,7 @@ int pipeline(tstPipelineParams params)
 
             if (builder.BuildNode(&kernelManager,
             	&impColorInitialiseControlStruct,
+				1,
             	sizeof(RW::IMP::tstMyInitialiseControlStruct),
             	&impColorControlStruct,
             	sizeof(RW::IMP::tstMyControlStruct),
@@ -190,6 +193,7 @@ int pipeline(tstPipelineParams params)
 
             if (builder.BuildNode(&kernelManager,
                          &encodeInitialiseControlStruct,
+						 2,
                          sizeof(RW::ENC::tstMyInitialiseControlStruct),
                          &encodeControlStruct,
                          sizeof(RW::ENC::tstMyControlStruct),
@@ -215,6 +219,7 @@ int pipeline(tstPipelineParams params)
 
             if (builder.BuildNode(&kernelManager,
                 &decodeInitCtrl,
+				3,
                 sizeof(RW::DEC::tstMyInitialiseControlStruct),
                 &decodeCtrl,
                 sizeof(RW::DEC::tstMyControlStruct),
@@ -233,6 +238,7 @@ int pipeline(tstPipelineParams params)
 
             if (builder.BuildNode(&kernelManager,
                 &playerInitCtrl,
+				4,
                 sizeof(RW::VPL::tstMyInitialiseControlStruct),
                 &playerCtrl,
                 sizeof(RW::VPL::tstMyControlStruct),

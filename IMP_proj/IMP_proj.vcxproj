@@ -60,7 +60,7 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>TRACE_PERFORMANCE;_WINDOWS;UNICODE;WIN32;WIN64;QT_PLUGIN;QT_GUI_LIB;QT_CORE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\ENC_proj\common\inc;C:\tool\RemotePkg\CUDA\CUDAToolkit\include;C:\tool\RemotePkg\OpenCV\sources\3rdparty\ippicv\unpack\ippicv_win\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\ENC_proj\common\inc;C:\tool\RemotePkg\CUDA\CUDAToolkit\include;C:\tool\RemotePkg\OpenCV\sources\3rdparty\ippicv\unpack\ippicv_win\include;C:\Projekte\RemoteStreamClient\IMP_proj;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ExceptionHandling>Sync</ExceptionHandling>
       <AdditionalUsingDirectories>
       </AdditionalUsingDirectories>

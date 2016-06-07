@@ -22,6 +22,7 @@ namespace RW
 
 			int nCurrentFrameNumber;
 			int nCurrentPositionMSec;
+			void UpdateData(void* Data){}
         }tstVideoGrabberControlStruct;
 
         typedef struct stVideoGrabberDeinitialiseControlStruct : public CORE::tstDeinitialiseControlStruct

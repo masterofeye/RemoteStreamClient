@@ -21,6 +21,7 @@ namespace RW{
 
 		typedef struct stControlStruct
         {
+			virtual void UpdateData(void *Data) = 0;
         }tstControlStruct;
 
         typedef struct stDeinitialiseControlStruct

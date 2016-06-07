@@ -21,6 +21,7 @@ namespace RW
 		private:
 			bool m_Initialize;
 			vx_node m_Node;
+			vx_node m_NextNode;
             vx_graph m_Graph;
             vx_kernel m_Kernel;
             std::vector<vx_reference> m_ListOfReferences;
@@ -52,6 +53,11 @@ namespace RW
             tenStatus SetParameterByIndex(uint32_t Index, void* Value, size_t StructSize, Context const *CurrentContext);
             tenStatus SetParameterByIndex(uint32_t Index, uint8_t Value, Context const *CurrentContext);
 			tenStatus SetParameterByIndex(uint32_t Index, std::string Value, Context const *CurrentContext);
+
+			/*
+			*@brief Set a reference of the following node in the graph execution
+			*/
+			inline void SetNextNode(Node *FollowingNode){ m_NextNode = (*FollowingNode)(); }
 
         private: 
             tenStatus CreateNode();

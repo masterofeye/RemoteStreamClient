@@ -32,6 +32,7 @@ namespace RW
             tenStatus RemoveKernel(Kernel* const KernelToRemove);
 			inline void AddKernel(Kernel* CurrentKernel){ m_KernelList.push_back(CurrentKernel); }
 			inline void AddNode(Node* CurrentNode){ m_NodeList.push_back(CurrentNode); }
+			inline Node* NodeByIndex(int CurrentNode){ return m_NodeList.at(CurrentNode); }
         };
 
     }

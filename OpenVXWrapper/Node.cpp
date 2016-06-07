@@ -5,6 +5,9 @@
 #include "AbstractModule.hpp"
 
 #include "IMP_Base.h"
+#include "HighResolution\HighResClock.h"
+
+#define TRACE_PERFORMANCE 1
 namespace RW
 {
 	namespace CORE
@@ -201,6 +204,7 @@ namespace RW
 
         tenStatus Node::SetParameterByIndex(uint32_t Index, std::string Value, Context const* CurrentContext)
         {
+
             if (CurrentContext == nullptr)
             {
                 m_Logger->alert("No valid context");
@@ -257,6 +261,9 @@ namespace RW
 
         vx_action VX_CALLBACK Node::NodeCallback(vx_node Node)
         {
+#ifdef TRACE_PERFORMANCE
+			auto t1 = RW::CORE::HighResClock::now();
+#endif
 			vx_parameter param = vxGetParameterByIndex(Node, 2);
 			if (param)
 			{
@@ -289,6 +296,10 @@ namespace RW
 				RW::IMP::stMyControlStruct *test2 = static_cast<RW::IMP::stMyControlStruct *>(mycontrolStruct);
 
 			}
+#ifdef TRACE_PERFORMANCE
+			auto t2 = RW::CORE::HighResClock::now();
+			auto t3 = RW::CORE::HighResClock::diffMilli(t1, t2).count();
+#endif
             return VX_ACTION_CONTINUE;
         }
 	}

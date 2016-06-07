@@ -14,6 +14,8 @@
 #include "HighResolution\HighResClock.h"
 #endif
 
+#include "IMP"
+
 namespace RW
 {
     namespace IMP
@@ -89,6 +91,26 @@ namespace RW
 		{
 			cInputBase *pcInput;
 			cOutputBase *pcOutput;
+			void UpdateData(void * Data)
+			{
+				void UpdateData(CORE::tstControlStruct* Data, CORE::tenSubModule SubModuleType)
+				{
+					switch (SubModuleType)
+					{
+					case CORE::tenSubModule::nenDecoder_NVIDIA:
+					{
+						RW:: *data = static_cast<VG::tstVideoGrabberControlStruct*>(Data);
+						data->
+						break;
+					}
+					case CORE::tenSubModule::nenGraphic_Crop:
+
+						break;
+					default:
+
+					}
+				}
+			}
 		}tstMyControlStruct;
 
 		typedef struct stCropDeinitialiseControlStruct : public CORE::tstDeinitialiseControlStruct
