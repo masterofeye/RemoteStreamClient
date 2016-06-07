@@ -10,41 +10,34 @@
 
 
 
-#define MAX_ENCODE_QUEUE 32
-#define NV_ENC_CUDA 2
-
 namespace RW{
-	namespace ENC{
+    namespace ENC{
+
+#define MAX_ENCODE_QUEUE 32
 
 		typedef struct _EncodeFrameConfig
 		{
-			CUarray  cuYUVArray;
+			CUarray  pcuYUVArray;
 			uint32_t stride[3];
 			uint32_t width;
 			uint32_t height;
 		}EncodeFrameConfig;
 
-		typedef struct _EncodedBitStream
-		{
-			void *pBitStreamBuffer;
-			uint32_t u32BitStreamSizeInBytes;
-		}EncodedBitStream;
-
 		typedef struct stMyInitialiseControlStruct : public CORE::tstInitialiseControlStruct
 		{
-			EncodeConfig encodeConfig;
+			EncodeConfig *pstEncodeConfig;
 		}tstMyInitialiseControlStruct;
 
 		typedef struct stMyControlStruct : public CORE::tstControlStruct
 		{
-			CUarray cuYUVArray;
-			EncodedBitStream stBitStream;			
+			CUarray pcuYUVArray;
+            tstBitStream *pstBitStream;
+            tstBitStream *pPayload;
 		}tstMyControlStruct;
 
 		typedef struct stMyDeinitialiseControlStruct : public CORE::tstDeinitialiseControlStruct
 		{
-			EncodedBitStream stBitStream;
-		}tstMyDeinitialiseControlStruct;
+        }tstMyDeinitialiseControlStruct;
 
 		class ENC_CudaInterop : public RW::CORE::AbstractModule
 		{
@@ -79,9 +72,12 @@ namespace RW{
 			NVENCSTATUS                                         InitCuda(uint32_t deviceID);
 			NVENCSTATUS                                         AllocateIOBuffers(uint32_t uInputWidth, uint32_t uInputHeight);
 			NVENCSTATUS                                         ReleaseIOBuffers();
-			NVENCSTATUS                                         FlushEncoder(NV_ENC_LOCK_BITSTREAM *pstBitStreamData);
+			NVENCSTATUS                                         FlushEncoder();
 			NVENCSTATUS                                         ConvertYUVToNV12(EncodeBuffer *pEncodeBuffer, CUarray cuArray, int width, int height);
 			NVENCSTATUS											PreparePreProcCuda();
+
+#define __cu(a) do { CUresult  ret; if ((ret = (a)) != CUDA_SUCCESS) { m_Logger->error((std::string)#a) << " has returned CUDA error " << ret; return NV_ENC_ERR_GENERIC; } } while (0)
+//#define __cu(a) do { CUresult  ret; if ((ret = (a)) != CUDA_SUCCESS) { fprintf(stderr, "%s has returned CUDA error %d\n", #a, ret); return NV_ENC_ERR_GENERIC;}} while(0)
 
 		};
 	}

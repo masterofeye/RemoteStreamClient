@@ -1,17 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug|Win32">
-      <Configuration>Debug</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|Win32">
-      <Configuration>Release</Configuration>
-      <Platform>Win32</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|x64">
       <Configuration>Release</Configuration>
@@ -24,11 +16,13 @@
     <RootNamespace>OpenVXWrapperTest</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <UseOfMfc>false</UseOfMfc>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -36,102 +30,44 @@
     <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <Import Project="..\..\RemoteUtil\VS_Properties\Moc.props" />
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
-    <Import Project="..\..\RemoteUtil\VS_Properties\Moc.props" />
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <Import Project="..\..\RemoteUtil\VS_Properties\Moc.props" />
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="..\..\RemoteUtil\VS_Properties\Moc.props" />
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+    <Import Project="..\Intel_common\props\winsdk_x64.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="..\..\RemoteUtil\VS_Properties\Moc.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <!--<Import Project="..\Intel_common\props\winsdk_x64.props" />-->
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LinkIncremental>true</LinkIncremental>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>C:\tool\RemotePkg\OpenVX\include;$(QTDIR)\mkspecs\winrt-x64-msvc2013;$(QTDIR)\include\QtCore;$(QTDIR)\include;..\RWPluginInterface;$(IncludePath)</IncludePath>
     <LibraryPath>$(QTDIR)\lib;..\build\x64\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LinkIncremental>false</LinkIncremental>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <ClCompile>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\OpenVXWrapper;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
-  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\OpenVXWrapper;..\Plugin1;..\VideoGrabberSimu;..\IMP_proj;..\ENC_proj;..\DEC_Intel;..\VideoPlayer;..\Intel_common\include;C:\tool\RemotePkg\CUDA\CUDAToolkit\include;$(INTELMEDIASDKROOT)\include;$(INTELMEDIASDKROOT)\igfx_s3dcontrol\include;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtMultimediaWidgets;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtMultimedia;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtWidgets;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtGui;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtANGLE;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtNetwork;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtCore;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\mkspecs\win32-msvc2013;c:\Program Files (x86)\Windows Kits\8.1\Include\um;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>REMOTE_EXPORT;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\OpenVXWrapper;..\Plugin1;..\ENC_proj;..\IMP_proj;C:\tool\RemotePkg\CUDA\CUDAToolkit\include;..\VideoGrabberSimu;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Qt5Cored.lib;Qt5Widgetsd.lib;OpenVXWrapper.lib;HighResolution.lib;opencv_core310d.lib;opencv_imgproc310d.lib;opencv_flann310d.lib;opencv_imgcodecs310d.lib;opencv_videoio310d.lib;opencv_highgui310d.lib;opencv_ml310d.lib;opencv_video310d.lib;opencv_objdetect310d.lib;opencv_photo310d.lib;opencv_features2d310d.lib;opencv_calib3d310d.lib;opencv_stitching310d.lib;opencv_videostab310d.lib;opencv_shape310d.lib;opencv_cudaarithm310d.lib;opencv_cudabgsegm310d.lib;opencv_cudacodec310d.lib;opencv_cudafeatures2d310d.lib;opencv_cudafilters310d.lib;opencv_cudaimgproc310d.lib;opencv_cudalegacy310d.lib;opencv_cudaobjdetect310d.lib;opencv_cudaoptflow310d.lib;opencv_cudastereo310d.lib;opencv_cudawarping310d.lib;opencv_cudev310d.lib;opencv_superres310d.lib;%(AdditionalDependencies)</AdditionalDependencies>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
-      <Optimization>MaxSpeed</Optimization>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
+      <AdditionalDependencies>Qt5Cored.lib;Qt5Widgetsd.lib;OpenVXWrapper.lib;HighResolution.lib;opencv_core310d.lib;opencv_imgproc310d.lib;opencv_flann310d.lib;opencv_imgcodecs310d.lib;opencv_videoio310d.lib;opencv_highgui310d.lib;opencv_ml310d.lib;opencv_video310d.lib;opencv_objdetect310d.lib;opencv_photo310d.lib;opencv_features2d310d.lib;opencv_calib3d310d.lib;opencv_stitching310d.lib;opencv_videostab310d.lib;opencv_shape310d.lib;opencv_cudaarithm310d.lib;opencv_cudabgsegm310d.lib;opencv_cudacodec310d.lib;opencv_cudafeatures2d310d.lib;opencv_cudafilters310d.lib;opencv_cudaimgproc310d.lib;opencv_cudalegacy310d.lib;opencv_cudaobjdetect310d.lib;opencv_cudaoptflow310d.lib;opencv_cudastereo310d.lib;opencv_cudawarping310d.lib;opencv_cudev310d.lib;opencv_superres310d.lib;libmfx_d.lib;igfx_s3dcontrol.lib;dxgi.lib;d3d9.lib;d3d11.lib;dxva2.lib;dwmapi.lib;comsuppw.lib;;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\build\x64\Debug;C:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\lib;$(INTELMEDIASDKROOT)\igfx_s3dcontrol\lib\$(Platform);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -160,6 +96,9 @@
     <ClCompile Include="NodeBuilder.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Intel_common\Intel_common.vcxproj">
+      <Project>{db71b91d-16d8-4339-9621-d81798e46e8f}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\OpenVXWrapper\OpenVXWrapper.vcxproj">
       <Project>{f008cad3-843c-4659-8c1d-fde606f99c3f}</Project>
     </ProjectReference>

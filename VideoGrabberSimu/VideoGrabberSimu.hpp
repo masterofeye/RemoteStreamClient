@@ -1,32 +1,25 @@
 #pragma once
 
 #include "AbstractModule.hpp"
-#include <opencv2\videoio.hpp>
+#include <opencv2/videoio.hpp>
 
 namespace RW
 {
 	namespace VG
 	{
-		typedef enum tenColorSpace
-		{
-			nenRGB,
-			nenUnknown
-		};
-
         typedef struct stVideoGrabberInitialiseControlStruct : public CORE::stInitialiseControlStruct
 		{
 			int nFrameWidth;
 			int nFrameHeight;
 			int nFPS;
 			int nNumberOfFrames;
-			tenColorSpace enColorSpace;
 			std::string sFileName;
         }tstVideoGrabberInitialiseControlStruct;
 
         typedef struct stVideoGrabberControlStruct : public CORE::tstControlStruct
-		{			
-			void *pData;
-			size_t nDataLength;
+		{
+            tstBitStream *pOutputData;
+
 			int nCurrentFrameNumber;
 			int nCurrentPositionMSec;
         }tstVideoGrabberControlStruct;
@@ -40,9 +33,9 @@ namespace RW
 			Q_OBJECT
 		private:
 			cv::VideoCapture m_videoCapture;
-			int m_nFrameCounter;
+
 		public:
-            explicit VideoGrabberSimu(std::shared_ptr<spdlog::logger> Logger);
+			explicit VideoGrabberSimu(std::shared_ptr<spdlog::logger> Logger);
 			~VideoGrabberSimu();
             virtual CORE::tenSubModule SubModulType() Q_DECL_OVERRIDE;
 			virtual CORE::tstModuleVersion ModulVersion() Q_DECL_OVERRIDE;

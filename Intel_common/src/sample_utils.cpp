@@ -1672,14 +1672,14 @@ bool IsDecodeCodecSupported(mfxU32 codecFormat)
 {
     switch(codecFormat)
     {
-        case MFX_CODEC_MPEG2:
+        //case MFX_CODEC_MPEG2:
         case MFX_CODEC_AVC:
         case MFX_CODEC_HEVC:
-        case MFX_CODEC_VC1:
-        case CODEC_MVC:
-        case MFX_CODEC_JPEG:
-        case MFX_CODEC_VP8:
-        case MFX_CODEC_CAPTURE:
+        //case MFX_CODEC_VC1:
+        //case CODEC_MVC:
+        //case MFX_CODEC_JPEG:
+        //case MFX_CODEC_VP8:
+        //case MFX_CODEC_CAPTURE:
         break;
     default:
         return false;

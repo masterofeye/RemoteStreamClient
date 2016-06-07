@@ -327,7 +327,7 @@ inline char *sdkFindFilePath(const char *filename, const char *executable_path)
         size_t delimiter_pos = executable_name.find_last_of('\\');
         executable_name.erase(0, delimiter_pos + 1);
 
-        if (executable_name.rfind(".exe") != std::string::npos)
+        if (executable_name.rfind(".plu") != std::string::npos)
         {
             // we strip .exe, only if the .exe is found
             executable_name.resize(executable_name.size() - 4);

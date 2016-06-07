@@ -59,8 +59,8 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_WINDOWS;UNICODE;WIN32;WIN64;QT_PLUGIN;QT_GUI_LIB;QT_CORE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\tool\RemotePkg\CUDA\CUDAToolkit\include;C:\tool\RemotePkg\OpenCV\sources\3rdparty\ippicv\unpack\ippicv_win\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>TRACE_PERFORMANCE;_WINDOWS;UNICODE;WIN32;WIN64;QT_PLUGIN;QT_GUI_LIB;QT_CORE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\ENC_proj\common\inc;C:\tool\RemotePkg\CUDA\CUDAToolkit\include;C:\tool\RemotePkg\OpenCV\sources\3rdparty\ippicv\unpack\ippicv_win\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ExceptionHandling>Sync</ExceptionHandling>
       <AdditionalUsingDirectories>
       </AdditionalUsingDirectories>
@@ -82,7 +82,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\lib;..\build\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\lib;..\build\x64\Debug;C:\tool\RemotePkg\CUDA\CUDAToolkit\lib\x64;C:\tool\RemotePkg\CUDA\CUDAToolkit\lib\x64\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>HighResolution.lib;Qt5Cored.lib;Qt5Widgetsd.lib;Qt5Guid.lib;RWPluginInterface.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;glu32.lib;opengl32.lib;C:/tool/RemotePkg/OpenCV/sources/3rdparty/ippicv/unpack/ippicv_win/lib/intel64/ippicvmt.lib;cudart.lib;nppc.lib;nppi.lib;npps.lib;cublas.lib;cufft.lib;-LC:/tool/RemotePkg/CUDA/CUDAToolkit/lib/x64;opencv_core310d.lib;opencv_imgproc310d.lib;opencv_flann310d.lib;opencv_imgcodecs310d.lib;opencv_videoio310d.lib;opencv_highgui310d.lib;opencv_ml310d.lib;opencv_video310d.lib;opencv_objdetect310d.lib;opencv_photo310d.lib;opencv_features2d310d.lib;opencv_calib3d310d.lib;opencv_stitching310d.lib;opencv_videostab310d.lib;opencv_shape310d.lib;opencv_cudaarithm310d.lib;opencv_cudabgsegm310d.lib;opencv_cudacodec310d.lib;opencv_cudafeatures2d310d.lib;opencv_cudafilters310d.lib;opencv_cudaimgproc310d.lib;opencv_cudalegacy310d.lib;opencv_cudaobjdetect310d.lib;opencv_cudaoptflow310d.lib;opencv_cudastereo310d.lib;opencv_cudawarping310d.lib;opencv_cudev310d.lib;opencv_superres310d.lib</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libc</IgnoreSpecificDefaultLibraries>
       <ModuleDefinitionFile>

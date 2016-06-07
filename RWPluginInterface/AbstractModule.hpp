@@ -7,9 +7,14 @@
 
 
 namespace RW{
-	namespace CORE{
-		
+    typedef struct stBitStream
+    {
+        void *pBuffer;
+        uint32_t u32Size;
+    }tstBitStream;
 
+    namespace CORE{
+		
         typedef struct stInitialiseControlStruct
 		{
         }tstInitialiseControlStruct;

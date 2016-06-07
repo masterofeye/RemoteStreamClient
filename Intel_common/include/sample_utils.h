@@ -76,7 +76,7 @@ enum {
     CODEC_MVC = MFX_MAKEFOURCC('M','V','C',' '),
 };
 
-bool IsDecodeCodecSupported(mfxU32 codecFormat);
+bool IsDecodeCodecSupported(mfxU32 codecFormat);  //for DEC_Intel only MFX_CODEC_AVC and MFX_CODEC_HEVC are allowed
 bool IsEncodeCodecSupported(mfxU32 codecFormat);
 bool IsPluginCodecSupported(mfxU32 codecFormat);
 

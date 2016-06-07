@@ -222,7 +222,7 @@ static CUresult LOAD_LIBRARY(CUDADRIVER *pInstance)
 {
     *pInstance = LoadLibrary(__CudaLibName);
 
-    if (*pInstance == NULL)
+    if (*pInstance == nullptr)
     {
         printf("LoadLibrary \"%s\" failed!\n", __CudaLibName);
         return CUDA_ERROR_UNKNOWN;
@@ -233,14 +233,14 @@ static CUresult LOAD_LIBRARY(CUDADRIVER *pInstance)
 
 #define GET_PROC_EX(name, alias, required)                     \
     alias = (t##name *)GetProcAddress(CudaDrvLib, #name);               \
-    if (alias == NULL && required) {                                    \
+    if (alias == nullptr && required) {                                    \
         printf("Failed to find required function \"%s\" in %s\n",       \
                #name, __CudaLibName);                                  \
         }
 
 #define GET_PROC_EX_V2(name, alias, required)                           \
     alias = (t##name *)GetProcAddress(CudaDrvLib, STRINGIFY(name##_v2));\
-    if (alias == NULL && required) {                                    \
+    if (alias == nullptr && required) {                                    \
         printf("Failed to find required function \"%s\" in %s\n",       \
                STRINGIFY(name##_v2), __CudaLibName);                       \
         }
@@ -261,7 +261,7 @@ static CUresult LOAD_LIBRARY(CUDADRIVER *pInstance)
 {
     *pInstance = dlopen(__CudaLibName, RTLD_NOW);
 
-    if (*pInstance == NULL)
+    if (*pInstance == nullptr)
     {
         printf("dlopen \"%s\" failed!\n", __CudaLibName);
         return CUDA_ERROR_UNKNOWN;
@@ -272,14 +272,14 @@ static CUresult LOAD_LIBRARY(CUDADRIVER *pInstance)
 
 #define GET_PROC_EX(name, alias, required)                              \
     alias = (t##name *)dlsym(CudaDrvLib, #name);                        \
-    if (alias == NULL && required) {                                    \
+    if (alias == nullptr && required) {                                    \
         printf("Failed to find required function \"%s\" in %s\n",       \
                #name, __CudaLibName);                                  \
         }
 
 #define GET_PROC_EX_V2(name, alias, required)                           \
     alias = (t##name *)dlsym(CudaDrvLib, STRINGIFY(name##_v2));         \
-    if (alias == NULL && required) {                                    \
+    if (alias == nullptr && required) {                                    \
         printf("Failed to find required function \"%s\" in %s\n",       \
                STRINGIFY(name##_v2), __CudaLibName);                    \
         }
@@ -403,7 +403,7 @@ CUresult CUDAAPI cuInit(unsigned int Flags, int cudaVersion, void *pHandleDriver
     int driverVer = 1000;
 
     CHECKED_CALL(LOAD_LIBRARY(&CudaDrvLib));
-    if (pHandleDriver != NULL)
+    if (pHandleDriver != nullptr)
     {
         memcpy(pHandleDriver, &CudaDrvLib, sizeof(CUDADRIVER));
     }

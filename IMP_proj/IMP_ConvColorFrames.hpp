@@ -6,7 +6,6 @@ namespace RW
 {
 	namespace IMP
 	{
-
 		class IMP_ConvColorFrames : public RW::CORE::AbstractModule
 		{
 			Q_OBJECT

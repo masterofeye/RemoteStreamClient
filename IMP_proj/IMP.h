@@ -8,6 +8,7 @@
 #include <QtPlugin>
 #include "AbstractModule.hpp"
 #include "Utils.h"
+#include "..\ENC_proj\common\inc\dynlink_cuda.h"
 
 #ifdef TRACE_PERFORMANCE
 #include "HighResolution\HighResClock.h"
@@ -24,122 +25,75 @@ namespace RW
             int iHeight;
         }tstRectStruct;
 
-        typedef struct stInputParams
-        {
-            int iWidth;
-            int iHeight;
-            void *pvImg;
-
-            stInputParams() : iWidth(0), iHeight(0), pvImg(nullptr){}
-            ~stInputParams() 
-            {
-                if (pvImg)
-                {
-                    delete pvImg;
-                    pvImg = nullptr;
-                }
-            }
-        }tstInputParams;
-
         class cInputBase{
         public:
             cInputBase()
             {
-                _pstParams = nullptr;
-                _pgMat = nullptr;
+				_pgMat = nullptr;
+				_pvImg = nullptr;
             };
-            cInputBase(tstInputParams *pstInput)
+            cInputBase(int iWidth, int iHeight, void *pvImg)
             { 
-                _pstParams = pstInput; 
-                _pgMat = nullptr;
-            };
-            cInputBase(cv::cuda::GpuMat *pgMat)
+				_pvImg = pvImg;
+				_pgMat = nullptr;
+				_iWidth = iWidth;
+				_iHeight = iHeight;
+			};
+			cInputBase(int iWidth, int iHeight, cv::cuda::GpuMat *pgMat)
             { 
-                _pstParams = nullptr;
                 _pgMat = pgMat;
-            };
+				_pvImg = nullptr;
+				_iWidth = iWidth;
+				_iHeight = iHeight;
+			};
             cInputBase(cInputBase *poInput1, cInputBase *poInput2)
             { 
                 _pInput1 = poInput1; 
                 _pInput2 = poInput2; 
             }
-            ~cInputBase()
-            {
-                if (_pstParams)
-                {
-                    delete _pstParams;
-                    _pstParams = nullptr;
-                }
-                if (_pgMat)
-                {
-                    delete _pgMat;
-                    _pgMat = nullptr;
-                }
-                if (_pInput1)
-                {
-                    delete _pInput1;
-                    _pInput1 = nullptr;
-                }
-                if (_pInput2)
-                {
-                    delete _pInput2;
-                    _pInput2 = nullptr;
-                }
-            }
+            ~cInputBase(){}
 
-            tstInputParams *_pstParams;
+            void *_pvImg;
             cv::cuda::GpuMat *_pgMat;
             cInputBase *_pInput1;
             cInputBase *_pInput2;
+			int _iWidth;
+			int _iHeight; 
         };
 
         class cOutputBase{
         public:
             cOutputBase()
             {
-                _pgMat = nullptr;
-                _pcuArray = nullptr;
             };
             cOutputBase(cv::cuda::GpuMat *pgMat)
             {
                 _pgMat = pgMat;
-                _pcuArray = nullptr;
             };
-            cOutputBase(cudaArray *pcuArray)
+            cOutputBase(CUarray *pcuArray)
             {
-                _pgMat = nullptr;
                 _pcuArray = pcuArray;
             };
-            ~cOutputBase()
-            {
-                if (_pgMat)
-                {
-                    delete _pgMat;
-                    _pgMat = nullptr;
-                }
-                if (_pcuArray)
-                {
-                    delete _pcuArray;
-                    _pcuArray = nullptr;
-                }
-            }
-            cv::cuda::GpuMat *_pgMat;
-            cudaArray *_pcuArray;
+			~cOutputBase(){}
+
+			cv::cuda::GpuMat *_pgMat;
+            CUarray *_pcuArray;
         };
 
-        typedef struct stMyInitialiseControlStruct : public CORE::tstInitialiseControlStruct
-        {
-            stRectStruct *pstFrameRect;
-        }tstMyInitialiseControlStruct;
+		typedef struct stMyInitialiseControlStruct : public CORE::tstInitialiseControlStruct
+		{
+			stRectStruct *pstFrameRect;
+		}tstMyInitialiseControlStruct;
 
-        typedef struct stMyControlStruct : public CORE::tstControlStruct
-        {
-            cInputBase *pcInput;
-            cOutputBase *pcOutput;
-        }tstMyControlStruct;
+		typedef struct stMyControlStruct : public CORE::tstControlStruct
+		{
+			cInputBase *pcInput;
+			cOutputBase *pcOutput;
+		}tstMyControlStruct;
 
-        typedef struct stMyDeinitialiseControlStruct : public CORE::tstDeinitialiseControlStruct
-        {
-        }tstMyDeinitialiseControlStruct;
-    }
+		typedef struct stCropDeinitialiseControlStruct : public CORE::tstDeinitialiseControlStruct
+		{
+		}tstMyDeinitialiseControlStruct;
+
+	}
 }

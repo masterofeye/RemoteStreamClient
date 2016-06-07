@@ -16,11 +16,6 @@ namespace RW{
 
 		IMP_CropFrames::~IMP_CropFrames()
 		{
-            if (m_pstRect)
-            {
-                delete m_pstRect;
-                m_pstRect = nullptr;
-            }
 		}
 
 		CORE::tstModuleVersion IMP_CropFrames::ModulVersion() {
@@ -56,9 +51,9 @@ namespace RW{
 
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
-            m_Logger->trace() << "Time to Initialise nenGraphic_Crop module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+			m_Logger->trace() << "Time to Initialise for nenGraphic_Crop module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
-			return enStatus;
+            return enStatus;
 		}
 
 		tenStatus IMP_CropFrames::DoRender(CORE::tstControlStruct * ControlStruct)
@@ -106,11 +101,6 @@ namespace RW{
             impBase.vSetGpuMat(pgMat);
             enStatus = impBase.tensProcessOutput(data->pcOutput);
 
-            if (pgMat)
-            {
-                delete pgMat;
-                pgMat = nullptr;
-            }
             if (enStatus != tenStatus::nenSuccess || data->pcOutput == nullptr)
             {
                 m_Logger->error("DoRender: impBase.tensProcessOutput did not succeed!");
@@ -118,9 +108,9 @@ namespace RW{
 
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
-            m_Logger->trace() << "Time to load DoRender nenGraphic_Crop module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+			m_Logger->trace() << "Time to DoRender for nenGraphic_Crop module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
-			return enStatus;
+            return enStatus;
 		}
 
 		tenStatus IMP_CropFrames::Deinitialise(CORE::tstDeinitialiseControlStruct *DeinitialiseControlStruct)
@@ -133,9 +123,9 @@ namespace RW{
 
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
-            m_Logger->trace() << "Time to load Deinitialise nenGraphic_Crop module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+			m_Logger->trace() << "Time to Deinitialise for nenGraphic_Crop module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
-			return enStatus;
+            return tenStatus::nenSuccess;
 		}
 	}
 }

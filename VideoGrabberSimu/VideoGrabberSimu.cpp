@@ -3,10 +3,7 @@
 #include <opencv2\videoio.hpp>
 #include "opencv2/opencv.hpp"
 
-
-#ifdef TRACE_PERFORMANCE
 #include "HighResolution\HighResClock.h"
-#endif
 using namespace cv;
 
 namespace RW
@@ -49,13 +46,12 @@ namespace RW
 				m_Logger->info("The " + sFileName + " was opened succesfully");
 				pControlStruct->nFPS = m_videoCapture.get(CAP_PROP_FPS);
 				pControlStruct->nFrameHeight = m_videoCapture.get(CAP_PROP_FRAME_HEIGHT);
-				pControlStruct->nFrameWidth = m_videoCapture.get(CAP_PROP_FRAME_WIDTH);
+                pControlStruct->nFrameWidth = m_videoCapture.get(CAP_PROP_FRAME_WIDTH);
 				pControlStruct->nNumberOfFrames = m_videoCapture.get(CAP_PROP_FRAME_COUNT);
-				pControlStruct->enColorSpace = nenRGB;
-				m_nFrameCounter = 0;
+				//m_nFrameCounter = 0;
 #ifdef TRACE_PERFORMANCE
                 RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
-                m_Logger->trace() << "Time to load Plugins: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+				m_Logger->trace() << "Time to load Plugins: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
 				return tenStatus::nenSuccess;
 			}
@@ -87,37 +83,33 @@ namespace RW
 				return tenStatus::nenError;
 			}
 			
+			//static int nFrameCounter = 0;
+
 			Mat rawFrame;
 			if (!m_videoCapture.read(rawFrame))
 			{
 				m_Logger->info("VideoGrabberSimu::DoRender - end of the file");
 #ifdef TRACE_PERFORMANCE
                 RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
-                m_Logger->trace() << "DoRender time for module nenVideoGrabber_SIMU: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+				m_Logger->trace() << "DoRender time for module nenVideoGrabber_SIMU: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
 				return tenStatus::nenSuccess;
 			}
-			else if (pControl->pData == NULL || pControl->nDataLength == 0)
+			else if (pControl->pOutputData->pBuffer == NULL)
 			{
-				m_Logger->critical("VideoGrabberSimu::DoRender - pControlStruct->pData is NULL or pControlStruct->nDataLength is 0");
+				m_Logger->critical("VideoGrabberSimu::DoRender - pControlStruct->pData is NULL");
 				return tenStatus::nenError;
 			}
 			else
 			{
-				Mat rgbFrame;
-				cvtColor(rawFrame, rgbFrame, CV_BGR2RGB);
-				size_t nFrameSize = rgbFrame.total() * rgbFrame.elemSize();
-				size_t nActualDataLength = min(nFrameSize, pControl->nDataLength);
-				if (nActualDataLength < nFrameSize)
-				{
-					m_Logger->alert("VideoGrabberSimu::DoRender - requested data length is greater than the destination array size");
-				}
-				memcpy(pControl->pData, rgbFrame.data, nActualDataLength);
-				pControl->nCurrentFrameNumber = ++m_nFrameCounter;
-				pControl->nCurrentPositionMSec = m_videoCapture.get(CV_CAP_PROP_POS_MSEC);
+				size_t nFrameSize = rawFrame.total() * rawFrame.elemSize();
+                pControl->pOutputData->pBuffer = (void*)rawFrame.data;
+				pControl->pOutputData->u32Size = nFrameSize;
+				pControl->nCurrentFrameNumber = m_videoCapture.get(CAP_PROP_POS_FRAMES); // nFrameCounter++;
+                pControl->nCurrentPositionMSec = m_videoCapture.get(CAP_PROP_POS_MSEC);
 #ifdef TRACE_PERFORMANCE
                 RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
-                m_Logger->trace() << "DoRender time for module nenVideoGrabber_SIMU: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+				m_Logger->trace() << "DoRender time for module nenVideoGrabber_SIMU: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
 				return tenStatus::nenSuccess;
 			}

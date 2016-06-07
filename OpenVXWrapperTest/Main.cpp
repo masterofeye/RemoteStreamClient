@@ -2,14 +2,20 @@
 #include <OpenVXWrapper.h>
 #include "ModuleLoader.hpp"
 /*Modules*/
-#include "IMP_ConvColorFrames.hpp"
 #include "Plugin1.hpp"
 #include "GraphBuilder.h"
 #include "ENC_CudaInterop.hpp"
 #include "VideoGrabberSimu.hpp"
+#include "IMP_CropFrames.hpp"
+#include "IMP_ConvColorFrames.hpp"
+#include "DEC_Intel.hpp"
+#include "DEC_inputs.h"
+#include "VideoPlayer.hpp"
 
 #include "HighResolution\HighResClock.h"
 #include "spdlog\spdlog.h"
+#include <thread>
+#include "common\inc\dynlink_cuda.h"
 
 #include <QApplication>
 
@@ -22,7 +28,315 @@ void logtest()
     logger->info("Log from application");
 }
 
+typedef struct stPipelineParams
+{
+    RW::VG::tstVideoGrabberInitialiseControlStruct videoGrabberInitialiseControlStruct;
+    RW::VG::tstVideoGrabberControlStruct videoGrabberControlStruct;
+    RW::VG::tstVideoGrabberControlStruct videoGrabberDeinitialiseControlStruct;
 
+	RW::IMP::tstMyInitialiseControlStruct impCropInitialiseControlStruct;
+	RW::IMP::tstMyControlStruct impCropControlStruct;
+	RW::IMP::tstMyDeinitialiseControlStruct impCropDeinitialiseControlStruct;
+
+	RW::IMP::tstMyInitialiseControlStruct impColorInitialiseControlStruct;
+	RW::IMP::tstMyControlStruct impColorControlStruct;
+	RW::IMP::tstMyDeinitialiseControlStruct impColorDeinitialiseControlStruct;
+
+	RW::ENC::tstMyInitialiseControlStruct encodeInitialiseControlStruct;
+    RW::ENC::tstMyControlStruct encodeControlStruct;
+    RW::ENC::tstMyDeinitialiseControlStruct encodeDeinitialiseControlStruct;
+
+    RW::DEC::tstMyInitialiseControlStruct decodeInitialiseControlStruct;
+    RW::DEC::tstMyControlStruct decodeControlStruct;
+    RW::DEC::tstMyDeinitialiseControlStruct decodeDeinitialiseControlStruct;
+
+    RW::VPL::tstMyInitialiseControlStruct playerInitialiseControlStruct;
+    RW::VPL::tstMyControlStruct playerControlStruct;
+    RW::VPL::tstMyDeinitialiseControlStruct playerDeinitialiseControlStruct;
+}tstPipelineParams;
+
+typedef struct stPayloadMsg
+{
+    int     iTimestamp;
+    int     iFrameNbr;
+    uint8_t u8CANSignal1;
+    uint8_t u8CANSignal2;
+    uint8_t u8CANSignal3;
+}tstPayloadMsg;
+
+int pipeline(tstPipelineParams params)
+{
+    auto file_logger = spdlog::stdout_logger_mt("file_logger");
+    //auto file_logger = spdlog::rotating_logger_mt("file_logger", (qApp->applicationDirPath() + "/logfile.log").toStdString(), 1048576 * 5, 3);
+    file_logger->debug("******************");
+    file_logger->debug("*Applicationstart*");
+    file_logger->debug("******************");
+
+	char *testLeak = new char[1000000];
+	testLeak = nullptr;
+
+
+    try
+    {
+        RW::tenStatus status = RW::tenStatus::nenError;
+#ifdef TRACE_PERFORMANCE
+        RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
+#endif
+        RW::CORE::ModuleLoader ml(file_logger);
+
+        /*Load Plugins*/
+        QList<RW::CORE::AbstractModule *> list;
+        ml.LoadPlugins(&list);
+#ifdef TRACE_PERFORMANCE
+        RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
+        file_logger->trace() << "Time to load Plugins: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+        t1 = RW::CORE::HighResClock::now();
+#endif
+        RW::CORE::Context context(file_logger);
+        if (context.IsInitialized())
+        {
+            RW::CORE::Graph graph(&context, file_logger);
+            RW::CORE::KernelManager kernelManager(&context, file_logger);
+
+            RW::CORE::GraphBuilder builder(&list, file_logger, &graph, &context);
+
+            RW::VG::tstVideoGrabberInitialiseControlStruct videoGrabberInitialiseControlStruct = params.videoGrabberInitialiseControlStruct;
+
+            RW::VG::tstVideoGrabberControlStruct videoGrabberControlStruct;
+            {
+                videoGrabberControlStruct.pOutputData = new RW::tstBitStream();
+                videoGrabberControlStruct.pOutputData->pBuffer = new uint8_t*();
+                videoGrabberControlStruct.nCurrentFrameNumber = 0;
+                videoGrabberControlStruct.nCurrentPositionMSec = 0;
+            }
+            RW::VG::tstVideoGrabberDeinitialiseControlStruct videoGrabberDeinitialiseControlStruct;
+
+            if (builder.BuildNode(&kernelManager,
+                &videoGrabberInitialiseControlStruct,
+                sizeof(videoGrabberInitialiseControlStruct),
+                &videoGrabberControlStruct,
+                sizeof(RW::VG::tstVideoGrabberControlStruct),
+                &videoGrabberDeinitialiseControlStruct,
+                sizeof(RW::VG::tstVideoGrabberDeinitialiseControlStruct),
+                RW::CORE::tenSubModule::nenVideoGrabber_SIMU) != RW::tenStatus::nenSuccess)
+                file_logger->error("nenVideoGrabber_SIMU couldn't build correct");
+
+            RW::IMP::tstMyInitialiseControlStruct impCropInitialiseControlStruct;
+            {
+                impCropInitialiseControlStruct.pstFrameRect = new RW::IMP::tstRectStruct{ 500, 500, 100, 100 }; // only for nenGraphic_Crop
+            }
+            RW::IMP::tstMyControlStruct impCropControlStruct;
+            {
+                impCropControlStruct.pcInput = new RW::IMP::cInputBase(
+                    videoGrabberInitialiseControlStruct.nFrameWidth,
+                    videoGrabberInitialiseControlStruct.nFrameHeight,
+                    videoGrabberControlStruct.pOutputData->pBuffer);
+                impCropControlStruct.pcOutput = new RW::IMP::cOutputBase();
+                impCropControlStruct.pcOutput->_pgMat = new cv::cuda::GpuMat();
+            }
+            RW::IMP::tstMyDeinitialiseControlStruct impCropDeinitialiseControlStruct;
+
+            if (builder.BuildNode(&kernelManager,
+            	&impCropInitialiseControlStruct,
+            	sizeof(RW::IMP::tstMyInitialiseControlStruct),
+            	&impCropControlStruct,
+            	sizeof(RW::IMP::tstMyControlStruct),
+            	&impCropDeinitialiseControlStruct,
+            	sizeof(RW::IMP::tstMyDeinitialiseControlStruct),
+            	RW::CORE::tenSubModule::nenGraphic_Crop) != RW::tenStatus::nenSuccess)
+            	file_logger->error("nenGraphic_Crop couldn't build correct");
+
+            RW::IMP::tstMyInitialiseControlStruct impColorInitialiseControlStruct;
+            RW::IMP::tstMyControlStruct impColorControlStruct;
+            {
+                impColorControlStruct.pcInput = new RW::IMP::cInputBase(
+                    videoGrabberInitialiseControlStruct.nFrameWidth,
+                    videoGrabberInitialiseControlStruct.nFrameHeight,
+                    impCropControlStruct.pcOutput->_pgMat);
+                impColorControlStruct.pcOutput = new RW::IMP::cOutputBase();
+                impColorControlStruct.pcOutput->_pcuArray = new CUarray();
+            }
+            RW::IMP::tstMyDeinitialiseControlStruct impColorDeinitialiseControlStruct;
+
+            if (builder.BuildNode(&kernelManager,
+            	&impColorInitialiseControlStruct,
+            	sizeof(RW::IMP::tstMyInitialiseControlStruct),
+            	&impColorControlStruct,
+            	sizeof(RW::IMP::tstMyControlStruct),
+            	&impColorDeinitialiseControlStruct,
+            	sizeof(RW::IMP::tstMyDeinitialiseControlStruct),
+            	RW::CORE::tenSubModule::nenGraphic_Color) != RW::tenStatus::nenSuccess)
+            	file_logger->error("nenGraphic_Color couldn't build correct");
+
+            RW::ENC::tstMyInitialiseControlStruct encodeInitialiseControlStruct;
+            {
+                encodeInitialiseControlStruct.pstEncodeConfig = new RW::ENC::EncodeConfig();
+                encodeInitialiseControlStruct.pstEncodeConfig->width = videoGrabberInitialiseControlStruct.nFrameWidth;
+                encodeInitialiseControlStruct.pstEncodeConfig->height = videoGrabberInitialiseControlStruct.nFrameHeight;
+                encodeInitialiseControlStruct.pstEncodeConfig->fps = videoGrabberInitialiseControlStruct.nFPS;
+                encodeInitialiseControlStruct.pstEncodeConfig->endFrameIdx = videoGrabberInitialiseControlStruct.nNumberOfFrames;
+            }
+            RW::ENC::tstMyControlStruct encodeControlStruct;
+            {
+                encodeControlStruct.pcuYUVArray = *impColorControlStruct.pcOutput->_pcuArray;
+                encodeControlStruct.pPayload = new RW::tstBitStream();
+                tstPayloadMsg Msg;
+                Msg.iTimestamp = videoGrabberControlStruct.nCurrentPositionMSec;
+                Msg.iFrameNbr = videoGrabberControlStruct.nCurrentFrameNumber;
+                encodeControlStruct.pPayload->u32Size = sizeof(stPayloadMsg);
+                encodeControlStruct.pPayload->pBuffer = (uint8_t*)&Msg;
+            }
+            RW::ENC::tstMyDeinitialiseControlStruct encodeDeinitialiseControlStruct;
+
+            if (builder.BuildNode(&kernelManager,
+                         &encodeInitialiseControlStruct,
+                         sizeof(RW::ENC::tstMyInitialiseControlStruct),
+                         &encodeControlStruct,
+                         sizeof(RW::ENC::tstMyControlStruct),
+                         &encodeDeinitialiseControlStruct,
+                         sizeof(RW::ENC::tstMyDeinitialiseControlStruct),
+                         RW::CORE::tenSubModule::nenEncode_NVIDIA) != RW::tenStatus::nenSuccess)
+                         file_logger->error("nenEncode_NVIDIA couldn't build correct");
+
+          /*  RW::DEC::tstMyInitialiseControlStruct decodeInitCtrl;
+            {
+				decodeInitCtrl.inputParams = new RW::DEC::tstInputParams();
+				decodeInitCtrl.inputParams->Height = videoGrabberInitialiseControlStruct.nFrameHeight;
+				decodeInitCtrl.inputParams->Width = videoGrabberInitialiseControlStruct.nFrameWidth;
+				decodeInitCtrl.inputParams->nFrames = videoGrabberInitialiseControlStruct.nNumberOfFrames;
+				decodeInitCtrl.inputParams->nMaxFPS = videoGrabberInitialiseControlStruct.nFPS;
+            }
+            RW::DEC::tstMyControlStruct decodeCtrl;
+            {
+                decodeCtrl.pstEncodedStream = encodeControlStruct.pstBitStream;
+                decodeCtrl.pPayload = encodeControlStruct.pPayload;
+            }
+            RW::DEC::tstMyDeinitialiseControlStruct decodeDeinitCtrl;
+
+            if (builder.BuildNode(&kernelManager,
+                &decodeInitCtrl,
+                sizeof(RW::DEC::tstMyInitialiseControlStruct),
+                &decodeCtrl,
+                sizeof(RW::DEC::tstMyControlStruct),
+                &decodeDeinitCtrl,
+                sizeof(RW::DEC::tstMyDeinitialiseControlStruct),
+                RW::CORE::tenSubModule::nenDecoder_INTEL) != RW::tenStatus::nenSuccess)
+                file_logger->error("nenDecoder_INTEL couldn't build correct");*/
+
+          /*  RW::VPL::tstMyInitialiseControlStruct playerInitCtrl;
+            RW::VPL::tstMyControlStruct playerCtrl;
+            {
+                playerCtrl.pstBitStream = decodeCtrl.pOutput;
+                playerCtrl.TimeStamp = videoGrabberControlStruct.nCurrentPositionMSec;
+            }
+            RW::VPL::tstMyDeinitialiseControlStruct playerDeinitCtrl;
+
+            if (builder.BuildNode(&kernelManager,
+                &playerInitCtrl,
+                sizeof(RW::VPL::tstMyInitialiseControlStruct),
+                &playerCtrl,
+                sizeof(RW::VPL::tstMyControlStruct),
+                &playerDeinitCtrl,
+                sizeof(RW::VPL::tstMyDeinitialiseControlStruct),
+                RW::CORE::tenSubModule::nenPlayback_Simple) != RW::tenStatus::nenSuccess)
+                file_logger->error("nenPlayback_Simple couldn't build correct");
+*/
+
+            if (graph.VerifyGraph() == RW::tenStatus::nenSuccess)
+            {
+                if (graph.ScheduleGraph() == RW::tenStatus::nenSuccess)
+                {
+
+                    file_logger->debug("******************");
+                    file_logger->debug("*Graph excecution*");
+                    file_logger->debug("******************");
+#ifdef TRACE_PERFORMANCE
+                    t2 = RW::CORE::HighResClock::now();
+                    file_logger->trace() << "Prepare Graph: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+                    t1 = RW::CORE::HighResClock::now();
+#endif
+                    graph.WaitGraph();
+#ifdef TRACE_PERFORMANCE
+                    t2 = RW::CORE::HighResClock::now();
+                    file_logger->trace() << "Graph execution: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+#endif
+                }
+            }
+
+            //Cleanup
+            if (videoGrabberControlStruct.pOutputData)
+            {
+                if (videoGrabberControlStruct.pOutputData->pBuffer)
+                {
+                    delete videoGrabberControlStruct.pOutputData->pBuffer;
+                    videoGrabberControlStruct.pOutputData->pBuffer = nullptr;
+                }
+                delete videoGrabberControlStruct.pOutputData;
+                videoGrabberControlStruct.pOutputData = nullptr;
+            }
+            if (impCropInitialiseControlStruct.pstFrameRect)
+			{
+				delete impCropInitialiseControlStruct.pstFrameRect;
+				impCropInitialiseControlStruct.pstFrameRect = nullptr;
+			}
+			if (impCropControlStruct.pcInput)
+			{
+				delete impCropControlStruct.pcInput;
+				impCropControlStruct.pcInput = nullptr;
+			}
+			if (impCropControlStruct.pcOutput)
+			{
+				if (impCropControlStruct.pcOutput->_pgMat)
+				{
+					delete impColorControlStruct.pcOutput->_pgMat;
+					impColorControlStruct.pcOutput->_pgMat = nullptr;
+				}
+				delete impCropControlStruct.pcOutput;
+				impCropControlStruct.pcOutput = nullptr;
+			}
+			if (impColorControlStruct.pcInput)
+			{
+				delete impColorControlStruct.pcInput;
+				impColorControlStruct.pcInput;
+			}
+			if (impColorControlStruct.pcOutput)
+			{
+				if (impColorControlStruct.pcOutput->_pcuArray)
+				{
+					delete impColorControlStruct.pcOutput->_pcuArray;
+					impColorControlStruct.pcOutput->_pcuArray = nullptr;
+				}
+				delete impColorControlStruct.pcOutput;
+				impColorControlStruct.pcOutput = nullptr;
+            }
+			if (encodeInitialiseControlStruct.pstEncodeConfig)
+			{
+				delete encodeInitialiseControlStruct.pstEncodeConfig;
+				encodeInitialiseControlStruct.pstEncodeConfig = nullptr;
+			}
+			if (encodeControlStruct.pPayload)
+			{
+				delete encodeControlStruct.pPayload;
+				encodeControlStruct.pPayload = nullptr;
+			}
+			//if (decodeInitCtrl.inputParams)
+			//{
+			//	delete decodeInitCtrl.inputParams;
+			//}
+
+			//Delete all modules;
+			for (auto var : list)
+			{
+				delete var;
+			}
+        }
+    }
+    catch (...)
+    {
+        file_logger->flush();
+    }
+    return 0;
+}
 
 int main(int argc, char* argv[])
 {
@@ -36,130 +350,24 @@ int main(int argc, char* argv[])
         spdlog::set_level(spdlog::level::info);
 #endif
 
-        auto file_logger = spdlog::stdout_logger_mt("file_logger");
-        //auto file_logger = spdlog::rotating_logger_mt("file_logger", (qApp->applicationDirPath() + "/logfile.log").toStdString(), 1048576 * 5, 3);
-        file_logger->debug("******************");
-        file_logger->debug("*Applicationstart*");
-        file_logger->debug("******************");
-        try
+        RW::VG::tstVideoGrabberInitialiseControlStruct videoGrabberInitialiseControlStruct;
         {
-            RW::tenStatus status = RW::tenStatus::nenError;
-#ifdef TRACE_PERFORMANCE
-            RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
-#endif
-            RW::CORE::ModuleLoader ml(file_logger);
-
-            /*Load Plugins*/
-            QList<RW::CORE::AbstractModule *> list;
-            ml.LoadPlugins(&list);
-#ifdef TRACE_PERFORMANCE
-            RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
-            file_logger->trace() << "Time to load Plugins: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
-            t1 = RW::CORE::HighResClock::now();
-#endif
-            RW::CORE::Context context(file_logger);
-            if (context.IsInitialized())
-            {
-                RW::CORE::Graph graph(&context, file_logger);
-                RW::CORE::KernelManager kernelManager(&context, file_logger);
-
-                RW::CORE::GraphBuilder builder(&list, file_logger, &graph, &context);
-
-                RW::VG::tstVideoGrabberInitialiseControlStruct videoGrabberInitialiseControlStruct;
-                videoGrabberInitialiseControlStruct.enColorSpace = RW::VG::nenRGB;
-                videoGrabberInitialiseControlStruct.nFPS = 60;
-                videoGrabberInitialiseControlStruct.nFrameHeight = 1920;
-                videoGrabberInitialiseControlStruct.nFrameWidth = 720;
-                videoGrabberInitialiseControlStruct.nNumberOfFrames = 1000;
-                videoGrabberInitialiseControlStruct.sFileName = "c:\\BR213_24bbp_5.avi";
-
-                RW::VG::tstVideoGrabberControlStruct videoGrabberControlStruct;
-                videoGrabberControlStruct.nCurrentFrameNumber = 0;
-                videoGrabberControlStruct.nCurrentPositionMSec = 0;
-                videoGrabberControlStruct.nDataLength = 4147200;
-                videoGrabberControlStruct.pData = new uint8_t[4147200];
-
-                RW::VG::tstVideoGrabberDeinitialiseControlStruct videoGrabberDeinitialiseControlStruct;
-
-                RW::IMP::tstMyInitialiseControlStruct impInitialiseControlStruct;
-                //RW::IMP::tstRectStruct *pTest = new RW::IMP::tstRectStruct{ 0, 0, 100, 100 };
-                //impInitialiseControlStruct.pstFrameRect = pTest; // only for nenGraphic_Crop
-                RW::IMP::tstMyControlStruct impControlStruct;
-                RW::IMP::tstInputParams *test = new RW::IMP::tstInputParams();
-                impControlStruct.pcInput = new RW::IMP::cInputBase(test);
-                cv::cuda::GpuMat *pgMat = new cv::cuda::GpuMat();
-                impControlStruct.pcOutput = new RW::IMP::cOutputBase(pgMat);
-
-                RW::IMP::tstMyDeinitialiseControlStruct impDeinitialiseControlStruct;
-
-                RW::ENC::tstMyInitialiseControlStruct encodeInitialiseControlStruct;
-                RW::ENC::tstMyControlStruct encodeControlStruct;
-                RW::ENC::tstMyDeinitialiseControlStruct encodeDeinitialiseControlStruct;
-
-                RW::CORE::Kernel *Kernel = nullptr;
-                if (builder.BuildNode(&kernelManager,
-                    &videoGrabberInitialiseControlStruct,
-                    sizeof(videoGrabberInitialiseControlStruct),
-                    &videoGrabberControlStruct,
-                    sizeof(RW::VG::tstVideoGrabberControlStruct),
-                    &videoGrabberDeinitialiseControlStruct,
-                    sizeof(RW::VG::tstVideoGrabberDeinitialiseControlStruct), 
-                    RW::CORE::tenSubModule::nenVideoGrabber_SIMU,
-                    &Kernel) != RW::tenStatus::nenSuccess)
-                    file_logger->error("nenVideoGrabber_SIMU couldn't build correct");
-                
-                //if (builder.BuildNode(&kernelManager, 
-                //    &impInitialiseControlStruct, 
-                //    sizeof(RW::IMP::tstMyInitialiseControlStruct), 
-                //    &impControlStruct, 
-                //    sizeof(RW::IMP::tstMyControlStruct), 
-                //    &impDeinitialiseControlStruct, 
-                //    sizeof(RW::IMP::tstMyDeinitialiseControlStruct), 
-                //    RW::CORE::tenSubModule::nenGraphic_Color) != RW::tenStatus::nenSuccess)
-                //    file_logger->error("nenGraphic_Color couldn't build correct");
-                delete pgMat;
-                delete impControlStruct.pcInput;
-                delete impControlStruct.pcOutput;
-
-
-                //if (builder.BuildNode(&kernelManager, 
-                //    &encodeInitialiseControlStruct, 
-                //    sizeof(RW::ENC::tstMyInitialiseControlStruct),
-                //    &encodeControlStruct, 
-                //    sizeof(RW::ENC::tstMyControlStruct),
-                //    &encodeDeinitialiseControlStruct,
-                //    sizeof(RW::ENC::tstMyDeinitialiseControlStruct),
-                //    RW::CORE::tenSubModule::nenEncode_NVIDIA) != RW::tenStatus::nenSuccess)
-                //    file_logger->error("nenEncode_NVIDIA couldn't build correct");
-
-                if (graph.VerifyGraph() == RW::tenStatus::nenSuccess)
-                {
-                    if (graph.ScheduleGraph() == RW::tenStatus::nenSuccess)
-                    {
-
-                        file_logger->debug("******************");
-                        file_logger->debug("*Graph excecution*");
-                        file_logger->debug("******************");
-#ifdef TRACE_PERFORMANCE
-                        t2 = RW::CORE::HighResClock::now();
-                        file_logger->trace() << "Prepare Graph: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
-                        t1 = RW::CORE::HighResClock::now();
-#endif
-                        graph.WaitGraph();
-#ifdef TRACE_PERFORMANCE
-                        t2 = RW::CORE::HighResClock::now();
-                        file_logger->trace() << "Graph execution: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
-#endif
-
-                        qDebug() << ((RW::VG::tstVideoGrabberControlStruct*)(Kernel->m_ControlStruct))->nCurrentFrameNumber;
-                    }
-                }
-            }
+            videoGrabberInitialiseControlStruct.nFPS = 30;
+            videoGrabberInitialiseControlStruct.nFrameHeight = 1920;
+            videoGrabberInitialiseControlStruct.nFrameWidth = 1080;
+            videoGrabberInitialiseControlStruct.nNumberOfFrames = 1000;
+            videoGrabberInitialiseControlStruct.sFileName = "E:\\Video\\BR213_24bbp_5.avi";
         }
-        catch (...)
-        {
-            file_logger->flush();
-        }
+
+        tstPipelineParams params;
+        params.videoGrabberInitialiseControlStruct = videoGrabberInitialiseControlStruct;
+
+        pipeline(params);
+        //std::thread gv(pipeline, params);
+        //std::thread wc(pipeline, params);
+
+        //gv.join();
+        //wc.join();
 
     return 0;
 }

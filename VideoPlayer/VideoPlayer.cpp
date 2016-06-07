@@ -12,52 +12,48 @@ namespace RW
         VideoPlayer::VideoPlayer(std::shared_ptr<spdlog::logger> Logger) :
             RW::CORE::AbstractModule(Logger)
             , m_qmPlayer(0, QMediaPlayer::VideoSurface)
-            , m_qabPlay(0)
+            , m_qaBtnPlay(0)
+            , m_qaBtnStop(0)
             , m_qsPosition(0)
             , m_qlError(0)
         {
-                m_qbArray = new QByteArray();
+                
 
                 m_pqWidget = new QWidget();
-                m_qabPlay = new QPushButton;
-                m_qabPlay->setEnabled(false);
-                m_qabPlay->setIcon(m_pqWidget->style()->standardIcon(QStyle::SP_MediaPlay));
-
+                m_qaBtnPlay = new QPushButton;
+                m_qaBtnStop = new QPushButton;
                 m_qsPosition = new QSlider(Qt::Horizontal);
-                m_qsPosition->setRange(0, 0);
-
                 m_qlError = new QLabel;
-                m_qlError->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
 
                 QApplication app();
             }
 
         VideoPlayer::~VideoPlayer()
         {
-            if (m_qabPlay != NULL)
+            if (m_qaBtnPlay != nullptr)
             {
-                delete m_qabPlay;
-                m_qabPlay = NULL;
+                delete m_qaBtnPlay;
+                m_qaBtnPlay = nullptr;
             }
-            if (m_qsPosition != NULL)
+            if (m_qaBtnStop != nullptr)
+            {
+                delete m_qaBtnStop;
+                m_qaBtnStop = nullptr;
+            }
+            if (m_qsPosition != nullptr)
             {
                 delete m_qsPosition;
-                m_qsPosition = NULL;
+                m_qsPosition = nullptr;
             }
-            if (m_qlError != NULL)
+            if (m_qlError != nullptr)
             {
                 delete m_qlError;
-                m_qlError = NULL;
+                m_qlError = nullptr;
             }
-            if (m_qbArray != NULL)
-            {
-                delete m_qbArray;
-                m_qbArray = NULL;
-            }
-            if (m_pqWidget != NULL)
+            if (m_pqWidget != nullptr)
             {
                 delete m_pqWidget;
-                m_pqWidget = NULL;
+                m_pqWidget = nullptr;
             }
         }
 
@@ -82,9 +78,19 @@ namespace RW
 
             stMyInitialiseControlStruct* data = static_cast<stMyInitialiseControlStruct*>(InitialiseControlStruct);
 
+            m_qsPosition->setRange(0, 0);
+            m_qaBtnPlay->setEnabled(false);
+            m_qaBtnStop->setEnabled(false);
+            m_qaBtnPlay->setIcon(m_pqWidget->style()->standardIcon(QStyle::SP_MediaPlay));
+            m_qaBtnPlay->setIcon(m_pqWidget->style()->standardIcon(QStyle::SP_MediaStop));
+            m_qlError->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
+
             QVideoWidget *pVideoWidget = new QVideoWidget;
 
-            connect(m_qabPlay, SIGNAL(clicked()),
+            connect(m_qaBtnStop, SIGNAL(clicked()),
+                this, SLOT(stop()));
+
+            connect(m_qaBtnPlay, SIGNAL(clicked()),
                 this, SLOT(play()));
 
             connect(m_qsPosition, SIGNAL(sliderMoved(int)),
@@ -92,8 +98,8 @@ namespace RW
 
             QBoxLayout *controlLayout = new QHBoxLayout;
             controlLayout->setMargin(0);
-            //controlLayout->addWidget(openButton);
-            controlLayout->addWidget(m_qabPlay);
+            controlLayout->addWidget(m_qaBtnStop);
+            controlLayout->addWidget(m_qaBtnPlay);
             controlLayout->addWidget(m_qsPosition);
 
             QBoxLayout *layout = new QVBoxLayout;
@@ -116,7 +122,17 @@ namespace RW
             if (pVideoWidget)
             {
                 delete pVideoWidget;
-                pVideoWidget = NULL;
+                pVideoWidget = nullptr;
+            }
+            if (layout)
+            {
+                delete layout;
+                layout = nullptr;
+            }
+            if (controlLayout)
+            {
+                delete controlLayout;
+                controlLayout = nullptr;
             }
 
 #ifdef TRACE_PERFORMANCE
@@ -134,18 +150,33 @@ namespace RW
 #endif
 
             stMyControlStruct* data = static_cast<stMyControlStruct*>(ControlStruct);
-            if (data == NULL)
+            if (data == nullptr)
             {
                 m_Logger->error("DoRender: Data of stMyControlStruct is empty!");
                 enStatus = tenStatus::nenError;
                 return enStatus;
             }
-
-            m_qbArray->setRawData((char*)data->stBitStream.pBitStreamBuffer, data->stBitStream.u32BitStreamSizeInBytes);
-            m_qmPlayer.setMedia(QUrl::fromEncoded(*m_qbArray));
-            m_qabPlay->setEnabled(true);
+            QByteArray *pqbArray = new QByteArray();
+            pqbArray->setRawData((char*)data->pstBitStream->pBuffer, data->pstBitStream->u32Size);
+            QBuffer qBuffer(pqbArray);
+            m_qmPlayer.setMedia(QMediaContent(), &qBuffer);
+            m_qaBtnPlay->setEnabled(true);
+            m_qaBtnStop->setEnabled(true);
             m_qmPlayer.play();
-
+            
+            if ((m_qmPlayer.mediaStatus() == m_qmPlayer.EndOfMedia) 
+                || (m_qmPlayer.mediaStatus() == m_qmPlayer.InvalidMedia)
+                || (m_qmPlayer.mediaStatus() == m_qmPlayer.NoMedia)
+                || (m_qmPlayer.mediaStatus() == m_qmPlayer.UnknownMediaStatus)
+                || (m_qmPlayer.error() != m_qmPlayer.NoError) 
+                || (m_qmPlayer.state() == m_qmPlayer.StoppedState))
+            {
+                if (pqbArray)
+                {
+                    delete pqbArray;
+                    pqbArray = nullptr;
+                }
+            }
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
             file_logger->trace() << "Time to DoRender for nenPlayback_Simple module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
@@ -172,21 +203,35 @@ namespace RW
             switch (m_qmPlayer.state()) {
             case QMediaPlayer::PlayingState:
                 m_qmPlayer.pause();
+                m_qaBtnStop->setEnabled(true);
                 break;
             default:
                 m_qmPlayer.play();
+                m_qaBtnStop->setEnabled(true);
                 break;
             }
+        }
+
+        void VideoPlayer::stop()
+        {
+            m_qmPlayer.stop();
+            m_qaBtnStop->setEnabled(false);
+            //m_qmPlayer.state = m_qmPlayer.StoppedState;
         }
 
         void VideoPlayer::mediaStateChanged(QMediaPlayer::State state)
         {
             switch (state) {
             case QMediaPlayer::PlayingState:
-                m_qabPlay->setIcon(m_pqWidget->style()->standardIcon(QStyle::SP_MediaPause));
+                m_qaBtnPlay->setIcon(m_pqWidget->style()->standardIcon(QStyle::SP_MediaPause));
+                break;
+            case QMediaPlayer::StoppedState:
+                //m_qaBtnStop->
+                break;
+            case QMediaPlayer::PausedState:
+                m_qaBtnPlay->setIcon(m_pqWidget->style()->standardIcon(QStyle::SP_MediaPlay));
                 break;
             default:
-                m_qabPlay->setIcon(m_pqWidget->style()->standardIcon(QStyle::SP_MediaPlay));
                 break;
             }
         }
@@ -208,7 +253,8 @@ namespace RW
 
         void VideoPlayer::handleError()
         {
-            m_qabPlay->setEnabled(false);
+            m_qaBtnPlay->setEnabled(false);
+            m_qaBtnStop->setEnabled(false);
             m_Logger->error(m_qmPlayer.errorString().toStdString().c_str());
         }
     }

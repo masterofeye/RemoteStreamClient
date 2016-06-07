@@ -56,7 +56,8 @@ namespace RW{
 			nenStream_Productive,
 			nenReceive_Simple,
 			nenReceive_Productive,
-            nenPlayback_Simple
+            nenPlayback_Simple,
+            nenTest_Test
 		};
 
 

@@ -107,7 +107,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>.;..\..\..\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include;..\..\..\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtMultimediaWidgets;..\..\..\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtMultimedia;..\..\..\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtWidgets;..\..\..\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtGui;..\..\..\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtANGLE;..\..\..\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtNetwork;..\..\..\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtCore;debug;..\..\..\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\mkspecs\win32-msvc2013;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtMultimediaWidgets;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtMultimedia;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtWidgets;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtGui;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtANGLE;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtNetwork;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtCore;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\mkspecs\win32-msvc2013;debug;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>-w34100 -w34189 -w44996 %(AdditionalOptions)</AdditionalOptions>
       <AssemblerListingLocation>debug\</AssemblerListingLocation>
       <BrowseInformation>false</BrowseInformation>

@@ -19,19 +19,14 @@ QT_END_NAMESPACE
 namespace RW{
     namespace VPL{
 
-        typedef struct _EncodedBitStream
-        {
-            void *pBitStreamBuffer;
-            uint32_t u32BitStreamSizeInBytes;
-        }EncodedBitStream;
-
         typedef struct stMyInitialiseControlStruct : public CORE::tstInitialiseControlStruct
         {
         }tstMyInitialiseControlStruct;
 
         typedef struct stMyControlStruct : public CORE::tstControlStruct
         {
-            EncodedBitStream stBitStream;
+            tstBitStream *pstBitStream;
+            uint64_t    TimeStamp;
         }tstMyControlStruct;
 
         typedef struct stMyDeinitialiseControlStruct : public CORE::tstDeinitialiseControlStruct
@@ -53,6 +48,7 @@ namespace RW{
 
         private:
             void play();
+            void stop();
 
             void mediaStateChanged(QMediaPlayer::State state);
             void positionChanged(qint64 position);
@@ -61,10 +57,10 @@ namespace RW{
             void handleError();
 
             QMediaPlayer      m_qmPlayer;
-            QAbstractButton	  *m_qabPlay;
+            QAbstractButton	  *m_qaBtnPlay;
+            QAbstractButton	  *m_qaBtnStop;
             QSlider           *m_qsPosition;
             QLabel            *m_qlError;
-            QByteArray        *m_qbArray;
             QWidget           *m_pqWidget;
         };
     }

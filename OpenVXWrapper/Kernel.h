@@ -5,7 +5,6 @@ extern "C"{
 }
 #include "Utils.h"
 #include "spdlog\spdlog.h"
-#include "AbstractModule.hpp"
 
 namespace RW
 {
@@ -13,6 +12,9 @@ namespace RW
 	{
         class Context;
         class AbstractModule;
+		struct stControlStruct;
+		typedef struct stControlStruct tstControlStruct;
+
         class REMOTE_API Kernel
 		{
 		private:
@@ -22,18 +24,11 @@ namespace RW
             std::string     m_KernelName;
             uint64_t        m_KernelEnum;
             uint8_t         m_CurrentParameterIndex;
-            AbstractModule*  m_AbstractModule;
-            std::shared_ptr<spdlog::logger> m_Logger;
-
-
-
+            AbstractModule* m_AbstractModule;
+			RW::CORE::tstControlStruct *m_ControlStruct;
+			std::shared_ptr<spdlog::logger> m_Logger;
 		public:
-            tstInitialiseControlStruct      *m_InitialiseControlStruct;
-            tstControlStruct                *m_ControlStruct;
-            tstDeinitialiseControlStruct    *m_DeinitialiseControlStruct;
-
-
-            Kernel(Context *CurrentContext, std::string KernelName, uint64_t KernelEnum,  uint8_t ParameterAmount, AbstractModule const *Module, std::shared_ptr<spdlog::logger> Logger);
+			Kernel(Context *CurrentContext, RW::CORE::tstControlStruct *ControlStruct, std::string KernelName, uint64_t KernelEnum, uint8_t ParameterAmount, AbstractModule const *Module, std::shared_ptr<spdlog::logger> Logger);
 			~Kernel();
 
 
@@ -42,6 +37,7 @@ namespace RW
 			inline uint64_t KernelEnum() const { return m_KernelEnum; }
 			inline void SetKernel(vx_kernel Kernel) { m_Kernel = Kernel; }
 			inline bool IsInitialized() const { return m_Initialize; }
+			inline RW::CORE::tstControlStruct *GetControlStruct(){ return m_ControlStruct; }
 
 			vx_kernel operator()() const
             {
@@ -50,7 +46,6 @@ namespace RW
                 return nullptr;
             }
 
-            void Kernel::SetParameter(int i, void* Value);
 
 			static vx_status KernelInitializeCB(vx_node Node, const vx_reference* Parameter, vx_uint32 NumberOfParameter);
             RW::tenStatus KernelInitialize(void* InitializeControlStruct);

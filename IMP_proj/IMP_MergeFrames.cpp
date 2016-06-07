@@ -37,7 +37,7 @@ namespace RW{
 
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
-            file_logger->trace() << "Time to Initialise for nenGraphic_Merge module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+			m_Logger->trace() << "Time to Initialise for nenGraphic_Merge module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
             return enStatus;
 		}
@@ -89,11 +89,12 @@ namespace RW{
 
                 enStatus = ApplyMerge(pgMat1, pgMat2);
 
-                if (pgMat2)
-                {
-                    delete pgMat2;
-                    pgMat2 = nullptr;
-                }
+				//delete Mat2 outside where it has been created!
+                //if (pgMat2)
+                //{
+                //    delete pgMat2;
+                //    pgMat2 = nullptr;
+                //}
                 if (enStatus != tenStatus::nenSuccess || pgMat1 == nullptr)
                 {
                     m_Logger->error("DoRender: ApplyMerge did not succeed!");
@@ -104,11 +105,6 @@ namespace RW{
             impBase1.vSetGpuMat(pgMat1);
             enStatus = impBase1.tensProcessOutput(data->pcOutput);
 
-            if (pgMat1)
-            {
-                delete pgMat1;
-                pgMat1 = nullptr;
-            }
             if (enStatus != tenStatus::nenSuccess || data->pcOutput == nullptr)
             {
                 m_Logger->error("DoRender: impBase.tensProcessOutput did not succeed!");
@@ -117,9 +113,9 @@ namespace RW{
 
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
-            file_logger->trace() << "Time to DoRender for nenGraphic_Merge module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+			m_Logger->trace() << "Time to DoRender for nenGraphic_Merge module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
-            return enStatus;
+             return enStatus;
 		}
 
 		tenStatus IMP_MergeFrames::Deinitialise(CORE::tstDeinitialiseControlStruct *DeinitialiseControlStruct)
@@ -131,7 +127,7 @@ namespace RW{
 
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
-            file_logger->trace() << "Time to Deinitialise for nenGraphic_Merge module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+			m_Logger->trace() << "Time to Deinitialise for nenGraphic_Merge module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
             return tenStatus::nenSuccess;
 		}

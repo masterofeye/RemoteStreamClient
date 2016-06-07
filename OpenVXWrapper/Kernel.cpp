@@ -6,12 +6,13 @@ namespace RW
 {
 	namespace CORE
 	{
-        Kernel::Kernel(Context *CurrentContext, std::string KernelName, uint64_t KernelEnum,uint8_t ParameterAmount, AbstractModule const* Module, std::shared_ptr<spdlog::logger> Logger)
-            : m_KernelName(KernelName),
-            m_KernelEnum(KernelEnum),
-            m_Initialize(false),
-            m_Context((*CurrentContext)()),
-            m_Logger(Logger)
+		Kernel::Kernel(Context *CurrentContext, RW::CORE::tstControlStruct *ControlStruct, std::string KernelName, uint64_t KernelEnum, uint8_t ParameterAmount, AbstractModule const* Module, std::shared_ptr<spdlog::logger> Logger)
+			: m_KernelName(KernelName),
+			m_KernelEnum(KernelEnum),
+			m_Initialize(false),
+			m_Context((*CurrentContext)()),
+			m_ControlStruct(ControlStruct),
+			m_Logger(Logger)
 		{
 
             m_AbstractModule = const_cast<AbstractModule*> (Module);
@@ -21,6 +22,7 @@ namespace RW
 
 		Kernel::~Kernel()
 		{
+
 		}
 
         void Kernel::SetParameter(int i, void* Value)
