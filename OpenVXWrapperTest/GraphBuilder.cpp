@@ -1,6 +1,7 @@
 #include "GraphBuilder.h"
 #include "OpenVXWrapper.h"
 #include "AbstractModule.hpp"
+#include "Kernel.h"
 
 namespace RW
 {
@@ -22,6 +23,7 @@ namespace RW
 
         tenStatus GraphBuilder::BuildNode(KernelManager *CurrentKernelManager,
             tstInitialiseControlStruct* InitialiseControlStruct,
+			int IndexOfParent,
             size_t size1,
             tstControlStruct *ControlStruct,
             size_t size2,
@@ -56,7 +58,7 @@ namespace RW
             m_Logger->debug(Util::ModuleName(SubModule));
             m_Logger->debug("************************");
 
-			RW::CORE::Kernel *kernel = new Kernel(m_Context, ControlStruct,  "MyKernel", NVX_KERNEL_TEST, 4, module, m_Logger);
+            RW::CORE::Kernel *kernel = new RW::CORE::Kernel(m_Context, ControlStruct, "MyKernel", NVX_KERNEL_TEST, 4, module, m_Logger);
             if (kernel->IsInitialized())
             {
 
@@ -96,37 +98,47 @@ namespace RW
                 }
 
                 RW::CORE::Node *node = new Node(m_Graph, kernel, m_Logger);
-                if (node->IsInitialized())
-                {
-					CurrentKernelManager->AddNode(node);
-                    status = node->SetParameterByIndex(0, (void*)kernel, sizeof(RW::CORE::Kernel), m_Context);
-                    if (status == tenStatus::nenError)
-                    {
-                        m_Logger->error("Set parameter for node failed(1).");
-                        return status;
-                    }
-                    status = node->SetParameterByIndex(1, (void*)InitialiseControlStruct, size1, m_Context);
-                    if (status == tenStatus::nenError)
-                    {
-                        m_Logger->error("Set parameter for node failed(2).");
-                        return status;
-                    }
+				if (node == nullptr)
+				{
+					m_Logger->error("Couldn't create node.");
+				}
+				else
+				{
+					if (IndexOfParent != -1)
+						CurrentKernelManager->NodeByIndex(IndexOfParent)->SetNextNode(node);
 
-                    status = node->SetParameterByIndex(2, (void*)ControlStruct, size2, m_Context);
-                    if (status == tenStatus::nenError)
-                    {
-                        m_Logger->error("Set parameter for node failed(3).");
-                        return status;
-                    }
+                    kernel->SetCurrentNode(node);
+					if (node->IsInitialized())
+					{
+						CurrentKernelManager->AddNode(node);
+						status = node->SetParameterByIndex(0, (void*)kernel, sizeof(RW::CORE::Kernel), m_Context);
+						if (status == tenStatus::nenError)
+						{
+							m_Logger->error("Set parameter for node failed(1).");
+							return status;
+						}
+						status = node->SetParameterByIndex(1, (void*)InitialiseControlStruct, size1, m_Context);
+						if (status == tenStatus::nenError)
+						{
+							m_Logger->error("Set parameter for node failed(2).");
+							return status;
+						}
 
-                    status = node->SetParameterByIndex(3, (void*)DeinitialiseControlStruct, size3, m_Context);
-                    if (status == tenStatus::nenError)
-                    {
-                        m_Logger->error("Set parameter for node failed(4).");
-                        return status;
-                    }
+						status = node->SetParameterByIndex(2, (void*)ControlStruct, size2, m_Context);
+						if (status == tenStatus::nenError)
+						{
+							m_Logger->error("Set parameter for node failed(3).");
+							return status;
+						}
 
-                }
+						status = node->SetParameterByIndex(3, (void*)DeinitialiseControlStruct, size3, m_Context);
+						if (status == tenStatus::nenError)
+						{
+							m_Logger->error("Set parameter for node failed(4).");
+							return status;
+						}
+					}
+				}
             }
             m_Logger->debug("Node successful created.");
             return tenStatus::nenSuccess;

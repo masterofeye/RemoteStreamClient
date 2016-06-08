@@ -8,8 +8,6 @@
 #include "AbstractModule.hpp"
 #include "Utils.h"
 
-
-
 namespace RW{
     namespace ENC{
 
@@ -28,11 +26,12 @@ namespace RW{
 			EncodeConfig *pstEncodeConfig;
 		}tstMyInitialiseControlStruct;
 
-		typedef struct stMyControlStruct : public CORE::tstControlStruct
+        typedef struct REMOTE_API stMyControlStruct : public CORE::tstControlStruct
 		{
 			CUarray pcuYUVArray;
             tstBitStream *pstBitStream;
             tstBitStream *pPayload;
+			void UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType);
 		}tstMyControlStruct;
 
 		typedef struct stMyDeinitialiseControlStruct : public CORE::tstDeinitialiseControlStruct

@@ -61,7 +61,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>openvx.lib</AdditionalDependencies>
+      <AdditionalDependencies>openvx.lib;HighResolution.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:/tool/RemotePkg/OpenVX/build/Win/x64/sample/framework/Debug/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>

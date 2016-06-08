@@ -2,7 +2,7 @@
 
 #include <opencv2\videoio.hpp>
 #include "opencv2/opencv.hpp"
-
+#include "..\IMP_proj\IMP.h"
 #include "HighResolution\HighResClock.h"
 using namespace cv;
 
@@ -10,6 +10,38 @@ namespace RW
 {
 	namespace VG
 	{
+  
+
+
+        void stVideoGrabberControlStruct::UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType)
+        {
+            switch (SubModuleType)
+            {
+            case CORE::tenSubModule::nenGraphic_Color:
+            case CORE::tenSubModule::nenGraphic_Crop:
+            {
+                RW::IMP::tstMyControlStruct *data = static_cast<RW::IMP::tstMyControlStruct*>(*Data);
+                data->pcInput->_pvImg = pOutputData->pBuffer;
+                break;
+            }
+			case CORE::tenSubModule::nenGraphic_Merge:
+			{
+				RW::IMP::tstMyControlStruct *data = static_cast<RW::IMP::tstMyControlStruct*>(*Data);
+				if (data->pcInput->_bSetImg2)
+				{
+					data->pcInput->_pInput2->_pvImg = pOutputData->pBuffer;
+				}
+				else 
+				{
+					data->pcInput->_pInput1->_pvImg = pOutputData->pBuffer;
+				}
+				break;
+			}
+			default:
+                break;
+            }
+        }
+
         VideoGrabberSimu::VideoGrabberSimu(std::shared_ptr<spdlog::logger> Logger) : RW::CORE::AbstractModule(Logger) { }
 
 		VideoGrabberSimu::~VideoGrabberSimu() { }

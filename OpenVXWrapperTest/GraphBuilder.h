@@ -9,6 +9,7 @@ namespace RW
     namespace CORE
     {
         class AbstractModule;
+		class Node;
 
         class GraphBuilder
         {
@@ -22,6 +23,7 @@ namespace RW
             ~GraphBuilder();
             tenStatus BuildNode(KernelManager *CurrentKernelManager,
                 tstInitialiseControlStruct* InitialiseControlStruct,
+				int IndexOfParent,
                 size_t size1,
                 tstControlStruct *ControlStruct,
                 size_t size2,

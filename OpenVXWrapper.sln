@@ -16,12 +16,21 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RWUnitTest", "RWUnitTest\RWUnitTest.vcxproj", "{B5D2B888-D738-48DF-9DA7-990D0B7C15E3}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IMP_proj", "IMP_proj\IMP_proj.vcxproj", "{AA88BA47-5B94-4B12-B160-653921D884EC}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6147A18E-0828-4379-9575-D9FAFC9B68D7} = {6147A18E-0828-4379-9575-D9FAFC9B68D7}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ENC_proj", "ENC_proj\ENC_proj.vcxproj", "{6147A18E-0828-4379-9575-D9FAFC9B68D7}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A6E3D645-0F58-45F4-BDC3-CA457C87D7BC} = {A6E3D645-0F58-45F4-BDC3-CA457C87D7BC}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VideoPlayer", "VideoPlayer\VideoPlayer.vcxproj", "{ED3ABCA4-9FED-3F47-A258-F1A95D446720}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VideoGrabberSimu", "VideoGrabberSimu\VideoGrabberSimu.vcxproj", "{DED08BA9-69A8-43D8-9E8B-EED79539EB6A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{AA88BA47-5B94-4B12-B160-653921D884EC} = {AA88BA47-5B94-4B12-B160-653921D884EC}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{49DA11FE-7538-4C64-9E9D-7328EACFEDBC}"
 EndProject
@@ -30,6 +39,7 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DEC_Intel", "DEC_Intel\DEC_Intel.vcxproj", "{A6E3D645-0F58-45F4-BDC3-CA457C87D7BC}"
 	ProjectSection(ProjectDependencies) = postProject
 		{9E7B3527-11AA-46BA-A82F-C58761F9B56F} = {9E7B3527-11AA-46BA-A82F-C58761F9B56F}
+		{ED3ABCA4-9FED-3F47-A258-F1A95D446720} = {ED3ABCA4-9FED-3F47-A258-F1A95D446720}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Intel_common", "Intel_common\Intel_common.vcxproj", "{DB71B91D-16D8-4339-9621-D81798E46E8F}"

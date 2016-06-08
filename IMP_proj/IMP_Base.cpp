@@ -1,5 +1,6 @@
 #include "IMP_Base.h"
 #include "cuda_runtime_api.h"
+#include "opencv2/cudev/common.hpp"
 
 
 namespace RW{

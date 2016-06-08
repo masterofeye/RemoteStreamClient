@@ -1,5 +1,6 @@
 #include "Kernel.h"
 #include "Context.h"
+#include "Node.h"
 #include "AbstractModule.hpp"
 
 namespace RW
@@ -12,6 +13,7 @@ namespace RW
 			m_Initialize(false),
 			m_Context((*CurrentContext)()),
 			m_ControlStruct(ControlStruct),
+            m_CurrentNode(nullptr),
 			m_Logger(Logger)
 		{
 
@@ -25,6 +27,26 @@ namespace RW
 
 		}
 
+        void Kernel::SetParameter(int i, void* Value)
+        {
+            //TODO Sehr Unschön
+            switch (i)
+            {
+            case 0:
+                break;
+            case 1:
+                //m_InitialiseControlStruct = (tstInitialiseControlStruct*)Value;
+                break;
+            case 2:
+                m_ControlStruct = (tstControlStruct*)Value;
+                break;
+            case 3:
+                //m_DeinitialiseControlStruct = (tstDeinitialiseControlStruct*)Value;
+                break;
+            default:
+                break;
+            }
+        }
 
 
         vx_status VX_CALLBACK Kernel::KernelInitializeCB(vx_node Node, const vx_reference* Parameter, vx_uint32 NumberOfParameter)
@@ -135,7 +157,7 @@ namespace RW
         RW::tenStatus Kernel::KernelDeinitialize(void* DeinitializeControlStruct)
         {
             tenStatus status = tenStatus::nenError;
-            m_Logger->debug("Deinitialize kernel");
+            m_Logger->debug("Deinitialize kernel" ) <<(int) m_AbstractModule->SubModulType();
             if (m_AbstractModule!= nullptr && m_AbstractModule->Deinitialise((tstDeinitialiseControlStruct*)DeinitializeControlStruct) != tenStatus::nenSuccess)
             {
                 m_Logger->debug("Deinitialize kernel");

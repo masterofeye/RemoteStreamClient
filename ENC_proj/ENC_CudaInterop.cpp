@@ -7,6 +7,7 @@
 #include "common/inc/nvFileIO.h"
 #include "common/inc/helper_string.h"
 #include "common/inc/dynlink_builtin_types.h"
+#include "..\DEC_Intel\DEC_Intel.hpp"
 
 #ifdef TRACE_PERFORMANCE
 #include "HighResolution\HighResClock.h"
@@ -54,6 +55,22 @@ namespace RW{
 			{
 				delete m_pNvHWEncoder;
 				m_pNvHWEncoder = nullptr;
+			}
+		}
+
+		void stMyControlStruct::UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType)
+		{
+			switch (SubModuleType)
+			{
+			case CORE::tenSubModule::nenDecoder_INTEL:
+			case CORE::tenSubModule::nenDecoder_NVIDIA:
+			{
+				RW::DEC::tstMyControlStruct *data = static_cast<RW::DEC::tstMyControlStruct*>(*Data);
+				data->pstEncodedStream = (this->pstBitStream);
+				break;
+			}
+			default:
+				break;
 			}
 		}
 

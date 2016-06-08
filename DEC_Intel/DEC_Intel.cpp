@@ -2,13 +2,31 @@
 
 #include "DEC_Intel.hpp"
 #include "pipeline_decode.h"
+#include "..\VideoPlayer\VideoPlayer.hpp"
 
 namespace RW{
     namespace DEC{
+        void stMyControlStruct::UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType)
+        {
+			switch (SubModuleType)
+			{
+			case RW::CORE::tenSubModule::nenPlayback_Simple:
+			{
+				RW::VPL::tstMyControlStruct *data = static_cast<RW::VPL::tstMyControlStruct*>(*Data);
+				data->pstBitStream = this->pOutput;
+				break;
+			}
+			default:
+				break;
+			}
+        }
+
+
+
         DEC_Intel::DEC_Intel(std::shared_ptr<spdlog::logger> Logger) :
             RW::CORE::AbstractModule(Logger)
         {
-            m_pPipeline = new CDecodingPipeline(m_Logger);
+                m_pPipeline = new CDecodingPipeline(m_Logger);
             }
 
         DEC_Intel::~DEC_Intel()

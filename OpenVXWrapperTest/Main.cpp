@@ -16,6 +16,7 @@
 #include "spdlog\spdlog.h"
 #include <thread>
 #include "common\inc\dynlink_cuda.h"
+#include "opencv2/cudev/common.hpp"
 
 #include <QApplication>
 //#include "vld.h"
@@ -116,6 +117,7 @@ int pipeline(tstPipelineParams params)
 
             if (builder.BuildNode(&kernelManager,
                 &videoGrabberInitialiseControlStruct,
+				-1,
                 sizeof(videoGrabberInitialiseControlStruct),
                 &videoGrabberControlStruct,
                 sizeof(RW::VG::tstVideoGrabberControlStruct),
@@ -141,6 +143,7 @@ int pipeline(tstPipelineParams params)
 
             if (builder.BuildNode(&kernelManager,
             	&impCropInitialiseControlStruct,
+				0,
             	sizeof(RW::IMP::tstMyInitialiseControlStruct),
             	&impCropControlStruct,
             	sizeof(RW::IMP::tstMyControlStruct),
@@ -163,6 +166,7 @@ int pipeline(tstPipelineParams params)
 
             if (builder.BuildNode(&kernelManager,
             	&impColorInitialiseControlStruct,
+				1,
             	sizeof(RW::IMP::tstMyInitialiseControlStruct),
             	&impColorControlStruct,
             	sizeof(RW::IMP::tstMyControlStruct),
@@ -193,6 +197,7 @@ int pipeline(tstPipelineParams params)
 
             if (builder.BuildNode(&kernelManager,
                          &encodeInitialiseControlStruct,
+						 2,
                          sizeof(RW::ENC::tstMyInitialiseControlStruct),
                          &encodeControlStruct,
                          sizeof(RW::ENC::tstMyControlStruct),
@@ -257,6 +262,7 @@ int pipeline(tstPipelineParams params)
 
             if (builder.BuildNode(&kernelManager,
                 &decodeInitCtrl,
+				3,
                 sizeof(RW::DEC::tstMyInitialiseControlStruct),
                 &decodeCtrl,
                 sizeof(RW::DEC::tstMyControlStruct),
@@ -276,6 +282,7 @@ int pipeline(tstPipelineParams params)
 
             if (builder.BuildNode(&kernelManager,
                 &playerInitCtrl,
+				4,
                 sizeof(RW::VPL::tstMyInitialiseControlStruct),
                 &playerCtrl,
                 sizeof(RW::VPL::tstMyControlStruct),
@@ -382,12 +389,17 @@ int pipeline(tstPipelineParams params)
                 delete decodeInitCtrl.inputParams;
                 decodeInitCtrl.inputParams = nullptr;
 			}
+			//Delete all modules;
             if (decodeCtrl.pOutput)
             {
                 delete decodeCtrl.pOutput;
                 decodeCtrl.pOutput = nullptr;
             }
-        }
+			for (auto var : list)
+			{
+				delete var;
+			}
+       }
     }
     catch (...)
     {
@@ -414,7 +426,7 @@ int main(int argc, char* argv[])
             videoGrabberInitialiseControlStruct.nFrameHeight = 1920;
             videoGrabberInitialiseControlStruct.nFrameWidth = 1080;
             videoGrabberInitialiseControlStruct.nNumberOfFrames = 1000;
-            videoGrabberInitialiseControlStruct.sFileName = "E:\\Video\\BR213_24bbp_5.avi";
+            videoGrabberInitialiseControlStruct.sFileName = "C:\\Projekte\\BR213_24bbp_5.avi";
         }
 
         tstPipelineParams params;

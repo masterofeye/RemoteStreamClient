@@ -11,6 +11,7 @@ namespace RW
 	namespace CORE
 	{
         class Context;
+        class Node;
         class AbstractModule;
 		struct stControlStruct;
 		typedef struct stControlStruct tstControlStruct;
@@ -25,10 +26,11 @@ namespace RW
             uint64_t        m_KernelEnum;
             uint8_t         m_CurrentParameterIndex;
             AbstractModule* m_AbstractModule;
+            Node*            m_CurrentNode;
 			RW::CORE::tstControlStruct *m_ControlStruct;
 			std::shared_ptr<spdlog::logger> m_Logger;
 		public:
-			Kernel(Context *CurrentContext, RW::CORE::tstControlStruct *ControlStruct, std::string KernelName, uint64_t KernelEnum, uint8_t ParameterAmount, AbstractModule const *Module, std::shared_ptr<spdlog::logger> Logger);
+			Kernel(Context *CurrentContext, RW::CORE::tstControlStruct *ControlStruct, std::string KernelName, uint64_t KernelEnum, uint8_t ParameterAmount, AbstractModule const *Module,std::shared_ptr<spdlog::logger> Logger);
 			~Kernel();
 
 
@@ -38,6 +40,9 @@ namespace RW
 			inline void SetKernel(vx_kernel Kernel) { m_Kernel = Kernel; }
 			inline bool IsInitialized() const { return m_Initialize; }
 			inline RW::CORE::tstControlStruct *GetControlStruct(){ return m_ControlStruct; }
+            void Kernel::SetParameter(int i, void* Value);
+            inline void SetCurrentNode(RW::CORE::Node *CurrentNode){ m_CurrentNode = CurrentNode; }
+            inline Node* Node(){ return m_CurrentNode; }
 
 			vx_kernel operator()() const
             {

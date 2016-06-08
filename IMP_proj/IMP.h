@@ -2,7 +2,7 @@
 
 #include "stdint.h"
 #include "opencv2/opencv.hpp"
-#include "opencv2/cudev/common.hpp"
+
 #include <exception>
 #include <QtCore>
 #include <QtPlugin>
@@ -13,6 +13,8 @@
 #ifdef TRACE_PERFORMANCE
 #include "HighResolution\HighResClock.h"
 #endif
+
+
 
 namespace RW
 {
@@ -31,6 +33,9 @@ namespace RW
             {
 				_pgMat = nullptr;
 				_pvImg = nullptr;
+				_bSetImg2 = false;
+				_pInput1 = nullptr;
+				_pInput2 = nullptr;
             };
             cInputBase(int iWidth, int iHeight, void *pvImg)
             { 
@@ -46,13 +51,15 @@ namespace RW
 				_iWidth = iWidth;
 				_iHeight = iHeight;
 			};
-            cInputBase(cInputBase *poInput1, cInputBase *poInput2)
+			cInputBase(cInputBase *poInput1, cInputBase *poInput2, bool bSetImg2)
             { 
-                _pInput1 = poInput1; 
-                _pInput2 = poInput2; 
+				_bSetImg2 = bSetImg2;
+				_pInput1 = poInput1;
+				_pInput2 = poInput2;
             }
             ~cInputBase(){}
 
+			bool _bSetImg2;
             void *_pvImg;
             cv::cuda::GpuMat *_pgMat;
             cInputBase *_pInput1;
@@ -85,10 +92,12 @@ namespace RW
 			stRectStruct *pstFrameRect;
 		}tstMyInitialiseControlStruct;
 
-		typedef struct stMyControlStruct : public CORE::tstControlStruct
+        typedef struct REMOTE_API stMyControlStruct : public CORE::tstControlStruct
 		{
 			cInputBase *pcInput;
 			cOutputBase *pcOutput;
+            void UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType);
+
 		}tstMyControlStruct;
 
 		typedef struct stCropDeinitialiseControlStruct : public CORE::tstDeinitialiseControlStruct

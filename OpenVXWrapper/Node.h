@@ -6,6 +6,7 @@ extern "C"{
 #include "Utils.h"
 #include "spdlog\spdlog.h"
 
+
 namespace RW
 {
 	namespace CORE
@@ -13,17 +14,21 @@ namespace RW
         class Context;
         class Graph;
         class Kernel;
-
+        class Node;
 
         class REMOTE_API Node
 		{
 		private:
 			bool m_Initialize;
 			vx_node m_Node;
+            vx_node m_NextNode;
             vx_graph m_Graph;
             vx_kernel m_Kernel;
             std::vector<vx_reference> m_ListOfReferences;
             std::shared_ptr<spdlog::logger> m_Logger;
+
+
+
 
 		public:
             Node(Graph const *CurrentGraph, Kernel const *Kernel2Connect, std::shared_ptr<spdlog::logger> Logger);
@@ -48,6 +53,12 @@ namespace RW
             tenStatus SetParameterByIndex(uint32_t Index, void* Value, size_t StructSize, Context const *CurrentContext);
             tenStatus SetParameterByIndex(uint32_t Index, uint8_t Value, Context const *CurrentContext);
 			tenStatus SetParameterByIndex(uint32_t Index, std::string Value, Context const *CurrentContext);
+
+			/*
+			*@brief Set a reference of the following node in the graph execution
+			*/
+            inline void SetNextNode(Node *FollowingNode){ m_NextNode = (*FollowingNode)(); }
+            inline vx_node NexttNode(){ return m_NextNode; }
 
         private: 
             tenStatus CreateNode();

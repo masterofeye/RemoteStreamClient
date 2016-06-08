@@ -4,7 +4,9 @@
 #include "Graph.h"
 #include "AbstractModule.hpp"
 
-#include "IMP_Base.h"
+#include "HighResolution\HighResClock.h"
+
+#define TRACE_PERFORMANCE 1
 namespace RW
 {
 	namespace CORE
@@ -201,6 +203,7 @@ namespace RW
 
         tenStatus Node::SetParameterByIndex(uint32_t Index, std::string Value, Context const* CurrentContext)
         {
+
             if (CurrentContext == nullptr)
             {
                 m_Logger->alert("No valid context");
@@ -257,38 +260,57 @@ namespace RW
 
         vx_action VX_CALLBACK Node::NodeCallback(vx_node Node)
         {
-			vx_parameter param = vxGetParameterByIndex(Node, 2);
-			if (param)
-			{
-				vx_status status = VX_FAILURE;
-				vx_array kernenArray, controlStructArray;
-				vx_parameter param[] = { vxGetParameterByIndex(Node, 0), vxGetParameterByIndex(Node, 2) };
-				status = vxQueryParameter((vx_parameter)param[0], VX_PARAMETER_ATTRIBUTE_REF, &kernenArray, sizeof(kernenArray));
-				if (status != VX_SUCCESS)
-				{
-					return VX_FAILURE;
-				}
-				vx_size size;
+#ifdef TRACE_PERFORMANCE
+            auto t1 = RW::CORE::HighResClock::now();
+#endif
+            vx_parameter param = vxGetParameterByIndex(Node, 2);
+            if (param)
+            {
+                vx_status status = VX_FAILURE;
+                vx_array kernenArray, controlStructArray, controlStructArrayNext;
+                vx_parameter param[] = { vxGetParameterByIndex(Node, 0), vxGetParameterByIndex(Node, 2) };
+                status = vxQueryParameter((vx_parameter)param[0], VX_PARAMETER_ATTRIBUTE_REF, &kernenArray, sizeof(kernenArray));
+                if (status != VX_SUCCESS)
+                {
+                    return VX_FAILURE;
+                }
+                vx_size size;
 
-				Kernel *kernel = nullptr;
-				vxAccessArrayRange(kernenArray, 0, 1, &size, (void**)&kernel, VX_READ_AND_WRITE);
+                Kernel *kernel = nullptr;
+                vxAccessArrayRange(kernenArray, 0, 1, &size, (void**)&kernel, VX_READ_AND_WRITE);
+
+                status = vxQueryParameter((vx_parameter)param[1], VX_PARAMETER_ATTRIBUTE_REF, &controlStructArray, sizeof(controlStructArray));
+                if (status != VX_SUCCESS)
+                {
+                    return VX_FAILURE;
+                }
+
+                RW::CORE::tstControlStruct *controlStruct = nullptr;
+                vxAccessArrayRange(controlStructArray, 0, 1, &size, (void**)&controlStruct, VX_READ_AND_WRITE);
+                RW::CORE::tstControlStruct *mycontrolStruct = kernel->GetControlStruct();
+
+                vx_node nextnode = kernel->Node()->NexttNode();
+
+                vx_parameter param2 = vxGetParameterByIndex(nextnode, 2);
+                status = vxQueryParameter((vx_parameter)param2, VX_PARAMETER_ATTRIBUTE_REF, &controlStructArrayNext, sizeof(controlStructArrayNext));
+                if (status != VX_SUCCESS)
+                {
+                    return VX_FAILURE;
+                }
+                RW::CORE::tstControlStruct *controlStructNext = nullptr;
+                vxAccessArrayRange(controlStructArrayNext, 0, 1, &size, (void**)&controlStructNext, VX_READ_AND_WRITE);
+
+                controlStruct->UpdateData(&controlStructNext, RW::CORE::tenSubModule::nenGraphic_Crop);
+                //memcpy(mycontrolStruct, controlStruct, size);
+                vxCommitArrayRange(controlStructArrayNext, 0, 1, controlStructNext);
+            }
 
 
-				status = vxQueryParameter((vx_parameter)param[1], VX_PARAMETER_ATTRIBUTE_REF, &controlStructArray, sizeof(controlStructArray));
-				if (status != VX_SUCCESS)
-				{
-					return VX_FAILURE;
-				}
-
-				RW::CORE::tstControlStruct *controlStruct = nullptr;
-				vxAccessArrayRange(controlStructArray, 0, 1, &size, (void**)&controlStruct, VX_READ_AND_WRITE);
-				RW::CORE::tstControlStruct *mycontrolStruct = kernel->GetControlStruct();
-				RW::IMP::stMyControlStruct *test = static_cast<RW::IMP::stMyControlStruct *>(controlStruct);
-
-				memcpy(mycontrolStruct, controlStruct, size);
-				RW::IMP::stMyControlStruct *test2 = static_cast<RW::IMP::stMyControlStruct *>(mycontrolStruct);
-
-			}
+        
+#ifdef TRACE_PERFORMANCE
+			auto t2 = RW::CORE::HighResClock::now();
+			auto t3 = RW::CORE::HighResClock::diffMilli(t1, t2).count();
+#endif
             return VX_ACTION_CONTINUE;
         }
 	}

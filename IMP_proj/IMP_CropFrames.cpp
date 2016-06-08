@@ -1,4 +1,5 @@
 #include "IMP_CropFrames.hpp"
+#include "opencv2/cudev/common.hpp"
 
 namespace RW{
 	namespace IMP{
