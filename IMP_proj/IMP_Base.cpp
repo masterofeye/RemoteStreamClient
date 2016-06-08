@@ -21,50 +21,40 @@ namespace RW{
             int iWidth = pInput->_iWidth;
             int iHeight = pInput->_iHeight;
 
-            if (pInput->_pvImg)
-            {
-                tenStatus enStatus = tenStatus::nenSuccess;
-                void* pvImg = pInput->_pvImg;
+			m_pgMat = (cv::cuda::GpuMat*)pInput->_pgMat;
+			
+			if (pInput->_pvImg)
+			{
+				tenStatus enStatus = tenStatus::nenSuccess;
+				void* pvImg = pInput->_pvImg;
 
-                if (iWidth == 0 || iHeight == 0)
-                {
-                    m_Logger->error("IMP_Base::tensProcessInput: Invalid parameters (iWidth or iHeight)");
-                    enStatus = tenStatus::nenError;
-                }
+				if (iWidth == 0 || iHeight == 0)
+				{
+					m_Logger->error("IMP_Base::tensProcessInput: Invalid parameters (iWidth or iHeight)");
+					enStatus = tenStatus::nenError;
+				}
 
-                if (pvImg)
-                {
-                    //Some Output data has to be set!
-                    if (pOutput->_pgMat)
-                    {
-                        m_pgMat = m_pgMat;
-                    }
-                    else if (pOutput->_pcuArray)
-                    {
-                    }
-                    else
-                    {
-                        m_Logger->error("IMP_Base::tensProcessInput: Invalid pOutput data!");
-                        return tenStatus::nenError;
-                    }
+				//Some Output data has to be set from outside!
+				if (pOutput->_pgMat)
+				{
+					m_pgMat = pOutput->_pgMat;
+				}
+				else if (pOutput->_pcuArray)
+				{
+				}
+				else
+				{
+					m_Logger->error("IMP_Base::tensProcessInput: Invalid pOutput data!");
+					return tenStatus::nenError;
+				}
 
-                    enStatus = tensConvertArrayToGpuMat(iWidth, iHeight, pvImg);
-                }
-                else
-                {
-                    m_Logger->error("IMP_Base::tensProcessInput: pvImg is empty!");
-                    enStatus = tenStatus::nenError;
-                }
-                return enStatus;
-            }
-            else if (pInput->_pgMat)
+				enStatus = tensConvertArrayToGpuMat(iWidth, iHeight, pvImg);
+				return enStatus;
+			}
+
+			if (!m_pgMat)
             {
-				m_pgMat = (cv::cuda::GpuMat*)pInput->_pgMat; 
-                return tenStatus::nenSuccess;
-            }
-            else
-            {
-                m_Logger->error("IMP_Base::tensProcessInput: _pgMat is empty!");
+                m_Logger->error("IMP_Base::tensProcessInput: m_pgMat is empty!");
                 return tenStatus::nenError;
             }
 		}
