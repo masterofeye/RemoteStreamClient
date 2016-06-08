@@ -264,6 +264,8 @@ namespace RW
             }
         }
 
+        RW::CORE::tenSubModule Kernel::SubModuleType(){ return m_AbstractModule->SubModulType(); }
+
 
 	}
 }

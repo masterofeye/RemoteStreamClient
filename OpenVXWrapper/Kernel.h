@@ -43,6 +43,7 @@ namespace RW
             void Kernel::SetParameter(int i, void* Value);
             inline void SetCurrentNode(RW::CORE::Node *CurrentNode){ m_CurrentNode = CurrentNode; }
             inline Node* Node(){ return m_CurrentNode; }
+            RW::CORE::tenSubModule SubModuleType();
 
 			vx_kernel operator()() const
             {
