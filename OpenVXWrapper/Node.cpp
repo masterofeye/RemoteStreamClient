@@ -267,7 +267,7 @@ namespace RW
             if (param)
             {
                 vx_status status = VX_FAILURE;
-                vx_array kernenArray, controlStructArray, controlStructArrayNext;
+                vx_array kernenArray, kernenArrayNext, controlStructArray, controlStructArrayNext;
                 vx_parameter param[] = { vxGetParameterByIndex(Node, 0), vxGetParameterByIndex(Node, 2) };
                 status = vxQueryParameter((vx_parameter)param[0], VX_PARAMETER_ATTRIBUTE_REF, &kernenArray, sizeof(kernenArray));
                 if (status != VX_SUCCESS)
@@ -291,8 +291,21 @@ namespace RW
 
                 vx_node nextnode = kernel->Node()->NexttNode();
 
-                vx_parameter param2 = vxGetParameterByIndex(nextnode, 2);
-                status = vxQueryParameter((vx_parameter)param2, VX_PARAMETER_ATTRIBUTE_REF, &controlStructArrayNext, sizeof(controlStructArrayNext));
+
+                vx_parameter paramNext[] = { vxGetParameterByIndex(nextnode, 0), vxGetParameterByIndex(nextnode, 2) };
+
+
+
+                status = vxQueryParameter((vx_parameter)paramNext[0], VX_PARAMETER_ATTRIBUTE_REF, &kernenArrayNext, sizeof(kernenArrayNext));
+                if (status != VX_SUCCESS)
+                {
+                    return VX_FAILURE;
+                }
+                Kernel *kernelNext = nullptr;
+                vxAccessArrayRange(kernenArrayNext, 0, 1, &size, (void**)&kernelNext, VX_READ_AND_WRITE);
+
+
+                status = vxQueryParameter((vx_parameter)paramNext[1], VX_PARAMETER_ATTRIBUTE_REF, &controlStructArrayNext, sizeof(controlStructArrayNext));
                 if (status != VX_SUCCESS)
                 {
                     return VX_FAILURE;
@@ -300,9 +313,10 @@ namespace RW
                 RW::CORE::tstControlStruct *controlStructNext = nullptr;
                 vxAccessArrayRange(controlStructArrayNext, 0, 1, &size, (void**)&controlStructNext, VX_READ_AND_WRITE);
 
-                controlStruct->UpdateData(&controlStructNext, RW::CORE::tenSubModule::nenGraphic_Crop);
+                controlStruct->UpdateData(&controlStructNext, kernelNext->SubModuleType());
                 //memcpy(mycontrolStruct, controlStruct, size);
                 vxCommitArrayRange(controlStructArrayNext, 0, 1, controlStructNext);
+                vxCommitArrayRange(kernenArrayNext, 0, 1, kernelNext);
             }
 
 
