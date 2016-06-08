@@ -33,27 +33,29 @@ namespace RW
             {
 				_pgMat = nullptr;
 				_pvImg = nullptr;
-				_bSetImg2 = false;
 				_pInput1 = nullptr;
 				_pInput2 = nullptr;
-            };
-            cInputBase(int iWidth, int iHeight, void *pvImg)
+				_bSetImg2 = false;
+				_bImportImg = false;
+			};
+			cInputBase(int iWidth, int iHeight, void *pvImg, bool bSetImg2 = false, bool bImportImg = true)
             { 
 				_pvImg = pvImg;
 				_pgMat = nullptr;
 				_iWidth = iWidth;
 				_iHeight = iHeight;
+				_bSetImg2 = bSetImg2;
+				_bImportImg = bImportImg;
 			};
-			cInputBase(int iWidth, int iHeight, cv::cuda::GpuMat *pgMat)
+			cInputBase(cv::cuda::GpuMat *pgMat, bool bSetImg2 = false, bool bImportImg = false)
             { 
                 _pgMat = pgMat;
 				_pvImg = nullptr;
-				_iWidth = iWidth;
-				_iHeight = iHeight;
-			};
-			cInputBase(cInputBase *poInput1, cInputBase *poInput2, bool bSetImg2)
-            { 
 				_bSetImg2 = bSetImg2;
+				_bImportImg = bImportImg;
+			};
+			cInputBase(cInputBase *poInput1, cInputBase *poInput2)
+            { 
 				_pInput1 = poInput1;
 				_pInput2 = poInput2;
             }
@@ -66,26 +68,35 @@ namespace RW
             cInputBase *_pInput2;
 			int _iWidth;
 			int _iHeight; 
-        };
+			bool _bImportImg;
+		};
 
         class cOutputBase{
         public:
             cOutputBase()
             {
+				_pcuArray = nullptr;
+				_pgMat = nullptr;
+				_bOutputGPU = false;
             };
-            cOutputBase(cv::cuda::GpuMat *pgMat)
+			cOutputBase(cv::cuda::GpuMat *pgMat, bool bOutputGPU = false)
             {
                 _pgMat = pgMat;
-            };
-            cOutputBase(CUarray *pcuArray)
+				_pcuArray = nullptr;
+				_bOutputGPU = bOutputGPU;
+			};
+            cOutputBase(CUarray *pcuArray, bool bOutputGPU = true)
             {
                 _pcuArray = pcuArray;
-            };
+				_pgMat = nullptr;
+				_bOutputGPU = bOutputGPU;
+			};
 			~cOutputBase(){}
 
 			cv::cuda::GpuMat *_pgMat;
             CUarray *_pcuArray;
-        };
+			bool _bOutputGPU;
+		};
 
 		typedef struct stMyInitialiseControlStruct : public CORE::tstInitialiseControlStruct
 		{

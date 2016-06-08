@@ -8,7 +8,8 @@ namespace RW{
 
 		tenStatus IMP_Base::tensProcessInput(cInputBase *pInput, cOutputBase *pOutput)
 		{
-            if (!pInput)
+			tenStatus enStatus = tenStatus::nenSuccess;
+			if (!pInput)
             {
 				m_Logger->error("IMP_Base::tensProcessInput: pInput is empty!");
 				return tenStatus::nenError;
@@ -18,16 +19,18 @@ namespace RW{
                 m_Logger->error("IMP_Base::tensProcessInput: pOutput is empty!");
                 return tenStatus::nenError;
             }
-            int iWidth = pInput->_iWidth;
-            int iHeight = pInput->_iHeight;
-
-			m_pgMat = (cv::cuda::GpuMat*)pInput->_pgMat;
-			
-			if (pInput->_pvImg)
+		
+			if (pInput->_bImportImg)
 			{
-				tenStatus enStatus = tenStatus::nenSuccess;
+				if (!pInput->_pvImg)
+				{
+					m_Logger->error("IMP_Base::tensProcessInput: Empty Input data!");
+					enStatus = tenStatus::nenError;
+				}
 				void* pvImg = pInput->_pvImg;
 
+				int iWidth = pInput->_iWidth;
+				int iHeight = pInput->_iHeight;
 				if (iWidth == 0 || iHeight == 0)
 				{
 					m_Logger->error("IMP_Base::tensProcessInput: Invalid parameters (iWidth or iHeight)");
@@ -35,43 +38,42 @@ namespace RW{
 				}
 
 				//Some Output data has to be set from outside!
-				if (pOutput->_pgMat)
+				if (pInput->_bImportImg && pOutput->_bOutputGPU)
+				{
+					m_pgMat = new cv::cuda::GpuMat();
+					m_bInternalGpuMat = true;
+				}
+				else if (pOutput->_pgMat)
 				{
 					m_pgMat = pOutput->_pgMat;
 				}
-				else if (pOutput->_pcuArray)
-				{
-				}
 				else
 				{
-					m_Logger->error("IMP_Base::tensProcessInput: Invalid pOutput data!");
-					return tenStatus::nenError;
+					m_Logger->error("IMP_Base::tensProcessInput: No GpuMat available!");
+					enStatus = tenStatus::nenError;
 				}
-
 				enStatus = tensConvertArrayToGpuMat(iWidth, iHeight, pvImg);
-				return enStatus;
+			}
+			else
+			{
+				m_pgMat = (cv::cuda::GpuMat*)pInput->_pgMat;
 			}
 
 			if (!m_pgMat)
             {
                 m_Logger->error("IMP_Base::tensProcessInput: m_pgMat is empty!");
-                return tenStatus::nenError;
+				enStatus = tenStatus::nenError;
             }
+			return enStatus;
 		}
 
 		tenStatus IMP_Base::tensConvertArrayToGpuMat(int iWidth, int iHeight, void *pvImg)
 		{
 			tenStatus enStatus = tenStatus::nenSuccess;
 
-            if (!m_pgMat)
-            {
-                m_bInternalGpuMat = true;
-                m_pgMat = new cv::cuda::GpuMat();
-            }
-
 			if (pvImg)
 			{
-                cv::cuda::GpuMat gMat = cv::cuda::GpuMat(iHeight, iWidth, CV_8UC4, pvImg, cv::Mat::AUTO_STEP);
+                cv::cuda::GpuMat gMat = cv::cuda::GpuMat(iHeight, iWidth, CV_8UC3, pvImg, cv::Mat::AUTO_STEP);
                 
                 *m_pgMat = gMat;
             }
@@ -94,7 +96,7 @@ namespace RW{
                 return tenStatus::nenError;
             }
 
-            if (pOutput->_pcuArray)
+            if (pOutput->_bOutputGPU)
             {
                 tenStatus enStatus = tenStatus::nenSuccess;
                 if (m_pgMat == nullptr)
@@ -124,22 +126,17 @@ namespace RW{
                     m_pgMat = nullptr;
                     m_bInternalGpuMat = false;
                 }
-                if (pOutput->_pcuArray == nullptr)
+                if (!pOutput->_pcuArray)
                 {
-                    m_Logger->error("IMP_Base::tensProcessOutput: cudaMemcpy2DToArray(...) did not succeed!");
+                    m_Logger->error("IMP_Base::tensProcessOutput: Converting to CUarray failed!");
                     enStatus = tenStatus::nenError;
                 }
                 return enStatus;
             }
-            else if (pOutput->_pgMat)
+            else
             {
                 pOutput->_pgMat = m_pgMat;
                 return tenStatus::nenSuccess;
-            }
-            else
-            {
-                m_Logger->error("IMP_Base::tensProcessOutput: No valid data to process!");
-                return tenStatus::nenError;;
             }
         }
 	}
