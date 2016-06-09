@@ -18,25 +18,25 @@
 #endif
 
 QT_BEGIN_MOC_NAMESPACE
-struct qt_meta_stringdata_RW__IMP__IMP_ConvColorFrames_t {
+struct qt_meta_stringdata_RW__IMP__COLOR__IMP_ConvColorFrames_t {
     QByteArrayData data[1];
-    char stringdata0[29];
+    char stringdata0[36];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
-    qptrdiff(offsetof(qt_meta_stringdata_RW__IMP__IMP_ConvColorFrames_t, stringdata0) + ofs \
+    qptrdiff(offsetof(qt_meta_stringdata_RW__IMP__COLOR__IMP_ConvColorFrames_t, stringdata0) + ofs \
         - idx * sizeof(QByteArrayData)) \
     )
-static const qt_meta_stringdata_RW__IMP__IMP_ConvColorFrames_t qt_meta_stringdata_RW__IMP__IMP_ConvColorFrames = {
+static const qt_meta_stringdata_RW__IMP__COLOR__IMP_ConvColorFrames_t qt_meta_stringdata_RW__IMP__COLOR__IMP_ConvColorFrames = {
     {
-QT_MOC_LITERAL(0, 0, 28) // "RW::IMP::IMP_ConvColorFrames"
+QT_MOC_LITERAL(0, 0, 35) // "RW::IMP::COLOR::IMP_ConvColor..."
 
     },
-    "RW::IMP::IMP_ConvColorFrames"
+    "RW::IMP::COLOR::IMP_ConvColorFrames"
 };
 #undef QT_MOC_LITERAL
 
-static const uint qt_meta_data_RW__IMP__IMP_ConvColorFrames[] = {
+static const uint qt_meta_data_RW__IMP__COLOR__IMP_ConvColorFrames[] = {
 
  // content:
        7,       // revision
@@ -52,7 +52,7 @@ static const uint qt_meta_data_RW__IMP__IMP_ConvColorFrames[] = {
        0        // eod
 };
 
-void RW::IMP::IMP_ConvColorFrames::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
+void RW::IMP::COLOR::IMP_ConvColorFrames::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
 {
     Q_UNUSED(_o);
     Q_UNUSED(_id);
@@ -60,26 +60,26 @@ void RW::IMP::IMP_ConvColorFrames::qt_static_metacall(QObject *_o, QMetaObject::
     Q_UNUSED(_a);
 }
 
-const QMetaObject RW::IMP::IMP_ConvColorFrames::staticMetaObject = {
-    { &RW::CORE::AbstractModule::staticMetaObject, qt_meta_stringdata_RW__IMP__IMP_ConvColorFrames.data,
-      qt_meta_data_RW__IMP__IMP_ConvColorFrames,  qt_static_metacall, Q_NULLPTR, Q_NULLPTR}
+const QMetaObject RW::IMP::COLOR::IMP_ConvColorFrames::staticMetaObject = {
+    { &RW::CORE::AbstractModule::staticMetaObject, qt_meta_stringdata_RW__IMP__COLOR__IMP_ConvColorFrames.data,
+      qt_meta_data_RW__IMP__COLOR__IMP_ConvColorFrames,  qt_static_metacall, Q_NULLPTR, Q_NULLPTR}
 };
 
 
-const QMetaObject *RW::IMP::IMP_ConvColorFrames::metaObject() const
+const QMetaObject *RW::IMP::COLOR::IMP_ConvColorFrames::metaObject() const
 {
     return QObject::d_ptr->metaObject ? QObject::d_ptr->dynamicMetaObject() : &staticMetaObject;
 }
 
-void *RW::IMP::IMP_ConvColorFrames::qt_metacast(const char *_clname)
+void *RW::IMP::COLOR::IMP_ConvColorFrames::qt_metacast(const char *_clname)
 {
     if (!_clname) return Q_NULLPTR;
-    if (!strcmp(_clname, qt_meta_stringdata_RW__IMP__IMP_ConvColorFrames.stringdata0))
+    if (!strcmp(_clname, qt_meta_stringdata_RW__IMP__COLOR__IMP_ConvColorFrames.stringdata0))
         return static_cast<void*>(const_cast< IMP_ConvColorFrames*>(this));
     return RW::CORE::AbstractModule::qt_metacast(_clname);
 }
 
-int RW::IMP::IMP_ConvColorFrames::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
+int RW::IMP::COLOR::IMP_ConvColorFrames::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 {
     _id = RW::CORE::AbstractModule::qt_metacall(_c, _id, _a);
     if (_id < 0)

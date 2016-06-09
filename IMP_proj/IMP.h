@@ -20,100 +20,49 @@ namespace RW
 {
     namespace IMP
     {
-        typedef struct stRectStruct{
-            int iPosX;
-            int iPosY;
-            int iWidth;
-            int iHeight;
-        }tstRectStruct;
+		class cInputBase{
+		public:
+			typedef struct stImportImg
+			{
+				void *pvImg;
+				int iWidth;
+				int iHeight;
 
-        class cInputBase{
-        public:
-            cInputBase()
-            {
+				stImportImg(int width, int height, void* data)
+				{
+					iWidth = width;
+					iHeight = height;
+					pvImg = data;
+				}
+				stImportImg()
+				{
+					pvImg = nullptr;
+				}
+			}tstImportImg;
+
+
+			cInputBase()
+			{
 				_pgMat = nullptr;
-				_pvImg = nullptr;
-				_pInput1 = nullptr;
-				_pInput2 = nullptr;
-				_bSetImg2 = false;
 				_bImportImg = false;
 			};
-			cInputBase(int iWidth, int iHeight, void *pvImg, bool bSetImg2 = false, bool bImportImg = true)
-            { 
-				_pvImg = pvImg;
+			cInputBase(tstImportImg stImg, bool bImportImg = false)
+			{
+				_stImg = stImg;
 				_pgMat = nullptr;
-				_iWidth = iWidth;
-				_iHeight = iHeight;
-				_bSetImg2 = bSetImg2;
 				_bImportImg = bImportImg;
 			};
-			cInputBase(cv::cuda::GpuMat *pgMat, bool bSetImg2 = false, bool bImportImg = false)
-            { 
-                _pgMat = pgMat;
-				_pvImg = nullptr;
-				_bSetImg2 = bSetImg2;
+			cInputBase(cv::cuda::GpuMat *pgMat, bool bImportImg = false)
+			{
+				_pgMat = pgMat;
 				_bImportImg = bImportImg;
 			};
-			cInputBase(cInputBase *poInput1, cInputBase *poInput2)
-            { 
-				_pInput1 = poInput1;
-				_pInput2 = poInput2;
-            }
-            ~cInputBase(){}
 
-			bool _bSetImg2;
-            void *_pvImg;
-            cv::cuda::GpuMat *_pgMat;
-            cInputBase *_pInput1;
-            cInputBase *_pInput2;
-			int _iWidth;
-			int _iHeight; 
+			~cInputBase(){}
+
+			tstImportImg _stImg;
+			cv::cuda::GpuMat *_pgMat;
 			bool _bImportImg;
 		};
-
-        class cOutputBase{
-        public:
-            cOutputBase()
-            {
-				_pcuArray = nullptr;
-				_pgMat = nullptr;
-				_bOutputGPU = false;
-            };
-			cOutputBase(cv::cuda::GpuMat *pgMat, bool bOutputGPU = false)
-            {
-                _pgMat = pgMat;
-				_pcuArray = nullptr;
-				_bOutputGPU = bOutputGPU;
-			};
-            cOutputBase(CUarray *pcuArray, bool bOutputGPU = true)
-            {
-                _pcuArray = pcuArray;
-				_pgMat = nullptr;
-				_bOutputGPU = bOutputGPU;
-			};
-			~cOutputBase(){}
-
-			cv::cuda::GpuMat *_pgMat;
-            CUarray *_pcuArray;
-			bool _bOutputGPU;
-		};
-
-		typedef struct stMyInitialiseControlStruct : public CORE::tstInitialiseControlStruct
-		{
-			stRectStruct *pstFrameRect;
-		}tstMyInitialiseControlStruct;
-
-        typedef struct REMOTE_API stMyControlStruct : public CORE::tstControlStruct
-		{
-			cInputBase *pcInput;
-			cOutputBase *pcOutput;
-            void UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType);
-
-		}tstMyControlStruct;
-
-		typedef struct stCropDeinitialiseControlStruct : public CORE::tstDeinitialiseControlStruct
-		{
-		}tstMyDeinitialiseControlStruct;
-
 	}
 }

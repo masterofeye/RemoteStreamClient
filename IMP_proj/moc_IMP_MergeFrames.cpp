@@ -18,25 +18,25 @@
 #endif
 
 QT_BEGIN_MOC_NAMESPACE
-struct qt_meta_stringdata_RW__IMP__IMP_MergeFrames_t {
+struct qt_meta_stringdata_RW__IMP__MERGE__IMP_MergeFrames_t {
     QByteArrayData data[1];
-    char stringdata0[25];
+    char stringdata0[32];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
-    qptrdiff(offsetof(qt_meta_stringdata_RW__IMP__IMP_MergeFrames_t, stringdata0) + ofs \
+    qptrdiff(offsetof(qt_meta_stringdata_RW__IMP__MERGE__IMP_MergeFrames_t, stringdata0) + ofs \
         - idx * sizeof(QByteArrayData)) \
     )
-static const qt_meta_stringdata_RW__IMP__IMP_MergeFrames_t qt_meta_stringdata_RW__IMP__IMP_MergeFrames = {
+static const qt_meta_stringdata_RW__IMP__MERGE__IMP_MergeFrames_t qt_meta_stringdata_RW__IMP__MERGE__IMP_MergeFrames = {
     {
-QT_MOC_LITERAL(0, 0, 24) // "RW::IMP::IMP_MergeFrames"
+QT_MOC_LITERAL(0, 0, 31) // "RW::IMP::MERGE::IMP_MergeFrames"
 
     },
-    "RW::IMP::IMP_MergeFrames"
+    "RW::IMP::MERGE::IMP_MergeFrames"
 };
 #undef QT_MOC_LITERAL
 
-static const uint qt_meta_data_RW__IMP__IMP_MergeFrames[] = {
+static const uint qt_meta_data_RW__IMP__MERGE__IMP_MergeFrames[] = {
 
  // content:
        7,       // revision
@@ -52,7 +52,7 @@ static const uint qt_meta_data_RW__IMP__IMP_MergeFrames[] = {
        0        // eod
 };
 
-void RW::IMP::IMP_MergeFrames::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
+void RW::IMP::MERGE::IMP_MergeFrames::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
 {
     Q_UNUSED(_o);
     Q_UNUSED(_id);
@@ -60,26 +60,26 @@ void RW::IMP::IMP_MergeFrames::qt_static_metacall(QObject *_o, QMetaObject::Call
     Q_UNUSED(_a);
 }
 
-const QMetaObject RW::IMP::IMP_MergeFrames::staticMetaObject = {
-    { &RW::CORE::AbstractModule::staticMetaObject, qt_meta_stringdata_RW__IMP__IMP_MergeFrames.data,
-      qt_meta_data_RW__IMP__IMP_MergeFrames,  qt_static_metacall, Q_NULLPTR, Q_NULLPTR}
+const QMetaObject RW::IMP::MERGE::IMP_MergeFrames::staticMetaObject = {
+    { &RW::CORE::AbstractModule::staticMetaObject, qt_meta_stringdata_RW__IMP__MERGE__IMP_MergeFrames.data,
+      qt_meta_data_RW__IMP__MERGE__IMP_MergeFrames,  qt_static_metacall, Q_NULLPTR, Q_NULLPTR}
 };
 
 
-const QMetaObject *RW::IMP::IMP_MergeFrames::metaObject() const
+const QMetaObject *RW::IMP::MERGE::IMP_MergeFrames::metaObject() const
 {
     return QObject::d_ptr->metaObject ? QObject::d_ptr->dynamicMetaObject() : &staticMetaObject;
 }
 
-void *RW::IMP::IMP_MergeFrames::qt_metacast(const char *_clname)
+void *RW::IMP::MERGE::IMP_MergeFrames::qt_metacast(const char *_clname)
 {
     if (!_clname) return Q_NULLPTR;
-    if (!strcmp(_clname, qt_meta_stringdata_RW__IMP__IMP_MergeFrames.stringdata0))
+    if (!strcmp(_clname, qt_meta_stringdata_RW__IMP__MERGE__IMP_MergeFrames.stringdata0))
         return static_cast<void*>(const_cast< IMP_MergeFrames*>(this));
     return RW::CORE::AbstractModule::qt_metacast(_clname);
 }
 
-int RW::IMP::IMP_MergeFrames::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
+int RW::IMP::MERGE::IMP_MergeFrames::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 {
     _id = RW::CORE::AbstractModule::qt_metacall(_c, _id, _a);
     if (_id < 0)

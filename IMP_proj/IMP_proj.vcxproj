@@ -143,7 +143,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="IMP.cpp" />
     <ClCompile Include="IMP_Base.cpp" />
     <ClCompile Include="IMP_ConvColorFrames.cpp" />
     <ClCompile Include="IMP_CropFrames.cpp" />

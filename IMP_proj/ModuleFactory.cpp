@@ -22,18 +22,18 @@ namespace RW{
 			tenStatus status = tenStatus::nenError;
 			switch (enModule)
 			{
+			case CORE::tenSubModule::nenGraphic_Crop:
+				Module = new IMP::CROP::IMP_CropFrames(m_Logger);
+				if (Module != nullptr)
+					status = tenStatus::nenSuccess;
+				break;
 			case CORE::tenSubModule::nenGraphic_Merge:
-				Module = new IMP::IMP_MergeFrames(m_Logger);
+				Module = new IMP::MERGE::IMP_MergeFrames(m_Logger);
 				if (Module != nullptr)
 					status = tenStatus::nenSuccess;
 				break;
 			case CORE::tenSubModule::nenGraphic_Color:
-				Module = new IMP::IMP_ConvColorFrames(m_Logger);
-				if (Module != nullptr)
-					status = tenStatus::nenSuccess;
-				break;
-			case CORE::tenSubModule::nenGraphic_Crop:
-				Module = new IMP::IMP_CropFrames(m_Logger);
+				Module = new IMP::COLOR::IMP_ConvColorFrames(m_Logger);
 				if (Module != nullptr)
 					status = tenStatus::nenSuccess;
 				break;
