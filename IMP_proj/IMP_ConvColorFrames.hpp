@@ -16,7 +16,7 @@ namespace RW
 			typedef struct REMOTE_API stMyControlStruct : public CORE::tstControlStruct
 			{
 				cInputBase *pInput;
-				CUarray *pcuArray;
+				CUarray cuArray;
 				void UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType);
 
 			}tstMyControlStruct;

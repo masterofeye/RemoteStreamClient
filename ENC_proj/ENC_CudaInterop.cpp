@@ -322,9 +322,13 @@ namespace RW{
 			// splitting up channels
 			// NEED TO TEST IF OFFSETS ARE CORRECT! WITH A TEST FRAME
 			CUarray arr[3];
-			__cu(cuMemcpyAtoA(arr[0], 0, cuArray, 0, width * height));
-			__cu(cuMemcpyAtoA(arr[1], 0, cuArray, sizeof(arr[0]), width * height / 4));
-			__cu(cuMemcpyAtoA(arr[2], 0, cuArray, sizeof(arr[0]) + sizeof(arr[1]), width * height / 4));
+			CUresult err = CUDA_SUCCESS;
+			err = cuMemcpyAtoA(arr[0], 0, cuArray, 0, width * height * sizeof(uint8_t) * 3);
+			if (err != CUDA_SUCCESS) return NV_ENC_ERR_UNSUPPORTED_PARAM;
+			err = cuMemcpyAtoA(arr[1], 0, cuArray, sizeof(arr[0]), width * height / 4 * sizeof(uint8_t) * 3);
+			if (err != CUDA_SUCCESS) return NV_ENC_ERR_UNSUPPORTED_PARAM;
+			err = cuMemcpyAtoA(arr[2], 0, cuArray, sizeof(arr[0]) + sizeof(arr[1]), width * height / 4 * sizeof(uint8_t) * 3);
+			if (err != CUDA_SUCCESS) return NV_ENC_ERR_UNSUPPORTED_PARAM;
 
 			// copy luma
 			CUDA_MEMCPY2D copyParam;

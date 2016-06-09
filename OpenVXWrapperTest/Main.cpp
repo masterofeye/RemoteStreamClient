@@ -189,7 +189,7 @@ int pipeline(tstPipelineParams params)
 			RW::IMP::COLOR::tstMyControlStruct impColorControlStruct;
             {
 				impColorControlStruct.pInput = new RW::IMP::cInputBase(impMergeControlStruct.pOutput);
-				impColorControlStruct.pcuArray = new CUarray();
+				impColorControlStruct.cuArray = nullptr;
 			}
 			RW::IMP::COLOR::tstMyDeinitialiseControlStruct impColorDeinitialiseControlStruct;
 
@@ -218,7 +218,7 @@ int pipeline(tstPipelineParams params)
             }
             RW::ENC::tstMyControlStruct encodeControlStruct;
             {
-				encodeControlStruct.pcuYUVArray = *impColorControlStruct.pcuArray;
+				encodeControlStruct.pcuYUVArray = impColorControlStruct.cuArray;
                 encodeControlStruct.pPayload = new RW::tstBitStream();
                 tstPayloadMsg Msg;
                 Msg.iTimestamp = videoGrabberControlStruct.nCurrentPositionMSec;
@@ -359,7 +359,7 @@ int pipeline(tstPipelineParams params)
 			SAFE_DELETE(impMergeControlStruct.pvInput);
 
 			SAFE_DELETE(impColorControlStruct.pInput);
-			SAFE_DELETE(impColorControlStruct.pcuArray);
+			//SAFE_DELETE(impColorControlStruct.pcuArray);
 
 			SAFE_DELETE(encodeInitialiseControlStruct.pstEncodeConfig);
 			SAFE_DELETE(encodeControlStruct.pPayload);

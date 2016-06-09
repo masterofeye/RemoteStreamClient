@@ -27,7 +27,7 @@ namespace RW{
 				{
 					RW::ENC::tstMyControlStruct *data = static_cast<RW::ENC::tstMyControlStruct*>(*Data);
 
-					data->pcuYUVArray = *this->pcuArray;
+					data->pcuYUVArray = this->cuArray;
 					break;
 				}
 				default:
@@ -81,11 +81,6 @@ namespace RW{
 					m_Logger->error("DoRender: pInput is empty!");
 					return tenStatus::nenError;
 				}
-				if (!data->pcuArray)
-				{
-					m_Logger->error("DoRender: pcuArray is empty!");
-					return tenStatus::nenError;
-				}
 
 				bool bInternalGpuMat = false;
 				cv::cuda::GpuMat *pgMat = data->pInput->_pgMat;
@@ -115,14 +110,16 @@ namespace RW{
 				//cuMemcpy2D(pCopy);
 
 				size_t pitch;
-				cudaArray *u_dev = (cudaArray*)*data->pcuArray;
-				cudaError err = cudaMallocPitch((void**)&u_dev, &pitch, pgMat->cols, pgMat->rows);
+				cudaArray *u_dev = (cudaArray*)data->cuArray;
+				cudaError err = cudaMallocPitch((void**)&u_dev, &pitch, pgMat->cols * sizeof(uint8_t) * 3 /*channels*/, pgMat->rows);
 				if (err != cudaSuccess)
 					return tenStatus::nenError;
 
-				err = cudaMemcpy2D(u_dev, pitch, pgMat->data, pgMat->step, pgMat->cols * sizeof(uint8_t), pgMat->rows, cudaMemcpyDeviceToDevice);
+				err = cudaMemcpy2D(u_dev, pitch, pgMat->data, pgMat->step, pgMat->cols * sizeof(uint8_t) * 3 /*channels*/, pgMat->rows, cudaMemcpyDeviceToDevice);
 				if (err != cudaSuccess)
 					return tenStatus::nenError;
+
+				data->cuArray = (CUarray)u_dev;
 
 				if (bInternalGpuMat)
 				{
@@ -130,7 +127,7 @@ namespace RW{
 					pgMat = nullptr;
 				}
 
-				if (enStatus != tenStatus::nenSuccess || !data->pcuArray)
+				if (enStatus != tenStatus::nenSuccess || !data->cuArray)
 				{
 					m_Logger->error("DoRender: impBase.tensProcessOutput did not succeed!");
 				}
