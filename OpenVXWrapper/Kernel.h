@@ -67,6 +67,7 @@ namespace RW
             RW::tenStatus KernelFnc(void* ControlStruct);
         private:
             tenStatus AddKernel(uint8_t ParamterAmount);
+  
 		};
 
 	}

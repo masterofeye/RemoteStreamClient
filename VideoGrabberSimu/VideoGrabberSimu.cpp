@@ -2,7 +2,9 @@
 
 #include <opencv2\videoio.hpp>
 #include "opencv2/opencv.hpp"
-#include "..\IMP_proj\IMP.h"
+#include "..\IMP_proj\IMP_ConvColorFrames.hpp"
+#include "..\IMP_proj\IMP_CropFrames.hpp"
+#include "..\IMP_proj\IMP_MergeFrames.hpp"
 #include "HighResolution\HighResClock.h"
 using namespace cv;
 
@@ -10,31 +12,28 @@ namespace RW
 {
 	namespace VG
 	{
-  
-
-
         void stVideoGrabberControlStruct::UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType)
         {
             switch (SubModuleType)
             {
-            case CORE::tenSubModule::nenGraphic_Color:
-            case CORE::tenSubModule::nenGraphic_Crop:
-            {
-                RW::IMP::tstMyControlStruct *data = static_cast<RW::IMP::tstMyControlStruct*>(*Data);
-                data->pcInput->_pvImg = pOutputData->pBuffer;
-                break;
-            }
+			case CORE::tenSubModule::nenGraphic_Crop:
+			{
+				RW::IMP::CROP::tstMyControlStruct *data = static_cast<RW::IMP::CROP::tstMyControlStruct*>(*Data);
+				data->pInput->_stImg.pvImg = pOutputData->pBuffer;
+				break;
+			}
 			case CORE::tenSubModule::nenGraphic_Merge:
 			{
-				RW::IMP::tstMyControlStruct *data = static_cast<RW::IMP::tstMyControlStruct*>(*Data);
-				if (data->pcInput->_bSetImg2)
-				{
-					data->pcInput->_pInput2->_pvImg = pOutputData->pBuffer;
-				}
-				else 
-				{
-					data->pcInput->_pInput1->_pvImg = pOutputData->pBuffer;
-				}
+                RW::IMP::MERGE::tstMyControlStruct *data = static_cast<RW::IMP::MERGE::tstMyControlStruct*>(*Data);
+				RW::IMP::cInputBase::tstImportImg stImp = { 0, 0, pOutputData->pBuffer };
+				RW::IMP::cInputBase cBase( stImp );
+                data->pvInput->push_back( &cBase );
+                break;
+            }
+			case CORE::tenSubModule::nenGraphic_Color:
+			{
+				RW::IMP::COLOR::tstMyControlStruct *data = static_cast<RW::IMP::COLOR::tstMyControlStruct*>(*Data);
+				data->pInput->_stImg.pvImg = pOutputData->pBuffer;
 				break;
 			}
 			default:
@@ -136,7 +135,7 @@ namespace RW
 			{
 				size_t nFrameSize = rawFrame.total() * rawFrame.elemSize();
                 pControl->pOutputData->pBuffer = (void*)rawFrame.data;
-				pControl->pOutputData->u32Size = nFrameSize;
+				pControl->pOutputData->u32Size = (uint32_t)nFrameSize;
 				pControl->nCurrentFrameNumber = m_videoCapture.get(CAP_PROP_POS_FRAMES); // nFrameCounter++;
                 pControl->nCurrentPositionMSec = m_videoCapture.get(CAP_PROP_POS_MSEC);
 #ifdef TRACE_PERFORMANCE

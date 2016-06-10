@@ -7,6 +7,10 @@
 #include "HighResolution\HighResClock.h"
 
 #define TRACE_PERFORMANCE 1
+
+#define NODE_PARAM_KERNEL_INDEX 0
+#define NODE_PARAM_CONTROLSTRUCT_INDEX 2
+
 namespace RW
 {
 	namespace CORE
@@ -258,72 +262,101 @@ namespace RW
             return tenStatus::nenSuccess;
         }
 
+
         vx_action VX_CALLBACK Node::NodeCallback(vx_node Node)
         {
 #ifdef TRACE_PERFORMANCE
             auto t1 = RW::CORE::HighResClock::now();
 #endif
-            vx_parameter param = vxGetParameterByIndex(Node, 2);
-            if (param)
+            vx_status status = VX_FAILURE;
+            vx_array kArrayCurrentNode = nullptr,
+                kArrayNextNode = nullptr,
+                csArrayCurrentNode = nullptr,
+                csArrayNextNode = nullptr;
+
+            //Get parameter from the current node (0 .. Kernel, 2 ... tstConstrolStruct)
+            vx_parameter param[] = { vxGetParameterByIndex(Node, NODE_PARAM_KERNEL_INDEX), vxGetParameterByIndex(Node, NODE_PARAM_CONTROLSTRUCT_INDEX) };
+            if (param[0] != nullptr && param[1] != nullptr)
             {
-                vx_status status = VX_FAILURE;
-                vx_array kernenArray, kernenArrayNext, controlStructArray, controlStructArrayNext;
-                vx_parameter param[] = { vxGetParameterByIndex(Node, 0), vxGetParameterByIndex(Node, 2) };
-                status = vxQueryParameter((vx_parameter)param[0], VX_PARAMETER_ATTRIBUTE_REF, &kernenArray, sizeof(kernenArray));
+                //Get the "wrapper" array from the parameter
+                status = vxQueryParameter((vx_parameter)param[0], VX_PARAMETER_ATTRIBUTE_REF, &kArrayCurrentNode, sizeof(kArrayCurrentNode));
                 if (status != VX_SUCCESS)
                 {
                     return VX_FAILURE;
                 }
+
+                //get the Kernel from the the wrapper array
                 vx_size size;
+                Kernel *kernelOfCurrentNode = nullptr;
+                vxAccessArrayRange(kArrayCurrentNode, 0, 1, &size, (void**)&kernelOfCurrentNode, VX_READ_AND_WRITE);
 
-                Kernel *kernel = nullptr;
-                vxAccessArrayRange(kernenArray, 0, 1, &size, (void**)&kernel, VX_READ_AND_WRITE);
-
-                status = vxQueryParameter((vx_parameter)param[1], VX_PARAMETER_ATTRIBUTE_REF, &controlStructArray, sizeof(controlStructArray));
+                //Second parameter, same handling as the first
+                status = vxQueryParameter((vx_parameter)param[1], VX_PARAMETER_ATTRIBUTE_REF, &csArrayCurrentNode, sizeof(csArrayCurrentNode));
                 if (status != VX_SUCCESS)
                 {
                     return VX_FAILURE;
                 }
 
                 RW::CORE::tstControlStruct *controlStruct = nullptr;
-                vxAccessArrayRange(controlStructArray, 0, 1, &size, (void**)&controlStruct, VX_READ_AND_WRITE);
-                RW::CORE::tstControlStruct *mycontrolStruct = kernel->GetControlStruct();
-
-                vx_node nextnode = kernel->Node()->NexttNode();
-
-
-                vx_parameter paramNext[] = { vxGetParameterByIndex(nextnode, 0), vxGetParameterByIndex(nextnode, 2) };
-
-
-
-                status = vxQueryParameter((vx_parameter)paramNext[0], VX_PARAMETER_ATTRIBUTE_REF, &kernenArrayNext, sizeof(kernenArrayNext));
+                status = vxAccessArrayRange(csArrayCurrentNode, 0, 1, &size, (void**)&controlStruct, VX_READ_AND_WRITE);
                 if (status != VX_SUCCESS)
                 {
                     return VX_FAILURE;
                 }
-                Kernel *kernelNext = nullptr;
-                vxAccessArrayRange(kernenArrayNext, 0, 1, &size, (void**)&kernelNext, VX_READ_AND_WRITE);
 
+                //Get the folling Node that will be processed
+                vx_node nextNode = kernelOfCurrentNode->Node()->NexttNode();
+                    
+                //Extract the parameter from this node now 
+                vx_parameter paramNext[] = { vxGetParameterByIndex(nextNode, NODE_PARAM_KERNEL_INDEX), vxGetParameterByIndex(nextNode, NODE_PARAM_CONTROLSTRUCT_INDEX) };
+                if (paramNext[0] == nullptr && paramNext[1] == nullptr)
+                {
+                    status = vxQueryParameter((vx_parameter)paramNext[0], VX_PARAMETER_ATTRIBUTE_REF, &kArrayNextNode, sizeof(kArrayNextNode));
+                    if (status != VX_SUCCESS)
+                    {
+                        return VX_FAILURE;
+                    }
+                    Kernel *kernelNext = nullptr;
+                    status = vxAccessArrayRange(kArrayNextNode, 0, 1, &size, (void**)&kernelNext, VX_READ_AND_WRITE);
+                    if (status != VX_SUCCESS)
+                    {
+                        return VX_FAILURE;
+                    }
 
-                status = vxQueryParameter((vx_parameter)paramNext[1], VX_PARAMETER_ATTRIBUTE_REF, &controlStructArrayNext, sizeof(controlStructArrayNext));
-                if (status != VX_SUCCESS)
+                    //Second parameter, same handling as the first
+                    status = vxQueryParameter((vx_parameter)paramNext[1], VX_PARAMETER_ATTRIBUTE_REF, &csArrayNextNode, sizeof(csArrayNextNode));
+                    if (status != VX_SUCCESS)
+                    {
+                        return VX_FAILURE;
+                    }
+                    RW::CORE::tstControlStruct *controlStructNext = nullptr;
+                    status = vxAccessArrayRange(csArrayNextNode, 0, 1, &size, (void**)&controlStructNext, VX_READ_AND_WRITE);
+                    if (status != VX_SUCCESS)
+                    {
+                        return VX_FAILURE;
+                    }
+
+                    //Update the data of the current controlstruct with the outputs of the current controlstruct
+                    controlStruct->UpdateData(&controlStructNext, kernelNext->SubModuleType());
+
+                    //Commit the changes back to the array
+                    vxCommitArrayRange(csArrayNextNode, 0, 1, controlStructNext);
+                    vxCommitArrayRange(kArrayNextNode, 0, 1, kernelNext);
+                }
+                else
                 {
                     return VX_FAILURE;
                 }
-                RW::CORE::tstControlStruct *controlStructNext = nullptr;
-                vxAccessArrayRange(controlStructArrayNext, 0, 1, &size, (void**)&controlStructNext, VX_READ_AND_WRITE);
-
-                controlStruct->UpdateData(&controlStructNext, kernelNext->SubModuleType());
-                //memcpy(mycontrolStruct, controlStruct, size);
-                vxCommitArrayRange(controlStructArrayNext, 0, 1, controlStructNext);
-                vxCommitArrayRange(kernenArrayNext, 0, 1, kernelNext);
             }
-
+            else
+            {
+                return VX_FAILURE;
+            }
 
         
 #ifdef TRACE_PERFORMANCE
 			auto t2 = RW::CORE::HighResClock::now();
-			auto t3 = RW::CORE::HighResClock::diffMilli(t1, t2).count();
+			auto t3 = RW::CORE::HighResClock::diffNano(t1, t2).count();
 #endif
             return VX_ACTION_CONTINUE;
         }

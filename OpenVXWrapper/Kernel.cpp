@@ -2,6 +2,7 @@
 #include "Context.h"
 #include "Node.h"
 #include "AbstractModule.hpp"
+#include <iostream>
 
 namespace RW
 {
@@ -89,10 +90,22 @@ namespace RW
                     return VX_FAILURE;
                 }
             }
-            catch (...)
-            {
-                //Todo Error log
-                status = VX_FAILURE;
+			catch (std::bad_alloc &e)
+			{
+				std::cerr << "Bad memory allocation during some_function: " << e.what() << std::endl;
+			}
+			catch (std::runtime_error &e)
+			{
+				std::cerr << "Runtime error during some_function: " << e.what() << std::endl;
+			}
+			catch (std::exception e)
+			{
+				std::cerr << "Exception error during some_function: " << e.what() << std::endl;
+			}
+			catch (...)
+			{
+				std::cerr << "Unknown Exception caught !!!" << std::endl;
+				status = VX_FAILURE;
             }
             vxCommitArrayRange(kernenArray, 0, 1, kernel);
             vxCommitArrayRange(controlStructArray, 0, 1, controlStruct);
@@ -145,10 +158,22 @@ namespace RW
                     return VX_FAILURE;
                 }
             }
-            catch (...)
-            {
-                //Todo Error log
-            }
+			catch (std::bad_alloc &e)
+			{
+				std::cerr << "Bad memory allocation during some_function: " << e.what() << std::endl;
+			}
+			catch (std::runtime_error &e)
+			{
+				std::cerr << "Runtime error during some_function: " << e.what() << std::endl;
+			}
+			catch (std::exception e)
+			{
+				std::cerr << "Exception error during some_function: " << e.what() << std::endl;
+			}
+			catch (...)
+			{
+				std::cerr << "Unknown Exception caught !!!" << std::endl;
+			}
             vxCommitArrayRange(kernenArray, 0, 1, kernel);
             vxCommitArrayRange(controlStructArray, 0, 1, controlStruct);
             return status;
@@ -218,10 +243,22 @@ namespace RW
                     return VX_FAILURE;
                 }
             }
-            catch (...)
-            {
-                //Todo Error log
-            }
+			catch (std::bad_alloc &e)
+			{
+				std::cerr << "Bad memory allocation during some_function: " << e.what() << std::endl;
+			}
+			catch (std::runtime_error &e)
+			{
+				std::cerr << "Runtime error during some_function: " << e.what() << std::endl;
+			}
+			catch (std::exception e)
+			{
+				std::cerr << "Exception error during some_function: " << e.what() << std::endl;
+			}
+			catch (...)
+			{
+				std::cerr << "Unknown Exception caught !!!" << std::endl;
+			}
             vxCommitArrayRange(kernenArray, 0, 1, kernel);
             vxCommitArrayRange(controlStructArray, 0, 1, controlStruct);
 

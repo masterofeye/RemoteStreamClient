@@ -7,6 +7,7 @@
 #include "ENC_CudaInterop.hpp"
 #include "VideoGrabberSimu.hpp"
 #include "IMP_CropFrames.hpp"
+#include "IMP_MergeFrames.hpp"
 #include "IMP_ConvColorFrames.hpp"
 #include "DEC_Intel.hpp"
 #include "DEC_inputs.h"
@@ -38,13 +39,17 @@ typedef struct stPipelineParams
     RW::VG::tstVideoGrabberControlStruct videoGrabberControlStruct;
     RW::VG::tstVideoGrabberControlStruct videoGrabberDeinitialiseControlStruct;
 
-	RW::IMP::tstMyInitialiseControlStruct impCropInitialiseControlStruct;
-	RW::IMP::tstMyControlStruct impCropControlStruct;
-	RW::IMP::tstMyDeinitialiseControlStruct impCropDeinitialiseControlStruct;
+	RW::IMP::CROP::tstMyInitialiseControlStruct impCropInitialiseControlStruct;
+	RW::IMP::CROP::tstMyControlStruct impCropControlStruct;
+	RW::IMP::CROP::tstMyDeinitialiseControlStruct impCropDeinitialiseControlStruct;
 
-	RW::IMP::tstMyInitialiseControlStruct impColorInitialiseControlStruct;
-	RW::IMP::tstMyControlStruct impColorControlStruct;
-	RW::IMP::tstMyDeinitialiseControlStruct impColorDeinitialiseControlStruct;
+	RW::IMP::MERGE::tstMyInitialiseControlStruct impMergeInitialiseControlStruct;
+	RW::IMP::MERGE::tstMyControlStruct impMergeControlStruct;
+	RW::IMP::MERGE::tstMyDeinitialiseControlStruct impMergeDeinitialiseControlStruct;
+
+	RW::IMP::COLOR::tstMyInitialiseControlStruct impColorInitialiseControlStruct;
+	RW::IMP::COLOR::tstMyControlStruct impColorControlStruct;
+	RW::IMP::COLOR::tstMyDeinitialiseControlStruct impColorDeinitialiseControlStruct;
 
 	RW::ENC::tstMyInitialiseControlStruct encodeInitialiseControlStruct;
     RW::ENC::tstMyControlStruct encodeControlStruct;
@@ -79,7 +84,7 @@ int pipeline(tstPipelineParams params)
 	char *testLeak = new char[1000000];
 	testLeak = nullptr;
 
-
+    QList<RW::CORE::AbstractModule *> list;
     try
     {
         RW::tenStatus status = RW::tenStatus::nenError;
@@ -89,7 +94,7 @@ int pipeline(tstPipelineParams params)
         RW::CORE::ModuleLoader ml(file_logger);
 
         /*Load Plugins*/
-        QList<RW::CORE::AbstractModule *> list;
+        
         ml.LoadPlugins(&list);
 #ifdef TRACE_PERFORMANCE
         RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
@@ -126,107 +131,94 @@ int pipeline(tstPipelineParams params)
                 RW::CORE::tenSubModule::nenVideoGrabber_SIMU) != RW::tenStatus::nenSuccess)
                 file_logger->error("nenVideoGrabber_SIMU couldn't build correct");
 
-            RW::IMP::tstMyInitialiseControlStruct impCropInitialiseControlStruct1;
+			std::vector<cv::Rect> vRect;
+			vRect.push_back(cv::Rect(100, 100, 50, 50)); 
+			vRect.push_back(cv::Rect(50, 50, 100, 100)); 
+            RW::IMP::CROP::tstMyInitialiseControlStruct impCropInitialiseControlStruct;
             {
-				impCropInitialiseControlStruct1.pstFrameRect = new RW::IMP::tstRectStruct{ 100, 100, 50, 50 }; // only for nenGraphic_Crop
-            }
-			cv::cuda::GpuMat *pgMatCrop1 = new cv::cuda::GpuMat();
-            RW::IMP::tstMyControlStruct impCropControlStruct1;
+				impCropInitialiseControlStruct.vFrameRect = vRect;
+			}
+			RW::IMP::CROP::tstMyControlStruct impCropControlStruct;
             {
-				impCropControlStruct1.pcInput = new RW::IMP::cInputBase(
-                    videoGrabberInitialiseControlStruct.nFrameWidth,
-                    videoGrabberInitialiseControlStruct.nFrameHeight,
-                    videoGrabberControlStruct.pOutputData->pBuffer);
-				impCropControlStruct1.pcOutput = new RW::IMP::cOutputBase(pgMatCrop1);
-            }
-            RW::IMP::tstMyDeinitialiseControlStruct impCropDeinitialiseControlStruct1;
+				impCropControlStruct.pInput = new RW::IMP::cInputBase(
+					RW::IMP::cInputBase::tstImportImg{
+					videoGrabberInitialiseControlStruct.nFrameWidth,
+					videoGrabberInitialiseControlStruct.nFrameHeight,
+					videoGrabberControlStruct.pOutputData->pBuffer }, true);
+				impCropControlStruct.pvOutput = new std::vector<cv::cuda::GpuMat*>;
+				impCropControlStruct.pvOutput->push_back(new cv::cuda::GpuMat);
+				impCropControlStruct.pvOutput->push_back(new cv::cuda::GpuMat);
+			}
+            RW::IMP::CROP::tstMyDeinitialiseControlStruct impCropDeinitialiseControlStruct;
 
             if (builder.BuildNode(&kernelManager,
-            	&impCropInitialiseControlStruct1,
+            	&impCropInitialiseControlStruct,
 				iParentIndex++,
-				sizeof(RW::IMP::tstMyInitialiseControlStruct),
-            	&impCropControlStruct1,
-            	sizeof(RW::IMP::tstMyControlStruct),
-            	&impCropDeinitialiseControlStruct1,
-            	sizeof(RW::IMP::tstMyDeinitialiseControlStruct),
+				sizeof(RW::IMP::CROP::tstMyInitialiseControlStruct),
+            	&impCropControlStruct,
+				sizeof(RW::IMP::CROP::tstMyControlStruct),
+            	&impCropDeinitialiseControlStruct,
+				sizeof(RW::IMP::CROP::tstMyDeinitialiseControlStruct),
             	RW::CORE::tenSubModule::nenGraphic_Crop) != RW::tenStatus::nenSuccess)
             	file_logger->error("nenGraphic_Crop couldn't build correct");
 
-			//RW::IMP::tstMyInitialiseControlStruct impCropInitialiseControlStruct2;
-			//{
-			//	impCropInitialiseControlStruct2.pstFrameRect = new RW::IMP::tstRectStruct{ 50, 50, 150, 150 }; // only for nenGraphic_Crop
-			//}
-			//cv::cuda::GpuMat *pgMatCrop2 = new cv::cuda::GpuMat();
-			//RW::IMP::tstMyControlStruct impCropControlStruct2;
-			//{
-			//	impCropControlStruct2.pcInput = new RW::IMP::cInputBase(impCropControlStruct1.pcOutput->_pgMat);
-			//	impCropControlStruct2.pcOutput = new RW::IMP::cOutputBase(pgMatCrop2);
-			//}
-			//RW::IMP::tstMyDeinitialiseControlStruct impCropDeinitialiseControlStruct2;
-
-			//if (builder.BuildNode(&kernelManager,
-			//	&impCropInitialiseControlStruct2,
-			//	iParentIndex++,
-			//	sizeof(RW::IMP::tstMyInitialiseControlStruct),
-			//	&impCropControlStruct2,
-			//	sizeof(RW::IMP::tstMyControlStruct),
-			//	&impCropDeinitialiseControlStruct2,
-			//	sizeof(RW::IMP::tstMyDeinitialiseControlStruct),
-			//	RW::CORE::tenSubModule::nenGraphic_Crop) != RW::tenStatus::nenSuccess)
-			//	file_logger->error("nenGraphic_Crop couldn't build correct");
-
-			//RW::IMP::tstMyInitialiseControlStruct impMergeInitialiseControlStruct;
-			//RW::IMP::tstMyControlStruct impMergeControlStruct;
-			//{
-			//	impMergeControlStruct.pcInput = new RW::IMP::cInputBase();
-			//	impMergeControlStruct.pcInput->_pInput1 = new RW::IMP::cInputBase(impCropControlStruct1.pcOutput->_pgMat, false);
-			//	impMergeControlStruct.pcInput->_pInput2 = new RW::IMP::cInputBase(impCropControlStruct2.pcOutput->_pgMat, true);
-			//	impMergeControlStruct.pcOutput = impCropControlStruct1.pcOutput;
-			//}
-			//RW::IMP::tstMyDeinitialiseControlStruct impMergeDeinitialiseControlStruct;
-
-			//if (builder.BuildNode(&kernelManager,
-			//	&impMergeInitialiseControlStruct,
-			//	iParentIndex++,
-			//	sizeof(RW::IMP::tstMyInitialiseControlStruct),
-			//	&impMergeControlStruct,
-			//	sizeof(RW::IMP::tstMyControlStruct),
-			//	&impMergeDeinitialiseControlStruct,
-			//	sizeof(RW::IMP::tstMyDeinitialiseControlStruct),
-			//	RW::CORE::tenSubModule::nenGraphic_Merge) != RW::tenStatus::nenSuccess)
-			//	file_logger->error("nenGraphic_Color couldn't build correct");
-
-			RW::IMP::tstMyInitialiseControlStruct impColorInitialiseControlStruct;
-			CUarray *pcuArray = new CUarray();
-            RW::IMP::tstMyControlStruct impColorControlStruct;
-            {
-				impColorControlStruct.pcInput = new RW::IMP::cInputBase(impCropControlStruct1.pcOutput->_pgMat);
-				impColorControlStruct.pcOutput = new RW::IMP::cOutputBase(pcuArray);
+			RW::IMP::MERGE::tstMyInitialiseControlStruct impMergeInitialiseControlStruct;
+			RW::IMP::MERGE::tstMyControlStruct impMergeControlStruct;
+			{
+				impMergeControlStruct.pvInput = new std::vector<RW::IMP::cInputBase*>;
+				impMergeControlStruct.pOutput = impCropControlStruct.pvOutput->at(0);
+				for (int iIndex = 0; iIndex < impCropControlStruct.pvOutput->size(); iIndex++)
+				{
+					impMergeControlStruct.pvInput->push_back(new RW::IMP::cInputBase(impCropControlStruct.pvOutput->at(iIndex)));
+				}
 			}
-            RW::IMP::tstMyDeinitialiseControlStruct impColorDeinitialiseControlStruct;
+			RW::IMP::MERGE::tstMyDeinitialiseControlStruct impMergeDeinitialiseControlStruct;
+
+			if (builder.BuildNode(&kernelManager,
+				&impMergeInitialiseControlStruct,
+				iParentIndex++,
+				sizeof(RW::IMP::MERGE::tstMyInitialiseControlStruct),
+				&impMergeControlStruct,
+				sizeof(RW::IMP::MERGE::tstMyControlStruct),
+				&impMergeDeinitialiseControlStruct,
+				sizeof(RW::IMP::MERGE::tstMyDeinitialiseControlStruct),
+				RW::CORE::tenSubModule::nenGraphic_Merge) != RW::tenStatus::nenSuccess)
+				file_logger->error("nenGraphic_Color couldn't build correct");
+
+			RW::IMP::COLOR::tstMyInitialiseControlStruct impColorInitialiseControlStruct;
+			RW::IMP::COLOR::tstMyControlStruct impColorControlStruct;
+            {
+				impColorControlStruct.pInput = new RW::IMP::cInputBase(impMergeControlStruct.pOutput);
+				impColorControlStruct.cuArray = nullptr;
+			}
+			RW::IMP::COLOR::tstMyDeinitialiseControlStruct impColorDeinitialiseControlStruct;
 
             if (builder.BuildNode(&kernelManager,
             	&impColorInitialiseControlStruct,
 				iParentIndex++,
-				sizeof(RW::IMP::tstMyInitialiseControlStruct),
+				sizeof(RW::IMP::COLOR::tstMyInitialiseControlStruct),
             	&impColorControlStruct,
-            	sizeof(RW::IMP::tstMyControlStruct),
+				sizeof(RW::IMP::COLOR::tstMyControlStruct),
             	&impColorDeinitialiseControlStruct,
-            	sizeof(RW::IMP::tstMyDeinitialiseControlStruct),
+				sizeof(RW::IMP::COLOR::tstMyDeinitialiseControlStruct),
             	RW::CORE::tenSubModule::nenGraphic_Color) != RW::tenStatus::nenSuccess)
             	file_logger->error("nenGraphic_Color couldn't build correct");
 
-            RW::ENC::tstMyInitialiseControlStruct encodeInitialiseControlStruct;
-            {
-                encodeInitialiseControlStruct.pstEncodeConfig = new RW::ENC::EncodeConfig();
-                encodeInitialiseControlStruct.pstEncodeConfig->width = videoGrabberInitialiseControlStruct.nFrameWidth;
-                encodeInitialiseControlStruct.pstEncodeConfig->height = videoGrabberInitialiseControlStruct.nFrameHeight;
-                encodeInitialiseControlStruct.pstEncodeConfig->fps = videoGrabberInitialiseControlStruct.nFPS;
+			RW::ENC::tstMyInitialiseControlStruct encodeInitialiseControlStruct;
+			{
+				encodeInitialiseControlStruct.pstEncodeConfig = new RW::ENC::EncodeConfig();
+				for (int iIndex = 0; iIndex < vRect.size(); iIndex++)
+				{
+					cv::Rect rect = vRect.at(iIndex);
+					encodeInitialiseControlStruct.pstEncodeConfig->width += rect.width;
+					encodeInitialiseControlStruct.pstEncodeConfig->height = (encodeInitialiseControlStruct.pstEncodeConfig->height > rect.height) ? encodeInitialiseControlStruct.pstEncodeConfig->height : rect.height;
+				}
+				encodeInitialiseControlStruct.pstEncodeConfig->fps = videoGrabberInitialiseControlStruct.nFPS;
                 encodeInitialiseControlStruct.pstEncodeConfig->endFrameIdx = videoGrabberInitialiseControlStruct.nNumberOfFrames;
             }
             RW::ENC::tstMyControlStruct encodeControlStruct;
             {
-                encodeControlStruct.pcuYUVArray = *impColorControlStruct.pcOutput->_pcuArray;
+				encodeControlStruct.pcuYUVArray = impColorControlStruct.cuArray;
                 encodeControlStruct.pPayload = new RW::tstBitStream();
                 tstPayloadMsg Msg;
                 Msg.iTimestamp = videoGrabberControlStruct.nCurrentPositionMSec;
@@ -358,21 +350,16 @@ int pipeline(tstPipelineParams params)
 			SAFE_DELETE(videoGrabberControlStruct.pOutputData->pBuffer);
 			SAFE_DELETE(videoGrabberControlStruct.pOutputData);
 
-			SAFE_DELETE(impCropInitialiseControlStruct1.pstFrameRect);
-			SAFE_DELETE(pgMatCrop1);
-			SAFE_DELETE(impCropControlStruct1.pcInput);
-			SAFE_DELETE(impCropControlStruct1.pcOutput);
+			for (int iIndex = 0; iIndex < impCropControlStruct.pvOutput->size(); iIndex++)
+			{
+				SAFE_DELETE(impCropControlStruct.pvOutput->at(iIndex));
+				SAFE_DELETE(impMergeControlStruct.pvInput->at(iIndex));
+			}
+			SAFE_DELETE(impCropControlStruct.pvOutput);
+			SAFE_DELETE(impMergeControlStruct.pvInput);
 
-			//SAFE_DELETE(pgMatCrop1);
-			//SAFE_DELETE(impCropControlStruct2.pcInput);
-			//SAFE_DELETE(impCropControlStruct2.pcOutput);
-
-			//SAFE_DELETE(impMergeControlStruct.pcInput->_pInput1);
-			//SAFE_DELETE(impMergeControlStruct.pcInput->_pInput2);
-			//SAFE_DELETE(impMergeControlStruct.pcInput);
-
-			SAFE_DELETE(pcuArray);
-			SAFE_DELETE(impColorControlStruct.pcOutput);
+			SAFE_DELETE(impColorControlStruct.pInput);
+			//SAFE_DELETE(impColorControlStruct.pcuArray);
 
 			SAFE_DELETE(encodeInitialiseControlStruct.pstEncodeConfig);
 			SAFE_DELETE(encodeControlStruct.pPayload);
@@ -385,17 +372,21 @@ int pipeline(tstPipelineParams params)
 			SAFE_DELETE(decodeInitCtrl.inputParams);
 			SAFE_DELETE(decodeCtrl.pOutput);
 
-			//Delete all modules;
-			for (auto var : list)
-			{
-				delete var;
-			}
+
        }
     }
     catch (...)
     {
         file_logger->flush();
     }
+
+    //Delete all modules;
+    for (auto var : list)
+    {
+        delete var;
+    }
+
+
     return 0;
 }
 
