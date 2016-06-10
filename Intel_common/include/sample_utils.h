@@ -3,11 +3,8 @@
 INTEL CORPORATION PROPRIETARY INFORMATION
 This software is supplied under the terms of a license agreement or nondisclosure
 agreement with Intel Corporation and may not be copied or disclosed except in
-accordance with the terms of that agreement.
-This sample was distributed or derived from the Intel's Media Samples package.
-The original version of this sample may be obtained from https://software.intel.com/en-us/intel-media-server-studio
-or https://software.intel.com/en-us/media-client-solutions-support.
-Copyright(c) 2005-2015 Intel Corporation. All Rights Reserved.
+accordance with the terms of that agreement
+Copyright(c) 2005-2014 Intel Corporation. All Rights Reserved.
 
 **********************************************************************************/
 
@@ -21,7 +18,6 @@ Copyright(c) 2005-2015 Intel Corporation. All Rights Reserved.
 
 #include "mfxstructures.h"
 #include "mfxvideo.h"
-#include "mfxvideo++.h"
 #include "mfxjpeg.h"
 #include "mfxplugin.h"
 
@@ -31,12 +27,6 @@ Copyright(c) 2005-2015 Intel Corporation. All Rights Reserved.
 #include "vm/atomic_defs.h"
 
 #include "sample_types.h"
-
-#include "abstract_splitter.h"
-#include "avc_bitstream.h"
-#include "avc_spl.h"
-#include "avc_headers.h"
-#include "avc_nal_spl.h"
 
 // A macro to disallow the copy constructor and operator= functions
 // This should be used in the private: declarations for a class
@@ -76,7 +66,7 @@ enum {
     CODEC_MVC = MFX_MAKEFOURCC('M','V','C',' '),
 };
 
-bool IsDecodeCodecSupported(mfxU32 codecFormat);  //for DEC_Intel only MFX_CODEC_AVC and MFX_CODEC_HEVC are allowed
+bool IsDecodeCodecSupported(mfxU32 codecFormat);
 bool IsEncodeCodecSupported(mfxU32 codecFormat);
 bool IsPluginCodecSupported(mfxU32 codecFormat);
 
@@ -154,46 +144,30 @@ protected:
     bool      m_bInited;
 };
 
+//provides output bistream with at least 1 slice, reports about error
 class CH264FrameReader : public CSmplBitstreamReader
 {
 public:
     CH264FrameReader();
-    virtual ~CH264FrameReader();
-
-    /** Free resources.*/
-    virtual void      Close();
-    virtual mfxStatus Init(const msdk_char *strFileName);
     virtual mfxStatus ReadNextFrame(mfxBitstream *pBS);
+protected:
+    //1 - means slice start indicator present
+    //2 - means slice start and backend startcode present
+    int FindSlice(mfxBitstream *pBS, int & pos2ndnalu);
 
-private:
-    mfxBitstream *m_processedBS;
-    // input bit stream
-    std::auto_ptr<mfxBitstream>  m_originalBS;
 
-    mfxStatus PrepareNextFrame(mfxBitstream *in, mfxBitstream **out);
-
-    // is stream ended
-    bool m_isEndOfStream;
-
-    std::auto_ptr<AbstractSplitter> m_pNALSplitter;
-    FrameSplitterInfo *m_frame;
-    mfxU8 *m_plainBuffer;
-    mfxU32 m_plainBufferSize;
-    mfxBitstream m_outBS;
+    mfxBitstream m_lastBs;
+    std::vector<mfxU8> m_bsBuffer;
 };
 
 //provides output bistream with at least 1 frame, reports about error
 class CJPEGFrameReader : public CSmplBitstreamReader
 {
-    enum JPEGMarker
-    {
-        SOI=0xD8FF,
-        EOI=0xD9FF
-    };
 public:
     virtual mfxStatus ReadNextFrame(mfxBitstream *pBS);
 protected:
-    mfxU32 FindMarker(mfxBitstream *pBS,mfxU32 startOffset,JPEGMarker marker);
+    bool SOImarkerIsFound(mfxBitstream *pBS);
+    bool EOImarkerIsFound(mfxBitstream *pBS);
 };
 
 //appends output bistream with exactly 1 frame, reports about error
@@ -654,12 +628,11 @@ template<typename T>
 template<size_t S>
     mfxStatus msdk_opt_read(const msdk_char* string, msdk_char (&value)[S])
     {
-        value[0]=0;
     #if defined(_WIN32) || defined(_WIN64)
         return (0 == _tcscpy_s(value, string))? MFX_ERR_NONE: MFX_ERR_UNKNOWN;
     #else
         if (strlen(string) < S) {
-            strncpy(value, string, S-1);
+            strncpy(value, string, S);
             return MFX_ERR_NONE;
         }
         return MFX_ERR_UNKNOWN;
@@ -673,9 +646,5 @@ template<typename T>
     }
 
 mfxStatus StrFormatToCodecFormatFourCC(msdk_char* strInput, mfxU32 &codecFormat);
-
-mfxI32 getMonitorType(msdk_char* str);
-
-void WaitForDeviceToBecomeFree(MFXVideoSession& session, mfxSyncPoint& syncPoint,mfxStatus& currentStatus);
 
 #endif //__SAMPLE_UTILS_H__

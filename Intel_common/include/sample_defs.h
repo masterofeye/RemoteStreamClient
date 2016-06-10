@@ -4,11 +4,8 @@
 //              INTEL CORPORATION PROPRIETARY INFORMATION
 //  This software is supplied under the terms of a license  agreement or
 //  nondisclosure agreement with Intel Corporation and may not be copied
-//  or disclosed except in accordance with the terms of that agreement.
-//  This sample was distributed or derived from the Intel's Media Samples package.
-//  The original version of this sample may be obtained from https://software.intel.com/en-us/intel-media-server-studio
-//  or https://software.intel.com/en-us/media-client-solutions-support.
-//        Copyright (c) 2005-2015 Intel Corporation. All Rights Reserved.
+//  or disclosed except in  accordance  with the terms of that agreement.
+//        Copyright (c) 2005-2013 Intel Corporation. All Rights Reserved.
 //
 //
 */
@@ -44,49 +41,6 @@ enum {
 #endif // #if defined(WIN32) && !defined(MFX_D3D11_SUPPORT)
 #endif // #if defined(WIN32) || defined(WIN64)
 
-enum
-{
-#define __DECLARE(type) MFX_MONITOR_ ## type
-  __DECLARE(Unknown) = 0,
-  __DECLARE(AUTO) = __DECLARE(Unknown),
-  __DECLARE(VGA),
-  __DECLARE(DVII),
-  __DECLARE(DVID),
-  __DECLARE(DVIA),
-  __DECLARE(Composite),
-  __DECLARE(SVIDEO),
-  __DECLARE(LVDS),
-  __DECLARE(Component),
-  __DECLARE(9PinDIN),
-  __DECLARE(HDMIA),
-  __DECLARE(HDMIB),
-  __DECLARE(eDP),
-  __DECLARE(TV),
-  __DECLARE(DisplayPort),
-#if defined(DRM_MODE_CONNECTOR_VIRTUAL) // from libdrm 2.4.59
-  __DECLARE(VIRTUAL),
-#endif
-#if defined(DRM_MODE_CONNECTOR_DSI) // from libdrm 2.4.59
-  __DECLARE(DSI),
-#endif
-  __DECLARE(MAXNUMBER)
-#undef __DECLARE
-};
-
-#if defined(LIBVA_SUPPORT)
-
-enum LibVABackend
-{
-    MFX_LIBVA_AUTO,
-    MFX_LIBVA_DRM,
-    MFX_LIBVA_DRM_RENDERNODE = MFX_LIBVA_DRM,
-    MFX_LIBVA_DRM_MODESET,
-    MFX_LIBVA_X11,
-    MFX_LIBVA_WAYLAND
-};
-
-#endif
-
 //affects win32 winnt version macro
 #include "vm/time_defs.h"
 #include "sample_utils.h"
@@ -95,7 +49,6 @@ enum LibVABackend
 #define MSDK_DEC_WAIT_INTERVAL 300000
 #define MSDK_ENC_WAIT_INTERVAL 300000
 #define MSDK_VPP_WAIT_INTERVAL 300000
-#define MSDK_SURFACE_WAIT_INTERVAL 20000
 #define MSDK_WAIT_INTERVAL MSDK_DEC_WAIT_INTERVAL+3*MSDK_VPP_WAIT_INTERVAL+MSDK_ENC_WAIT_INTERVAL // an estimate for the longest pipeline we have in samples
 
 #define MSDK_INVALID_SURF_IDX 0xFFFF
@@ -144,7 +97,7 @@ enum LibVABackend
 #endif
 
 #ifndef MFX_PRODUCT_VERSION
-#define MFX_PRODUCT_VERSION "1.0.0.0"
+#define MFX_PRODUCT_VERSION "6.0.0.49"
 #endif
 
 #define MSDK_SAMPLE_VERSION MSDK_STRING(MFX_PRODUCT_VERSION)

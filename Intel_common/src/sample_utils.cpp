@@ -3,11 +3,8 @@
 INTEL CORPORATION PROPRIETARY INFORMATION
 This software is supplied under the terms of a license agreement or nondisclosure
 agreement with Intel Corporation and may not be copied or disclosed except in
-accordance with the terms of that agreement.
-This sample was distributed or derived from the Intel's Media Samples package.
-The original version of this sample may be obtained from https://software.intel.com/en-us/intel-media-server-studio
-or https://software.intel.com/en-us/media-client-solutions-support.
-Copyright(c) 2005-2015 Intel Corporation. All Rights Reserved.
+accordance with the terms of that agreement
+Copyright(c) 2005-2014 Intel Corporation. All Rights Reserved.
 
 **********************************************************************************/
 
@@ -17,7 +14,6 @@ Copyright(c) 2005-2015 Intel Corporation. All Rights Reserved.
 #include <iostream>
 
 #include "vm/strings_defs.h"
-#include "time_statistics.h"
 #include "sample_defs.h"
 #include "sample_utils.h"
 #include "mfxcommon.h"
@@ -27,37 +23,6 @@ Copyright(c) 2005-2015 Intel Corporation. All Rights Reserved.
 #pragma warning( disable : 4748 )
 
 msdk_tick CTimer::frequency = 0;
-msdk_tick CTimeStatistics::frequency = 0;
-
-mfxStatus CopyBitstream2(mfxBitstream *dest, mfxBitstream *src)
-{
-    if (!dest || !src)
-        return MFX_ERR_NULL_PTR;
-
-    if (!dest->DataLength)
-    {
-        dest->DataOffset = 0;
-    }
-    else
-    {
-        memmove(dest->Data, dest->Data + dest->DataOffset, dest->DataLength);
-        dest->DataOffset = 0;
-    }
-
-    if (src->DataLength > dest->MaxLength - dest->DataLength - dest->DataOffset)
-        return MFX_ERR_NOT_ENOUGH_BUFFER;
-
-    MSDK_MEMCPY_BITSTREAM(*dest, dest->DataOffset, src->Data, src->DataLength);
-    dest->DataLength = src->DataLength;
-
-    dest->DataFlag = src->DataFlag;
-
-    //common Extended buffer will be for src and dest bit streams
-    dest->EncryptedData = src->EncryptedData;
-
-    return MFX_ERR_NONE;
-}
-
 
 CSmplYUVReader::CSmplYUVReader()
 {
@@ -532,35 +497,164 @@ mfxStatus CSmplBitstreamReader::ReadNextFrame(mfxBitstream *pBS)
     return MFX_ERR_NONE;
 }
 
-
-mfxU32 CJPEGFrameReader::FindMarker(mfxBitstream *pBS,mfxU32 startOffset,CJPEGFrameReader::JPEGMarker marker)
+CH264FrameReader::CH264FrameReader()
 {
-    for (mfxU32 i = startOffset; i + sizeof(mfxU16) <= pBS->DataLength; i++)
+    MSDK_ZERO_MEMORY(m_lastBs);
+}
+
+int CH264FrameReader::FindSlice(mfxBitstream *pBS, int & pos2ndnalu)
+{
+    int nNalu = 0;
+    size_t i = 0;
+    for (i = pBS->DataOffset; nNalu < 2 && i + 3 < pBS->DataOffset + pBS->DataLength; i++)
     {
-        if ( *(mfxU16*)(pBS->Data + i)==(mfxU16)marker)
+        if (pBS->Data[i]   == 0 &&
+            pBS->Data[i+1] == 0 &&
+            pBS->Data[i+2] == 1 )
         {
-            return i;
+            if (0 == nNalu)
+            {
+                int nType = pBS->Data[i+3] & 0x1F;
+
+                if (nType == 1 ||//slice
+                    nType == 5  )//IDR slice
+                    nNalu++;
+            }
+            else
+            {
+                //any backend nalu
+                nNalu ++;
+            }
         }
     }
-    return 0xFFFFFFFF;
+    if (nNalu == 2)
+    {
+        pos2ndnalu = (int)i;
+    }
+    return nNalu;
+}
+
+inline bool isPathDelimiter(msdk_char c)
+{
+    return c == '/' || c == '\\';
+}
+
+mfxStatus MoveMfxBitstream(mfxBitstream *pTarget, mfxBitstream *pSrc, mfxU32 nBytes)
+{
+    MSDK_CHECK_POINTER(pTarget, MFX_ERR_NULL_PTR);
+    MSDK_CHECK_POINTER(pSrc, MFX_ERR_NULL_PTR);
+
+    mfxU32 nFreeSpaceTail = pTarget->MaxLength - pTarget->DataOffset - pTarget->DataLength;
+    mfxU32 nFreeSpace = pTarget->MaxLength - pTarget->DataLength;
+
+    MSDK_CHECK_NOT_EQUAL(pSrc->DataLength >= nBytes, true, MFX_ERR_MORE_DATA);
+    MSDK_CHECK_NOT_EQUAL(nFreeSpace >= nBytes, true, MFX_ERR_NOT_ENOUGH_BUFFER);
+
+    if (nFreeSpaceTail < nBytes)
+    {
+        memmove(pTarget->Data, pTarget->Data + pTarget->DataOffset,  pTarget->DataLength);
+        pTarget->DataOffset = 0;
+    }
+    MSDK_MEMCPY_BITSTREAM(*pTarget, pTarget->DataOffset, pSrc->Data + pSrc->DataOffset, nBytes);
+    pTarget->DataLength += nBytes;
+    pSrc->DataLength -= nBytes;
+    pSrc->DataOffset += nBytes;
+
+    return MFX_ERR_NONE;
+}
+
+mfxStatus CH264FrameReader::ReadNextFrame(mfxBitstream *pBS)
+{
+    MSDK_CHECK_POINTER(pBS, MFX_ERR_NULL_PTR);
+    pBS->DataFlag = MFX_BITSTREAM_COMPLETE_FRAME;
+
+    if (m_lastBs.Data == NULL)
+    {
+        //alloc same bitstream
+        m_bsBuffer.resize(pBS->MaxLength);
+        m_lastBs.Data =  &m_bsBuffer.front();
+        m_lastBs.MaxLength = pBS->MaxLength;
+    }
+
+    //checking for available nalu
+    int nNalu;
+    int pos2ndNaluStart = 0;
+    //check nalu in input bs, it always=1 if decoder didnt take a frame
+    if ((nNalu = FindSlice(pBS, pos2ndNaluStart)) < 1)
+    {
+        //copy nalu from internal buffer
+        if ((nNalu = FindSlice(&m_lastBs, pos2ndNaluStart)) < 2)
+        {
+            mfxStatus sts = CSmplBitstreamReader::ReadNextFrame(&m_lastBs);
+            if (MFX_ERR_MORE_DATA == sts)
+            {
+                //lets feed last nalu if present
+                if (nNalu == 1)
+                {
+                    sts = MoveMfxBitstream(pBS, &m_lastBs, m_lastBs.DataLength);
+                    MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
+
+                    return MFX_ERR_NONE;
+                }
+
+                return MFX_ERR_MORE_DATA;
+            }
+            //buffer is to small to accept whole frame
+            MSDK_CHECK_NOT_EQUAL(FindSlice(&m_lastBs, pos2ndNaluStart) == 2, true, MFX_ERR_NOT_ENOUGH_BUFFER);
+        }
+        mfxU32 naluLen = pos2ndNaluStart-m_lastBs.DataOffset;
+        mfxStatus sts = MoveMfxBitstream(pBS, &m_lastBs, naluLen);
+        MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
+    }
+
+    return MFX_ERR_NONE;
+}
+
+bool CJPEGFrameReader::SOImarkerIsFound(mfxBitstream *pBS)
+{
+    mfxU8 SOI_marker[] = { 0xFF, 0xD8 };
+    for (mfxU32 i = pBS->DataOffset; i + sizeof(SOI_marker) <= pBS->DataOffset + pBS->DataLength; i++)
+    {
+        if ( !memcmp(pBS->Data + i, SOI_marker, sizeof(SOI_marker)) )
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool CJPEGFrameReader::EOImarkerIsFound(mfxBitstream *pBS)
+{
+    mfxU8 EOI_marker[] = { 0xFF, 0xD9 };
+    for (mfxU32 i = pBS->DataOffset; i + sizeof(EOI_marker) <= pBS->DataOffset + pBS->DataLength; i++)
+    {
+        if ( !memcmp(pBS->Data + i, EOI_marker, sizeof(EOI_marker)) )
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 mfxStatus CJPEGFrameReader::ReadNextFrame(mfxBitstream *pBS)
 {
     mfxStatus sts = MFX_ERR_NONE;
-    mfxU32 offsetSOI=0xFFFFFFFF;
+    bool isSOIMarkerFound = false, isEOIMarkerFound = false;
 
     pBS->DataFlag = MFX_BITSTREAM_COMPLETE_FRAME;
 
-    while ((offsetSOI = FindMarker(pBS,pBS->DataOffset,CJPEGFrameReader::SOI))==0xFFFFFFFF && sts == MFX_ERR_NONE)
+    isSOIMarkerFound = SOImarkerIsFound(pBS);
+    while (!isSOIMarkerFound && sts == MFX_ERR_NONE)
     {
         sts = CSmplBitstreamReader::ReadNextFrame(pBS);
+        isSOIMarkerFound = SOImarkerIsFound(pBS);
     }
 
-    //--- Finding EOI of frame, to make sure that it is complete
-    while (FindMarker(pBS,offsetSOI,CJPEGFrameReader::EOI)==0xFFFFFFFF && sts == MFX_ERR_NONE)
+    isEOIMarkerFound = EOImarkerIsFound(pBS);
+    while (!isEOIMarkerFound && sts == MFX_ERR_NONE)
     {
         sts = CSmplBitstreamReader::ReadNextFrame(pBS);
+        isEOIMarkerFound = EOImarkerIsFound(pBS);
     }
 
     return sts;
@@ -607,9 +701,6 @@ mfxStatus CIVFFrameReader::Init(const msdk_char *strFileName)
 mfxStatus CIVFFrameReader::ReadNextFrame(mfxBitstream *pBS)
 {
     MSDK_CHECK_POINTER(pBS, MFX_ERR_NULL_PTR);
-
-    memmove(pBS->Data, pBS->Data + pBS->DataOffset, pBS->DataLength);
-    pBS->DataOffset = 0;
     pBS->DataFlag = MFX_BITSTREAM_COMPLETE_FRAME;
 
     /*bytes pos-(pos+3)                       size of frame in bytes (not including the 12-byte header)
@@ -937,7 +1028,7 @@ mfxU16 GetFreeSurface(mfxFrameSurface1* pSurfacesPool, mfxU16 nPoolSize)
     mfxU16 idx = MSDK_INVALID_SURF_IDX;
 
     //wait if there's no free surface
-    for (mfxU32 i = 0; i < MSDK_SURFACE_WAIT_INTERVAL; i += SleepInterval)
+    for (mfxU32 i = 0; i < MSDK_WAIT_INTERVAL; i += SleepInterval)
     {
         idx = GetFreeSurfaceIndex(pSurfacesPool, nPoolSize);
 
@@ -949,11 +1040,6 @@ mfxU16 GetFreeSurface(mfxFrameSurface1* pSurfacesPool, mfxU16 nPoolSize)
         {
             MSDK_SLEEP(SleepInterval);
         }
-    }
-
-    if(idx==MSDK_INVALID_SURF_IDX)
-    {
-        msdk_printf(MSDK_STRING("ERROR: No free surfaces in pool (during long period)\n"));
     }
 
     return idx;
@@ -1614,13 +1700,6 @@ msdk_opt_read(const msdk_char* string, mfxU32& value)
 }
 
 template<> mfxStatus
-msdk_opt_read(const msdk_char* string, mfxF32& value)
-{
-    msdk_char* stopCharacter;
-    value = (mfxF32)msdk_strtod(string, &stopCharacter);
-    return (msdk_strlen(stopCharacter) == 0)? MFX_ERR_NONE: MFX_ERR_UNKNOWN;
-}
-template<> mfxStatus
 msdk_opt_read(const msdk_char* string, mfxF64& value)
 {
     msdk_char* stopCharacter;
@@ -1633,7 +1712,6 @@ mfxStatus msdk_opt_read(const msdk_char* string, mfxU8& value);
 mfxStatus msdk_opt_read(const msdk_char* string, mfxU16& value);
 mfxStatus msdk_opt_read(const msdk_char* string, mfxU32& value);
 mfxStatus msdk_opt_read(const msdk_char* string, mfxF64& value);
-mfxStatus msdk_opt_read(const msdk_char* string, mfxF32& value);
 
 template<> mfxStatus
 msdk_opt_read(const msdk_char* string, mfxI16& value)
@@ -1672,14 +1750,14 @@ bool IsDecodeCodecSupported(mfxU32 codecFormat)
 {
     switch(codecFormat)
     {
-        //case MFX_CODEC_MPEG2:
+        case MFX_CODEC_MPEG2:
         case MFX_CODEC_AVC:
         case MFX_CODEC_HEVC:
-        //case MFX_CODEC_VC1:
-        //case CODEC_MVC:
-        //case MFX_CODEC_JPEG:
-        //case MFX_CODEC_VP8:
-        //case MFX_CODEC_CAPTURE:
+        case MFX_CODEC_VC1:
+        case CODEC_MVC:
+        case MFX_CODEC_JPEG:
+        case MFX_CODEC_VP8:
+        case MFX_CODEC_CAPTURE:
         break;
     default:
         return false;
@@ -1768,216 +1846,4 @@ mfxStatus StrFormatToCodecFormatFourCC(msdk_char* strInput, mfxU32 &codecFormat)
     }
 
     return sts;
-}
-
-mfxI32 getMonitorType(msdk_char* str)
-{
-    struct {
-      const msdk_char* str;
-      mfxI32 mfx_type;
-    } table[] = {
-#define __DECLARE(type) { MSDK_STRING(#type), MFX_MONITOR_ ## type }
-      __DECLARE(Unknown),
-      __DECLARE(VGA),
-      __DECLARE(DVII),
-      __DECLARE(DVID),
-      __DECLARE(DVIA),
-      __DECLARE(Composite),
-      __DECLARE(SVIDEO),
-      __DECLARE(LVDS),
-      __DECLARE(Component),
-      __DECLARE(9PinDIN),
-      __DECLARE(HDMIA),
-      __DECLARE(HDMIB),
-      __DECLARE(eDP),
-      __DECLARE(TV),
-      __DECLARE(DisplayPort),
-#if defined(DRM_MODE_CONNECTOR_VIRTUAL) // from libdrm 2.4.59
-      __DECLARE(VIRTUAL),
-#endif
-#if defined(DRM_MODE_CONNECTOR_DSI) // from libdrm 2.4.59
-      __DECLARE(DSI)
-#endif
-#undef __DECLARE
-    };
-    for (unsigned int i=0; i < sizeof(table)/sizeof(table[0]); ++i) {
-      if (0 == msdk_strcmp(str, table[i].str)) {
-        return table[i].mfx_type;
-      }
-    }
-    return MFX_MONITOR_MAXNUMBER;
-}
-
-CH264FrameReader::CH264FrameReader()
-: CSmplBitstreamReader()
-, m_processedBS(0)
-, m_isEndOfStream(false)
-, m_frame(0)
-, m_plainBuffer(0)
-, m_plainBufferSize(0)
-{
-}
-
-CH264FrameReader::~CH264FrameReader()
-{
-}
-
-void CH264FrameReader::Close()
-{
-    WipeMfxBitstream(m_originalBS.get());
-    CSmplBitstreamReader::Close();
-
-    if (NULL != m_plainBuffer)
-    {
-        free(m_plainBuffer);
-        m_plainBuffer = NULL;
-        m_plainBufferSize = 0;
-    }
-}
-
-mfxStatus CH264FrameReader::Init(const msdk_char *strFileName)
-{
-    mfxStatus sts = MFX_ERR_NONE;
-
-    sts = CSmplBitstreamReader::Init(strFileName);
-    if (sts != MFX_ERR_NONE)
-        return sts;
-
-    m_isEndOfStream = false;
-    m_processedBS = NULL;
-
-    m_originalBS.reset(new mfxBitstream());
-    sts = InitMfxBitstream(m_originalBS.get(), 1024 * 1024);
-    if (sts != MFX_ERR_NONE)
-        return sts;
-
-    m_pNALSplitter.reset(new ProtectedLibrary::AVC_Spl());
-
-    m_frame = 0;
-    m_plainBuffer = 0;
-    m_plainBufferSize = 0;
-
-    return sts;
-}
-
-mfxStatus CH264FrameReader::ReadNextFrame(mfxBitstream *pBS)
-{
-    mfxStatus sts = MFX_ERR_NONE;
-    pBS->DataFlag = MFX_BITSTREAM_COMPLETE_FRAME;
-    //read bit stream from source
-    while (!m_originalBS->DataLength)
-    {
-        sts = CSmplBitstreamReader::ReadNextFrame(m_originalBS.get());
-        if (sts != MFX_ERR_NONE && sts != MFX_ERR_MORE_DATA)
-            return sts;
-        if (sts == MFX_ERR_MORE_DATA)
-        {
-            m_isEndOfStream = true;
-            break;
-        }
-    }
-
-    do
-    {
-        sts = PrepareNextFrame(m_isEndOfStream ? NULL : m_originalBS.get(), &m_processedBS);
-
-        if (sts == MFX_ERR_MORE_DATA)
-        {
-            if (m_isEndOfStream)
-            {
-                break;
-            }
-
-            sts = CSmplBitstreamReader::ReadNextFrame(m_originalBS.get());
-            if (sts == MFX_ERR_MORE_DATA)
-                m_isEndOfStream = true;
-            continue;
-        }
-        else if (MFX_ERR_NONE != sts)
-            return sts;
-
-    } while (MFX_ERR_NONE != sts);
-
-    // get output stream
-    if (NULL != m_processedBS)
-    {
-        mfxStatus copySts = CopyBitstream2(
-            pBS,
-            m_processedBS);
-        if (copySts < MFX_ERR_NONE)
-            return copySts;
-        m_processedBS = NULL;
-    }
-
-    return sts;
-}
-
-mfxStatus CH264FrameReader::PrepareNextFrame(mfxBitstream *in, mfxBitstream **out)
-{
-    mfxStatus sts = MFX_ERR_NONE;
-
-    if (NULL == out)
-        return MFX_ERR_NULL_PTR;
-
-    *out = NULL;
-
-    // get frame if it is not ready yet
-    if (NULL == m_frame)
-    {
-        sts = m_pNALSplitter->GetFrame(in, &m_frame);
-        if (sts != MFX_ERR_NONE)
-            return sts;
-    }
-
-    if (m_plainBufferSize < m_frame->DataLength)
-    {
-        if (NULL != m_plainBuffer)
-        {
-            free(m_plainBuffer);
-            m_plainBuffer = NULL;
-            m_plainBufferSize = 0;
-        }
-        m_plainBuffer = (mfxU8*)malloc(m_frame->DataLength);
-        if (NULL == m_plainBuffer)
-            return MFX_ERR_MEMORY_ALLOC;
-        m_plainBufferSize = m_frame->DataLength;
-    }
-
-    MSDK_MEMCPY_BUF(m_plainBuffer, 0, m_plainBufferSize, m_frame->Data, m_frame->DataLength);
-
-    memset(&m_outBS, 0, sizeof(mfxBitstream));
-    m_outBS.Data = m_plainBuffer;
-    m_outBS.DataOffset = 0;
-    m_outBS.DataLength = m_frame->DataLength;
-    m_outBS.MaxLength = m_frame->DataLength;
-    m_outBS.DataFlag = MFX_BITSTREAM_COMPLETE_FRAME;
-    m_outBS.TimeStamp = m_frame->TimeStamp;
-
-    m_pNALSplitter->ResetCurrentState();
-    m_frame = NULL;
-
-    *out = &m_outBS;
-
-    return sts;
-}
-
-
-// 1 ms provides better result in range [0..5] ms
-#define DEVICE_WAIT_TIME 1
-
-// This function either performs synchronization using provided syncpoint, or just waits for predefined time if syncpoint is already 0 (this usually happens if syncpoint was already processed)
-void WaitForDeviceToBecomeFree(MFXVideoSession& session, mfxSyncPoint& syncPoint,mfxStatus& currentStatus)
-{
-    // Wait 1ms will be probably enough to device release
-    if (syncPoint) {
-        mfxStatus stsSync = session.SyncOperation(syncPoint, DEVICE_WAIT_TIME);
-        if (MFX_ERR_NONE == stsSync) {
-            // retire completed sync point (otherwise we may start active polling)
-            syncPoint = NULL;
-        } else if (stsSync < 0) {
-            currentStatus = stsSync;
-        }
-    } else {
-        MSDK_SLEEP(DEVICE_WAIT_TIME);
-    }
 }

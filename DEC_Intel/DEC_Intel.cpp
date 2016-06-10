@@ -109,6 +109,7 @@ namespace RW{
             mfxStatus sts = MFX_ERR_NONE; // return value check
 
             m_pPipeline->SetEncodedData(data->pstEncodedStream);
+            m_pPipeline->SetOutput(data->pOutput);
 
             sts = m_pPipeline->RunDecoding(data->pPayload);
             if (sts != MFX_ERR_NONE)

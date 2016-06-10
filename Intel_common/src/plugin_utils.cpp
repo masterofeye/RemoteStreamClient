@@ -3,10 +3,7 @@
 INTEL CORPORATION PROPRIETARY INFORMATION
 This software is supplied under the terms of a license agreement or nondisclosure
 agreement with Intel Corporation and may not be copied or disclosed except in
-accordance with the terms of that agreement.
-This sample was distributed or derived from the Intel's Media Samples package.
-The original version of this sample may be obtained from https://software.intel.com/en-us/intel-media-server-studio
-or https://software.intel.com/en-us/media-client-solutions-support.
+accordance with the terms of that agreement
 Copyright(c) 2014 Intel Corporation. All Rights Reserved.
 
 **********************************************************************************/
@@ -14,7 +11,6 @@ Copyright(c) 2014 Intel Corporation. All Rights Reserved.
 #include "mfx_samples_config.h"
 
 #include "plugin_utils.h"
-#include "mfxvp8.h"
 
 bool AreGuidsEqual(const mfxPluginUID& guid1, const mfxPluginUID& guid2)
 {
@@ -85,18 +81,14 @@ const mfxPluginUID & msdkGetPluginUID(mfxIMPL impl, msdkComponentType type, mfxU
             switch(uCodecid)
             {
             case MFX_CODEC_HEVC:
-                return MFX_PLUGINID_HEVCD_HW;
-            case MFX_CODEC_VP8:
-                return MFX_PLUGINID_VP8D_HW;
+                return MFX_PLUGINID_HEVCD_SW; // MFX_PLUGINID_HEVCD_SW for now
             }
             break;
         case MSDK_VENCODE:
             switch(uCodecid)
             {
             case MFX_CODEC_HEVC:
-                return MFX_PLUGINID_HEVCE_HW;
-            case MFX_CODEC_VP8:
-                return MFX_PLUGINID_VP8E_HW;
+                return MFX_PLUGINID_HEVCE_SW; // MFX_PLUGINID_HEVCD_SW for now
             }
             break;
         case MSDK_VENC:

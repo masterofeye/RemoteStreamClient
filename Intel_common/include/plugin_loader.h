@@ -3,11 +3,8 @@
 INTEL CORPORATION PROPRIETARY INFORMATION
 This software is supplied under the terms of a license agreement or nondisclosure
 agreement with Intel Corporation and may not be copied or disclosed except in
-accordance with the terms of that agreement.
-This sample was distributed or derived from the Intel's Media Samples package.
-The original version of this sample may be obtained from https://software.intel.com/en-us/intel-media-server-studio
-or https://software.intel.com/en-us/media-client-solutions-support.
-Copyright(c) 2013-2015 Intel Corporation. All Rights Reserved.
+accordance with the terms of that agreement
+Copyright(c) 2013-2014 Intel Corporation. All Rights Reserved.
 
 **********************************************************************************/
 
@@ -81,21 +78,17 @@ private:
             return MSDK_STRING("Intel (R) Media SDK HW plugin for HEVC DECODE");
         else if(AreGuidsEqual(guid, MFX_PLUGINID_HEVCE_SW))
             return MSDK_STRING("Intel (R) Media SDK plugin for HEVC ENCODE");
-        else if(AreGuidsEqual(guid, MFX_PLUGINID_HEVCE_HW))
-            return MSDK_STRING("Intel (R) Media SDK HW plugin for HEVC ENCODE");
         else if(AreGuidsEqual(guid, MFX_PLUGINID_H264LA_HW))
             return MSDK_STRING("Intel (R) Media SDK plugin for LA ENC");
-        else if(AreGuidsEqual(guid, MFX_PLUGINID_ITELECINE_HW))
-            return MSDK_STRING("Intel (R) Media SDK PTIR plugin (HW)");
         else
             return MSDK_STRING("Unknown plugin");
     }
 
 public:
     PluginLoader(mfxPluginType type, mfxSession session, const mfxPluginUID & uid, mfxU32 version, const mfxChar *pluginName, mfxU32 len)
-        : ePluginType(type)
-        , m_session()
+        : m_session()
         , m_uid()
+        , ePluginType(type)
     {
         len; pluginName;
         mfxStatus sts = MFX_ERR_NONE;
@@ -131,9 +124,9 @@ public:
     }
 
     PluginLoader(mfxPluginType type, mfxSession session, const mfxPluginUID & uid, mfxU32 version)
-        : ePluginType(type)
-        , m_session()
+        : m_session()
         , m_uid()
+        , ePluginType(type)
     {
         mfxStatus sts = MFX_ERR_NONE;
         msdk_stringstream strStream;
@@ -161,7 +154,7 @@ public:
         }
         else
         {
-            MSDK_TRACE_INFO(MSDK_STRING("Plugin was loaded from GUID")<< MSDK_STRING(": { ") << strStream.str().c_str() << MSDK_STRING(" } (") << msdkGetPluginName(m_uid) << MSDK_STRING(")"));
+            MSDK_TRACE_INFO(MSDK_STRING("Plugin was loaded from GUID"));
             m_session = session;
         }
     }

@@ -14,6 +14,7 @@ Copyright(c) 2005-2014 Intel Corporation. All Rights Reserved.
 #include "mfx_buffering.h"
 #include "mfxmvc.h"
 #include "AbstractModule.hpp"
+#include "mfxvideo++.h"
 
 class MFXFrameAllocator;
 struct mfxAllocatorParams;
@@ -74,12 +75,15 @@ namespace RW{
             virtual ~CDecodingPipeline();
             void SetEncodedData(tstBitStream *pstEncodedStream)
             {
-                m_mfxBS.Data = (mfxU8*)pstEncodedStream->pBuffer;
                 m_mfxBS.DataLength = pstEncodedStream->u32Size;
+                memmove(m_mfxBS.Data, m_mfxBS.Data + m_mfxBS.DataOffset, m_mfxBS.DataLength);
+                m_mfxBS.DataOffset = 0;
+                m_mfxBS.Data = (mfxU8*)pstEncodedStream->pBuffer;
                 m_mfxBS.MaxLength = pstEncodedStream->u32Size;
-                m_mfxBS.DataFlag = MFX_BITSTREAM_COMPLETE_FRAME;
+                m_mfxBS.DataFlag = MFX_BITSTREAM_COMPLETE_FRAME;//MFX_BITSTREAM_EOS;
             }
             tstBitStream *GetOutput(){ return m_pOutput; }
+            void SetOutput(tstBitStream *pOutput){ m_pOutput = pOutput; }
 
             virtual mfxStatus Init(tstInputParams *pParams);
             virtual mfxStatus RunDecoding(tstBitStream *pPayload);
@@ -89,6 +93,7 @@ namespace RW{
             virtual mfxStatus ResetDevice();
 
         protected: // functions
+            std::unique_ptr<CSmplBitstreamReader>  m_FileReader;
             virtual void Close();
 
             void SetExtBuffersFlag()       { m_bIsExtBuffers = true; }

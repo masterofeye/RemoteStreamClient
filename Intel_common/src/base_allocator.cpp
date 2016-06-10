@@ -3,11 +3,8 @@
 INTEL CORPORATION PROPRIETARY INFORMATION
 This software is supplied under the terms of a license agreement or nondisclosure
 agreement with Intel Corporation and may not be copied or disclosed except in
-accordance with the terms of that agreement.
-This sample was distributed or derived from the Intel's Media Samples package.
-The original version of this sample may be obtained from https://software.intel.com/en-us/intel-media-server-studio
-or https://software.intel.com/en-us/media-client-solutions-support.
-Copyright(c) 2008-2015 Intel Corporation. All Rights Reserved.
+accordance with the terms of that agreement
+Copyright(c) 2008-2012 Intel Corporation. All Rights Reserved.
 
 \* ****************************************************************************** */
 
@@ -111,34 +108,27 @@ mfxStatus BaseFrameAllocator::AllocFrames(mfxFrameAllocRequest *request, mfxFram
 
     if ( (request->Type & MFX_MEMTYPE_EXTERNAL_FRAME) && (request->Type & MFX_MEMTYPE_FROM_DECODE) )
     {
-        bool foundInCache = false;
         // external decoder allocations
-        std::list<UniqueResponse>::iterator
-            it = m_ExtResponses.begin(),
-            et = m_ExtResponses.end();
-        UniqueResponse checker(*response, request->Info.CropW, request->Info.CropH, 0);
-        for (; it != et; ++it)
+        std::list<UniqueResponse>::iterator it =
+            std::find_if( m_ExtResponses.begin()
+                        , m_ExtResponses.end()
+                        , UniqueResponse (*response, request->Info.CropW, request->Info.CropH, 0));
+
+        if (it != m_ExtResponses.end())
         {
-            // same decoder and same size
-            if (request->AllocId == it->AllocId && checker(*it))
-            {
-                // check if enough frames were allocated
-                if (request->NumFrameSuggested > it->NumFrameActual)
-                    return MFX_ERR_MEMORY_ALLOC;
+            // check if enough frames were allocated
+            if (request->NumFrameSuggested > it->NumFrameActual)
+                return MFX_ERR_MEMORY_ALLOC;
 
-                it->m_refCount++;
-                // return existing response
-                *response = (mfxFrameAllocResponse&)*it;
-                foundInCache = true;
-            }
+            it->m_refCount++;
+            // return existing response
+            *response = (mfxFrameAllocResponse&)*it;
         }
-
-        if (!foundInCache)
+        else
         {
             sts = AllocImpl(request, response);
             if (sts == MFX_ERR_NONE)
             {
-                response->AllocId = request->AllocId;
                 m_ExtResponses.push_back(UniqueResponse(*response, request->Info.CropW, request->Info.CropH, request->Type & MEMTYPE_FROM_MASK));
             }
         }

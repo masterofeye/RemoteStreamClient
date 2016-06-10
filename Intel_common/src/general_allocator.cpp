@@ -3,11 +3,8 @@
 INTEL CORPORATION PROPRIETARY INFORMATION
 This software is supplied under the terms of a license agreement or nondisclosure
 agreement with Intel Corporation and may not be copied or disclosed except in
-accordance with the terms of that agreement.
-This sample was distributed or derived from the Intel's Media Samples package.
-The original version of this sample may be obtained from https://software.intel.com/en-us/intel-media-server-studio
-or https://software.intel.com/en-us/media-client-solutions-support.
-Copyright(c) 2010-2015 Intel Corporation. All Rights Reserved.
+accordance with the terms of that agreement
+Copyright(c) 2010-2014 Intel Corporation. All Rights Reserved.
 
 **********************************************************************************/
 
@@ -40,31 +37,28 @@ mfxStatus GeneralAllocator::Init(mfxAllocatorParams *pParams)
     mfxStatus sts = MFX_ERR_NONE;
 
 #if defined(_WIN32) || defined(_WIN64)
-    D3DAllocatorParams *d3dAllocParams = dynamic_cast<D3DAllocatorParams*>(pParams);
-    if (d3dAllocParams)
-        m_D3DAllocator.reset(new D3DFrameAllocator);
 #if MFX_D3D11_SUPPORT
     D3D11AllocatorParams *d3d11AllocParams = dynamic_cast<D3D11AllocatorParams*>(pParams);
     if (d3d11AllocParams)
         m_D3DAllocator.reset(new D3D11FrameAllocator);
+    else
 #endif
+        m_D3DAllocator.reset(new D3DFrameAllocator);
+#endif
+#ifdef LIBVA_SUPPORT
+    m_D3DAllocator.reset(new vaapiFrameAllocator);
 #endif
 
-#ifdef LIBVA_SUPPORT
-    vaapiAllocatorParams *vaapiAllocParams = dynamic_cast<vaapiAllocatorParams*>(pParams);
-    if (vaapiAllocParams)
-        m_D3DAllocator.reset(new vaapiFrameAllocator);
-#endif
+    m_SYSAllocator.reset(new SysMemFrameAllocator);
 
     if (m_D3DAllocator.get())
     {
         sts = m_D3DAllocator.get()->Init(pParams);
-        MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
+        MSDK_CHECK_RESULT(MFX_ERR_NONE, sts, sts);
     }
 
-    m_SYSAllocator.reset(new SysMemFrameAllocator);
     sts = m_SYSAllocator.get()->Init(0);
-    MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
+    MSDK_CHECK_RESULT(MFX_ERR_NONE, sts, sts);
 
     return sts;
 }
@@ -74,11 +68,11 @@ mfxStatus GeneralAllocator::Close()
     if (m_D3DAllocator.get())
     {
         sts = m_D3DAllocator.get()->Close();
-        MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
+        MSDK_CHECK_RESULT(MFX_ERR_NONE, sts, sts);
     }
 
     sts = m_SYSAllocator.get()->Close();
-    MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
+    MSDK_CHECK_RESULT(MFX_ERR_NONE, sts, sts);
 
    return sts;
 }
@@ -120,13 +114,11 @@ mfxStatus GeneralAllocator::AllocImpl(mfxFrameAllocRequest *request, mfxFrameAll
     if ((request->Type & MFX_MEMTYPE_VIDEO_MEMORY_DECODER_TARGET || request->Type & MFX_MEMTYPE_VIDEO_MEMORY_PROCESSOR_TARGET) && m_D3DAllocator.get())
     {
         sts = m_D3DAllocator.get()->Alloc(m_D3DAllocator.get(), request, response);
-        MSDK_CHECK_NOT_EQUAL(MFX_ERR_NONE, sts, sts);
         StoreFrameMids(true, response);
     }
     else
     {
         sts = m_SYSAllocator.get()->Alloc(m_SYSAllocator.get(), request, response);
-        MSDK_CHECK_NOT_EQUAL(MFX_ERR_NONE, sts, sts);
         StoreFrameMids(false, response);
     }
     return sts;

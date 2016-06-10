@@ -101,17 +101,8 @@ namespace RW{
                 {
                 case MFX_CODEC_HEVC:
                 case MFX_CODEC_AVC:
-                    //m_FileReader.reset(new CH264FrameReader());
-                    m_bIsCompleteFrame = true;
-                    m_bPrintLatency = m_pInputParams->bCalLat;
-                    break;
-                case MFX_CODEC_JPEG:
-                    //m_FileReader.reset(new CJPEGFrameReader());
-                    m_bIsCompleteFrame = true;
-                    m_bPrintLatency = m_pInputParams->bCalLat;
-                    break;
-                case CODEC_VP8:
-                    //m_FileReader.reset(new CIVFFrameReader());
+                    m_FileReader.reset(new CH264FrameReader());
+
                     m_bIsCompleteFrame = true;
                     m_bPrintLatency = m_pInputParams->bCalLat;
                     break;
@@ -123,6 +114,14 @@ namespace RW{
             m_memType = m_pInputParams->memType;
             m_nMaxFps = m_pInputParams->nMaxFPS;
             m_nFrames = m_pInputParams->nFrames ? m_pInputParams->nFrames : MFX_INFINITE;
+
+            if (MFX_CODEC_CAPTURE != pParams->videoType)
+            {
+                m_FileReader->Close();
+                //msdk_char dummy[1024];
+                //sts = m_FileReader->Init(dummy);
+                //MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
+            }
 
             mfxInitParam initPar;
             mfxExtThreadsParam threadsPar;
@@ -220,7 +219,7 @@ namespace RW{
                 if (m_pInputParams->pluginParams.type == MFX_PLUGINLOAD_TYPE_FILE && strlen(m_pInputParams->pluginParams.strPluginPath))
                 {
                     m_pUserModule.reset(new MFXVideoUSER(m_mfxSession));
-                    if (m_pInputParams->videoType == CODEC_VP8 || m_pInputParams->videoType == MFX_CODEC_HEVC)
+                    if (m_pInputParams->videoType == MFX_CODEC_HEVC)
                     {
                         m_pPlugin.reset(LoadPlugin(MFX_PLUGINTYPE_VIDEO_DECODE, m_mfxSession, m_pInputParams->pluginParams.pluginGuid, 1, m_pInputParams->pluginParams.strPluginPath, (mfxU32)strlen(m_pInputParams->pluginParams.strPluginPath)));
                     }
@@ -294,9 +293,8 @@ namespace RW{
 
             m_pPlugin.reset();
             m_mfxSession.Close();
-            //m_FileWriter.Close();
-            //if (m_FileReader.get())
-            //    m_FileReader->Close();
+            if (m_FileReader.get())
+                m_FileReader->Close();
 
             // allocator if used as external for MediaSDK must be deleted after decoder
             DeleteAllocator();
@@ -310,18 +308,33 @@ namespace RW{
             mfxStatus sts = MFX_ERR_NONE;
             mfxU32 &numViews = m_pInputParams->numViews;
 
+            // try to find a sequence header in the stream
+            // if header is not found this function exits with error (e.g. if device was lost and there's no header in the remaining stream)
+            if (MFX_CODEC_CAPTURE == m_pInputParams->videoType)
+            {
+                m_mfxVideoParams.mfx.CodecId = MFX_CODEC_CAPTURE;
+                m_mfxVideoParams.mfx.FrameInfo.PicStruct = MFX_PICSTRUCT_PROGRESSIVE;
+                m_mfxVideoParams.mfx.FrameInfo.Width = MSDK_ALIGN32(m_pInputParams->Width);
+                m_mfxVideoParams.mfx.FrameInfo.Height = MSDK_ALIGN32(m_pInputParams->Height);
+                m_mfxVideoParams.mfx.FrameInfo.CropW = m_pInputParams->Width;
+                m_mfxVideoParams.mfx.FrameInfo.CropH = m_pInputParams->Height;
+                m_mfxVideoParams.mfx.FrameInfo.FourCC = m_pInputParams->fourcc;
+                if (!m_mfxVideoParams.mfx.FrameInfo.FourCC)
+                    m_mfxVideoParams.mfx.FrameInfo.FourCC = MFX_FOURCC_NV12;
+                if (!m_mfxVideoParams.mfx.FrameInfo.ChromaFormat)
+                {
+                    if (MFX_FOURCC_NV12 == m_mfxVideoParams.mfx.FrameInfo.FourCC)
+                        m_mfxVideoParams.mfx.FrameInfo.ChromaFormat = MFX_CHROMAFORMAT_YUV420;
+                    else if (MFX_FOURCC_RGB4 == m_mfxVideoParams.mfx.FrameInfo.FourCC)
+                        m_mfxVideoParams.mfx.FrameInfo.ChromaFormat = MFX_CHROMAFORMAT_YUV444;
+                }
+            }
+
             for (; MFX_CODEC_CAPTURE != m_pInputParams->videoType;)
             {
-                // trying to find PicStruct information in AVI headers
-                if (m_mfxVideoParams.mfx.CodecId == MFX_CODEC_JPEG)
-                    MJPEG_AVI_ParsePicStruct(&m_mfxBS);
-
                 // parse bit stream and fill mfx params
                 sts = m_pmfxDEC->DecodeHeader(&m_mfxBS, &m_mfxVideoParams);
-                if (m_pPlugin.get() && m_pInputParams->videoType == CODEC_VP8 && !sts) {
-                    // force set format to nv12 as the vp8 plugin uses yv12
-                    m_mfxVideoParams.mfx.FrameInfo.FourCC = MFX_FOURCC_NV12;
-                }
+
                 if (MFX_ERR_MORE_DATA == sts)
                 {
                     if (m_mfxBS.MaxLength == m_mfxBS.DataLength)
@@ -330,9 +343,8 @@ namespace RW{
                         MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
                     }
                     // read a portion of data
-                    //sts = m_FileReader->ReadNextFrame(&m_mfxBS);
-                    if (MFX_ERR_MORE_DATA == sts &&
-                        !(m_mfxBS.DataFlag & MFX_BITSTREAM_EOS))
+                    sts = m_FileReader->ReadNextFrame(&m_mfxBS);
+                    if (!(m_mfxBS.DataFlag & MFX_BITSTREAM_EOS))
                     {
                         m_mfxBS.DataFlag |= MFX_BITSTREAM_EOS;
                         sts = MFX_ERR_NONE;
@@ -678,126 +690,132 @@ namespace RW{
 
             mfxStatus sts = MFX_ERR_NONE;
 
-            if (!frame) {
+            if (!frame)
+            {
                 return MFX_ERR_NULL_PTR;
             }
 
-            if (m_bExternalAlloc) {
-                    sts = m_pMFXAllocator->Lock(m_pMFXAllocator->pthis, frame->Data.MemId, &(frame->Data));
-                    if (MFX_ERR_NONE == sts) {
+            if (m_bExternalAlloc)
+            {
+                sts = m_pMFXAllocator->Lock(m_pMFXAllocator->pthis, frame->Data.MemId, &(frame->Data));
+            }
 
-                        mfxU32 h, w;
+            if (MFX_ERR_NONE == sts)
+            {
+                mfxU32 h, w;
 
-                        switch (frame->Info.FourCC)
-                        {
-                        case MFX_FOURCC_YV12:
-                            m_pOutput->u32Size += frame->Info.CropW * frame->Info.CropH;
+                switch (frame->Info.FourCC)
+                {
+                case MFX_FOURCC_YV12:
+                    m_pOutput->u32Size += frame->Info.CropW * frame->Info.CropH;
 
-                            for (mfxU32 i = 0; i < frame->Info.CropH; i++)
-                            {
-                                memcpy(m_pOutput->pBuffer, frame->Data.Y + (frame->Info.CropY * frame->Data.Pitch + frame->Info.CropX) + i * frame->Data.Pitch, frame->Info.CropW);
-                            }
-
-                            w = frame->Info.CropW / 2;
-                            h = frame->Info.CropH / 2;
-
-                            m_pOutput->u32Size += (w * h) + (w * h);
-
-                            for (mfxU32 i = 0; i < h; i++)
-                            {
-                                memcpy(m_pOutput->pBuffer, (frame->Data.U + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX / 2) + i * frame->Data.Pitch / 2), w);
-                            }
-                            for (mfxU32 i = 0; i < h; i++)
-                            {
-                                memcpy(m_pOutput->pBuffer, (frame->Data.V + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX / 2) + i * frame->Data.Pitch / 2), w);
-                            }
-                            break;
-
-                        case MFX_FOURCC_NV12:
-
-                            m_pOutput->u32Size += frame->Info.CropW * frame->Info.CropH;
-
-                            for (mfxU32 i = 0; i < frame->Info.CropH; i++)
-                            {
-                                memcpy(m_pOutput->pBuffer, frame->Data.Y + (frame->Info.CropY * frame->Data.Pitch + frame->Info.CropX) + i * frame->Data.Pitch, frame->Info.CropW);
-                            }
-
-                            h = frame->Info.CropH / 2;
-                            w = frame->Info.CropW;
-
-                            m_pOutput->u32Size += (w * h) + (w * h);
-
-                            for (mfxU32 i = 0; i < h; i++)
-                            {
-                                for (mfxU32 j = 0; j < w; j += 2)
-                                {
-                                    memcpy(m_pOutput->pBuffer, (frame->Data.UV + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX) + i * frame->Data.Pitch + j), 1);
-                                }
-                            }
-                            for (mfxU32 i = 0; i < h; i++)
-                            {
-                                for (mfxU32 j = 0; j < w; j += 2)
-                                {
-                                    memcpy(m_pOutput->pBuffer, (frame->Data.UV + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX) + i * frame->Data.Pitch + j), 1);
-                                }
-                            }
-
-                            break;
-
-                        case MFX_FOURCC_P010:
-
-                            m_pOutput->u32Size += 2 * frame->Info.CropW * frame->Info.CropH;
-
-                            for (mfxU32 i = 0; i < frame->Info.CropH; i++)
-                            {
-                                memcpy(m_pOutput->pBuffer, (frame->Data.Y + (frame->Info.CropY * frame->Data.Pitch + frame->Info.CropX) + i * frame->Data.Pitch), 2 * frame->Info.CropW);
-                            }
-
-                            h = frame->Info.CropH / 2;
-                            w = frame->Info.CropW;
-
-                            m_pOutput->u32Size += 2 * w * h;
-
-                            for (mfxU32 i = 0; i < h; i++)
-                            {
-                                memcpy(m_pOutput->pBuffer, (frame->Data.UV + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX) + i * frame->Data.Pitch), 2 * w);
-                            }
-                            break;
-
-                        case MFX_FOURCC_RGB4:
-                        case 100: //DXGI_FORMAT_AYUV
-                        case MFX_FOURCC_A2RGB10:
-                            mfxU8* ptr;
-
-                            if (frame->Info.CropH > 0 && frame->Info.CropW > 0)
-                            {
-                                w = frame->Info.CropW;
-                                h = frame->Info.CropH;
-                            }
-                            else
-                            {
-                                w = frame->Info.Width;
-                                h = frame->Info.Height;
-                            }
-
-                            ptr = MSDK_MIN(MSDK_MIN(frame->Data.R, frame->Data.G), frame->Data.B);
-                            ptr = ptr + frame->Info.CropX + frame->Info.CropY * frame->Data.Pitch;
-
-                            m_pOutput->u32Size += 4 * w * h;
-
-                            for (mfxU32 i = 0; i < h; i++)
-                            {
-                                memcpy(m_pOutput->pBuffer, (ptr + i * frame->Data.Pitch), 4 * w);
-                            }
-
-                            break;
-
-                        default:
-                            return MFX_ERR_UNSUPPORTED;
-                        }
-
-                        sts = m_pMFXAllocator->Unlock(m_pMFXAllocator->pthis, frame->Data.MemId, &(frame->Data));
+                    for (mfxU32 i = 0; i < frame->Info.CropH; i++)
+                    {
+                        memcpy(m_pOutput->pBuffer, frame->Data.Y + (frame->Info.CropY * frame->Data.Pitch + frame->Info.CropX) + i * frame->Data.Pitch, frame->Info.CropW);
                     }
+
+                    w = frame->Info.CropW / 2;
+                    h = frame->Info.CropH / 2;
+
+                    m_pOutput->u32Size += (w * h) + (w * h);
+
+                    for (mfxU32 i = 0; i < h; i++)
+                    {
+                        memcpy(m_pOutput->pBuffer, (frame->Data.U + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX / 2) + i * frame->Data.Pitch / 2), w);
+                    }
+                    for (mfxU32 i = 0; i < h; i++)
+                    {
+                        memcpy(m_pOutput->pBuffer, (frame->Data.V + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX / 2) + i * frame->Data.Pitch / 2), w);
+                    }
+                    break;
+
+                case MFX_FOURCC_NV12:
+
+                    m_pOutput->u32Size += frame->Info.CropW * frame->Info.CropH;
+
+                    for (mfxU32 i = 0; i < frame->Info.CropH; i++)
+                    {
+                        memcpy(m_pOutput->pBuffer, frame->Data.Y + (frame->Info.CropY * frame->Data.Pitch + frame->Info.CropX) + i * frame->Data.Pitch, frame->Info.CropW);
+                    }
+
+                    h = frame->Info.CropH / 2;
+                    w = frame->Info.CropW;
+
+                    m_pOutput->u32Size += (w * h) + (w * h);
+
+                    for (mfxU32 i = 0; i < h; i++)
+                    {
+                        for (mfxU32 j = 0; j < w; j += 2)
+                        {
+                            memcpy(m_pOutput->pBuffer, (frame->Data.UV + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX) + i * frame->Data.Pitch + j), 1);
+                        }
+                    }
+                    for (mfxU32 i = 0; i < h; i++)
+                    {
+                        for (mfxU32 j = 0; j < w; j += 2)
+                        {
+                            memcpy(m_pOutput->pBuffer, (frame->Data.UV + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX) + i * frame->Data.Pitch + j), 1);
+                        }
+                    }
+
+                    break;
+
+                case MFX_FOURCC_P010:
+
+                    m_pOutput->u32Size += 2 * frame->Info.CropW * frame->Info.CropH;
+
+                    for (mfxU32 i = 0; i < frame->Info.CropH; i++)
+                    {
+                        memcpy(m_pOutput->pBuffer, (frame->Data.Y + (frame->Info.CropY * frame->Data.Pitch + frame->Info.CropX) + i * frame->Data.Pitch), 2 * frame->Info.CropW);
+                    }
+
+                    h = frame->Info.CropH / 2;
+                    w = frame->Info.CropW;
+
+                    m_pOutput->u32Size += 2 * w * h;
+
+                    for (mfxU32 i = 0; i < h; i++)
+                    {
+                        memcpy(m_pOutput->pBuffer, (frame->Data.UV + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX) + i * frame->Data.Pitch), 2 * w);
+                    }
+                    break;
+
+                case MFX_FOURCC_RGB4:
+                case 100: //DXGI_FORMAT_AYUV
+                case MFX_FOURCC_A2RGB10:
+                    mfxU8* ptr;
+
+                    if (frame->Info.CropH > 0 && frame->Info.CropW > 0)
+                    {
+                        w = frame->Info.CropW;
+                        h = frame->Info.CropH;
+                    }
+                    else
+                    {
+                        w = frame->Info.Width;
+                        h = frame->Info.Height;
+                    }
+
+                    ptr = MSDK_MIN(MSDK_MIN(frame->Data.R, frame->Data.G), frame->Data.B);
+                    ptr = ptr + frame->Info.CropX + frame->Info.CropY * frame->Data.Pitch;
+
+                    m_pOutput->u32Size += 4 * w * h;
+
+                    for (mfxU32 i = 0; i < h; i++)
+                    {
+                        memcpy(m_pOutput->pBuffer, (ptr + i * frame->Data.Pitch), 4 * w);
+                    }
+
+                    break;
+
+                default:
+                    return MFX_ERR_UNSUPPORTED;
+                }
+                if (m_bExternalAlloc)
+                {
+
+                    sts = m_pMFXAllocator->Unlock(m_pMFXAllocator->pthis, frame->Data.MemId, &(frame->Data));
+                }
             }
             return sts;
         }
@@ -858,7 +876,7 @@ namespace RW{
                 fps_fread = (m_tick_fread) ? m_output_count / CTimer::ConvertToSeconds(m_tick_fread) : 0.0;
                 fps_fwrite = (m_tick_fwrite) ? m_output_count / CTimer::ConvertToSeconds(m_tick_fwrite) : 0.0;
                 // decoding progress
-                m_Logger->trace("CDecodingPipeline::PrintPerFrameStat: ") << "Frame number: " << m_output_count << " fps: " << fps << " fread_fps: " << ((fps_fread < MY_THRESHOLD) ? fps_fread : 0.0 )<< " fwrite_fps: " <<
+                m_Logger->trace("CDecodingPipeline::PrintPerFrameStat: ") << "Frame number: " << m_output_count << " fps: " << fps << " fread_fps: " << ((fps_fread < MY_THRESHOLD) ? fps_fread : 0.0) << " fwrite_fps: " <<
                     ((fps_fwrite < MY_THRESHOLD) ? fps_fwrite : 0.0);
                 fflush(NULL);
             }
@@ -923,15 +941,14 @@ namespace RW{
             mfxU64 ts;
             dec_payload.Data = (mfxU8*)pPayload->pBuffer;
             dec_payload.BufSize = pPayload->u32Size;
-            int count = 0;
             while (((sts == MFX_ERR_NONE) || (MFX_ERR_MORE_DATA == sts) || (MFX_ERR_MORE_SURFACE == sts)) && (m_nFrames > m_output_count)){
                 if (MFX_ERR_NONE != m_error) {
-                    m_Logger->error("CDecodingPipeline::RunDecoding: DeliverOutput return error = ") << std::to_string( m_error );
+                    m_Logger->error("CDecodingPipeline::RunDecoding: DeliverOutput return error = ") << std::to_string(m_error);
                     break;
                 }
                 if (pBitstream && ((MFX_ERR_MORE_DATA == sts) || m_bIsCompleteFrame)) {
                     CAutoTimer timer_fread(m_tick_fread);
-                    //sts = m_FileReader->ReadNextFrame(pBitstream); // read more data to input bit stream
+                    sts = m_FileReader->ReadNextFrame(pBitstream); // read more data to input bit stream
 
                     if (MFX_ERR_MORE_DATA == sts) {
                         if (!m_bIsVideoWall) {
@@ -941,7 +958,7 @@ namespace RW{
                         }
                         else {
                             // videowall mode: decoding in a loop
-                            //m_FileReader->Reset();
+                            m_FileReader->Reset();
                             sts = MFX_ERR_NONE;
                             continue;
                         }
@@ -1007,14 +1024,17 @@ namespace RW{
 
                         dec_payload.NumBit = 100;
 
-                        while ((dec_payload.NumBit != 0))
+                        while (dec_payload.NumBit != 0)
                         {
-                            sts = m_pmfxDEC->GetPayload(&ts, &dec_payload);
-                            if ((sts == MFX_ERR_NONE) && (dec_payload.Type == 5))
+                            mfxStatus stats = m_pmfxDEC->GetPayload(&ts, &dec_payload);
+                            if ((stats == MFX_ERR_NONE) && (dec_payload.Type == 5))
                             {
                                 memcpy(pPayload->pBuffer, dec_payload.Data, dec_payload.BufSize);
-
-                                count++;
+                                dec_payload.NumBit--;
+                            }
+                            else
+                            {
+                                break;
                             }
                         }
                         if (MFX_WRN_DEVICE_BUSY == sts) {
@@ -1099,13 +1119,13 @@ namespace RW{
                 for (std::vector<msdk_tick>::iterator it = m_vLatency.begin(); it != m_vLatency.end(); ++it)
                 {
                     sum += *it;
-                    m_Logger->debug("CDecodingPipeline::RunDecoding: ") 
-                        << "Frame = " << (++frame_idx) 
+                    m_Logger->debug("CDecodingPipeline::RunDecoding: ")
+                        << "Frame = " << (++frame_idx)
                         << "latency = " << (CTimer::ConvertToSeconds(*it) * 1000);
                 }
                 m_Logger->debug("CDecodingPipeline::RunDecoding: Latency summary (ms): ")
-                    << " AVG: " << (CTimer::ConvertToSeconds((msdk_tick)((mfxF64)sum / m_vLatency.size())) * 1000) 
-                    << " MAX: " << (CTimer::ConvertToSeconds(*std::max_element(m_vLatency.begin(), m_vLatency.end())) * 1000) 
+                    << " AVG: " << (CTimer::ConvertToSeconds((msdk_tick)((mfxF64)sum / m_vLatency.size())) * 1000)
+                    << " MAX: " << (CTimer::ConvertToSeconds(*std::max_element(m_vLatency.begin(), m_vLatency.end())) * 1000)
                     << " MIN: " << (CTimer::ConvertToSeconds(*std::min_element(m_vLatency.begin(), m_vLatency.end())) * 1000);
             }
 

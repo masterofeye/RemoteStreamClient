@@ -3,11 +3,8 @@
 INTEL CORPORATION PROPRIETARY INFORMATION
 This software is supplied under the terms of a license agreement or nondisclosure
 agreement with Intel Corporation and may not be copied or disclosed except in
-accordance with the terms of that agreement.
-This sample was distributed or derived from the Intel's Media Samples package.
-The original version of this sample may be obtained from https://software.intel.com/en-us/intel-media-server-studio
-or https://software.intel.com/en-us/media-client-solutions-support.
-Copyright(c) 2011-2015 Intel Corporation. All Rights Reserved.
+accordance with the terms of that agreement
+Copyright(c) 2011-2014 Intel Corporation. All Rights Reserved.
 
 **********************************************************************************/
 
@@ -370,7 +367,7 @@ mfxStatus D3D11FrameAllocator::AllocImpl(mfxFrameAllocRequest *request, mfxFrame
         desc.Format = ConverColortFormat(request->Info.FourCC);
         desc.SampleDesc.Count = 1;
         desc.Usage = D3D11_USAGE_DEFAULT;
-        desc.MiscFlags = m_initParams.uncompressedResourceMiscFlags | D3D11_RESOURCE_MISC_SHARED;
+        desc.MiscFlags = m_initParams.uncompressedResourceMiscFlags;
 
         desc.BindFlags = D3D11_BIND_DECODER;
 
@@ -422,7 +419,7 @@ mfxStatus D3D11FrameAllocator::AllocImpl(mfxFrameAllocRequest *request, mfxFrame
 
             if (FAILED(hRes))
             {
-                msdk_printf(MSDK_STRING("Create staging texture(%lld) failed hr = 0x%X\n"), (long long)i, (unsigned int)hRes);
+                printf("Create staging texture(%lld) failed hr = 0x%X\n", (long long)i, (unsigned int)hRes);
                 return MFX_ERR_MEMORY_ALLOC;
             }
             newTexture.stagingTexture.push_back(pTexture2D);

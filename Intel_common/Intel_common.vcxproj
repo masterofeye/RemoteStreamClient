@@ -1,10 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug_WithDebugAPI|x64">
-      <Configuration>Debug_WithDebugAPI</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
@@ -33,12 +29,6 @@
     <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_WithDebugAPI|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <UseOfMfc>false</UseOfMfc>
-    <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v120</PlatformToolset>
-  </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
@@ -50,17 +40,11 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="props\winsdk_x64.props" />
   </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug_WithDebugAPI|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="props\winsdk_x64.props" />
-  </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build\$(Platform)\$(Configuration)\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug_WithDebugAPI|x64'">$(SolutionDir)build\$(Platform)\$(Configuration)\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug_WithDebugAPI|x64'">$(Platform)\$(Configuration)\</IntDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build\$(Platform)\$(Configuration)\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
@@ -116,7 +100,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir)\include;$(INTELMEDIASDKROOT)\include;$(ProjectDir)\include\vm;$(INTELMEDIASDKROOT)\igfx_s3dcontrol\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_WIN64;WIN64;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>Async</ExceptionHandling>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
@@ -128,18 +112,11 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="include\abstract_splitter.h" />
-    <ClInclude Include="include\avc_bitstream.h" />
-    <ClInclude Include="include\avc_headers.h" />
-    <ClInclude Include="include\avc_nal_spl.h" />
-    <ClInclude Include="include\avc_spl.h" />
-    <ClInclude Include="include\avc_structures.h" />
     <ClInclude Include="include\base_allocator.h" />
     <ClInclude Include="include\d3d11_allocator.h" />
     <ClInclude Include="include\d3d11_device.h" />
     <ClInclude Include="include\d3d_allocator.h" />
     <ClInclude Include="include\d3d_device.h" />
-    <ClInclude Include="include\decode_render.h" />
     <ClInclude Include="include\general_allocator.h" />
     <ClInclude Include="include\hw_device.h" />
     <ClInclude Include="include\mfx_buffering.h" />
@@ -151,7 +128,6 @@
     <ClInclude Include="include\sample_utils.h" />
     <ClInclude Include="include\surface_auto_lock.h" />
     <ClInclude Include="include\sysmem_allocator.h" />
-    <ClInclude Include="include\time_statistics.h" />
     <ClInclude Include="include\vpp_ex.h" />
     <ClInclude Include="include\vm\atomic_defs.h" />
     <ClInclude Include="include\vm\file_defs.h" />
@@ -161,15 +137,11 @@
     <ClInclude Include="include\vm\time_defs.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\avc_bitstream.cpp" />
-    <ClCompile Include="src\avc_nal_spl.cpp" />
-    <ClCompile Include="src\avc_spl.cpp" />
     <ClCompile Include="src\base_allocator.cpp" />
     <ClCompile Include="src\d3d11_allocator.cpp" />
     <ClCompile Include="src\d3d11_device.cpp" />
     <ClCompile Include="src\d3d_allocator.cpp" />
     <ClCompile Include="src\d3d_device.cpp" />
-    <ClCompile Include="src\decode_render.cpp" />
     <ClCompile Include="src\general_allocator.cpp" />
     <ClCompile Include="src\mfx_buffering.cpp" />
     <ClCompile Include="src\plugin_utils.cpp" />

@@ -13,7 +13,7 @@ Copyright(c) 2013 Intel Corporation. All Rights Reserved.
 
 #include "vaapi_utils_android.h"
 
-CLibVA* CreateLibVA(int)
+CLibVA* CreateLibVA(void)
 {
     return new AndroidLibVA;
 }
