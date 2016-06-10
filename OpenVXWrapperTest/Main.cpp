@@ -348,8 +348,8 @@ int pipeline(tstPipelineParams params)
             }
 
             /*******Cleanup. Whatever has been created here has to be destroyed here. Modules do not do that. ******/
-			SAFE_DELETE(videoGrabberControlStruct.pOutputData->pBuffer);
-			SAFE_DELETE(videoGrabberControlStruct.pOutputData);
+			//SAFE_DELETE(videoGrabberControlStruct.pOutputData->pBuffer);
+			//SAFE_DELETE(videoGrabberControlStruct.pOutputData);
 
 			//for (int iIndex = 0; iIndex < impCropControlStruct.pvOutput->size(); iIndex++)
 			//{
