@@ -309,7 +309,7 @@ namespace RW
                     
                 //Extract the parameter from this node now 
                 vx_parameter paramNext[] = { vxGetParameterByIndex(nextNode, NODE_PARAM_KERNEL_INDEX), vxGetParameterByIndex(nextNode, NODE_PARAM_CONTROLSTRUCT_INDEX) };
-                if (paramNext[0] == nullptr && paramNext[1] == nullptr)
+                if (paramNext[0] != nullptr && paramNext[1] != nullptr)
                 {
                     status = vxQueryParameter((vx_parameter)paramNext[0], VX_PARAMETER_ATTRIBUTE_REF, &kArrayNextNode, sizeof(kArrayNextNode));
                     if (status != VX_SUCCESS)

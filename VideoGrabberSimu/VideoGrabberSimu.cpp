@@ -5,6 +5,8 @@
 #include "..\IMP_proj\IMP_ConvColorFrames.hpp"
 #include "..\IMP_proj\IMP_CropFrames.hpp"
 #include "..\IMP_proj\IMP_MergeFrames.hpp"
+#include "cuda_runtime_api.h"
+#include "opencv2/cudev/common.hpp"
 #include "HighResolution\HighResClock.h"
 using namespace cv;
 
@@ -19,13 +21,13 @@ namespace RW
 			case CORE::tenSubModule::nenGraphic_Crop:
 			{
 				RW::IMP::CROP::tstMyControlStruct *data = static_cast<RW::IMP::CROP::tstMyControlStruct*>(*Data);
-				data->pInput->_stImg.pvImg = pOutputData->pBuffer;
+				data->pInput->_pgMat = Output;
 				break;
 			}
 			case CORE::tenSubModule::nenGraphic_Merge:
 			{
                 RW::IMP::MERGE::tstMyControlStruct *data = static_cast<RW::IMP::MERGE::tstMyControlStruct*>(*Data);
-				RW::IMP::cInputBase::tstImportImg stImp = { 0, 0, pOutputData->pBuffer };
+				RW::IMP::cInputBase::tstImportImg stImp = { 0, 0, Output };
 				RW::IMP::cInputBase cBase( stImp );
                 data->pvInput->push_back( &cBase );
                 break;
@@ -33,7 +35,7 @@ namespace RW
 			case CORE::tenSubModule::nenGraphic_Color:
 			{
 				RW::IMP::COLOR::tstMyControlStruct *data = static_cast<RW::IMP::COLOR::tstMyControlStruct*>(*Data);
-				data->pInput->_stImg.pvImg = pOutputData->pBuffer;
+				data->pInput->_pgMat = Output;
 				break;
 			}
 			default:
@@ -68,6 +70,10 @@ namespace RW
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
 #endif
+			//Initialize the Cuda Context
+			cv::cuda::GpuMat test;
+			test.create(1, 1, CV_8U);
+
 
 			auto pControlStruct = (tstVideoGrabberInitialiseControlStruct*)pInitialiseControlStruct;
 			auto sFileName = pControlStruct->sFileName;
@@ -93,6 +99,9 @@ namespace RW
 			}
 
         }
+
+
+
 
         tenStatus VideoGrabberSimu::DoRender(CORE::tstControlStruct * pControlStruct) 
         {
@@ -124,18 +133,17 @@ namespace RW
                 RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
 				m_Logger->trace() << "DoRender time for module nenVideoGrabber_SIMU: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
-				return tenStatus::nenSuccess;
-			}
-			else if (pControl->pOutputData->pBuffer == NULL)
-			{
-				m_Logger->critical("VideoGrabberSimu::DoRender - pControlStruct->pData is NULL");
-				return tenStatus::nenError;
+				return tenStatus::nenSuccess; 
 			}
 			else
 			{
 				size_t nFrameSize = rawFrame.total() * rawFrame.elemSize();
-                pControl->pOutputData->pBuffer = (void*)rawFrame.data;
-				pControl->pOutputData->u32Size = (uint32_t)nFrameSize;
+
+				cv::cuda::GpuMat *mat = new cv::cuda::GpuMat();
+				mat->upload(rawFrame);
+
+				pControl->Output = mat;
+				//pControl->pOutputData->u32Size = (uint32_t)nFrameSize;
 				pControl->nCurrentFrameNumber = m_videoCapture.get(CAP_PROP_POS_FRAMES); // nFrameCounter++;
                 pControl->nCurrentPositionMSec = m_videoCapture.get(CAP_PROP_POS_MSEC);
 #ifdef TRACE_PERFORMANCE

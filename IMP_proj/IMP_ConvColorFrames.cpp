@@ -94,6 +94,10 @@ namespace RW{
 				pgMat = impBase.cuGetGpuMat();
 
 				cv::cuda::cvtColor(*pgMat, *pgMat, cv::COLOR_BGR2YUV);// , 0, cv::cuda::Stream::Stream());
+#ifdef TRACE_PERFORMANCE
+				cv::Mat controlMat;
+				pgMat->download(controlMat);
+#endif
 
 				//data->pcuArray = (CUarray*)pgMat;
 

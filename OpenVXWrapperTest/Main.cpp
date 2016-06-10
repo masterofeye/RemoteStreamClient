@@ -110,26 +110,27 @@ int pipeline(tstPipelineParams params)
             RW::CORE::GraphBuilder builder(&list, file_logger, &graph, &context);
 			int iParentIndex = -1;
 
-   //         RW::VG::tstVideoGrabberInitialiseControlStruct videoGrabberInitialiseControlStruct = params.videoGrabberInitialiseControlStruct;
-   //         RW::VG::tstVideoGrabberControlStruct videoGrabberControlStruct;
-   //         {
-   //             videoGrabberControlStruct.pOutputData = new RW::tstBitStream();
-   //             videoGrabberControlStruct.pOutputData->pBuffer = new uint8_t*();
-   //             videoGrabberControlStruct.nCurrentFrameNumber = 0;
-   //             videoGrabberControlStruct.nCurrentPositionMSec = 0;
-   //         }
-   //         RW::VG::tstVideoGrabberDeinitialiseControlStruct videoGrabberDeinitialiseControlStruct;
+            RW::VG::tstVideoGrabberInitialiseControlStruct videoGrabberInitialiseControlStruct = params.videoGrabberInitialiseControlStruct;
+            RW::VG::tstVideoGrabberControlStruct videoGrabberControlStruct;
+            {
+				videoGrabberControlStruct.Output = nullptr;
+				//Will be filled by the VideoGrabber itself
+				//videoGrabberControlStruct.pOutputData->pBuffer = nullptr;
+                videoGrabberControlStruct.nCurrentFrameNumber = 0;
+                videoGrabberControlStruct.nCurrentPositionMSec = 0;
+            }
+            RW::VG::tstVideoGrabberDeinitialiseControlStruct videoGrabberDeinitialiseControlStruct;
 
-   //         if (builder.BuildNode(&kernelManager,
-   //             &videoGrabberInitialiseControlStruct,
-			//	iParentIndex++,
-   //             sizeof(videoGrabberInitialiseControlStruct),
-   //             &videoGrabberControlStruct,
-   //             sizeof(RW::VG::tstVideoGrabberControlStruct),
-   //             &videoGrabberDeinitialiseControlStruct,
-   //             sizeof(RW::VG::tstVideoGrabberDeinitialiseControlStruct),
-   //             RW::CORE::tenSubModule::nenVideoGrabber_SIMU) != RW::tenStatus::nenSuccess)
-   //             file_logger->error("nenVideoGrabber_SIMU couldn't build correct");
+            if (builder.BuildNode(&kernelManager,
+                &videoGrabberInitialiseControlStruct,
+				iParentIndex++,
+                sizeof(videoGrabberInitialiseControlStruct),
+                &videoGrabberControlStruct,
+                sizeof(RW::VG::tstVideoGrabberControlStruct),
+                &videoGrabberDeinitialiseControlStruct,
+                sizeof(RW::VG::tstVideoGrabberDeinitialiseControlStruct),
+                RW::CORE::tenSubModule::nenVideoGrabber_SIMU) != RW::tenStatus::nenSuccess)
+                file_logger->error("nenVideoGrabber_SIMU couldn't build correct");
 
 			//std::vector<cv::Rect> vRect;
 			//vRect.push_back(cv::Rect(100, 100, 50, 50)); 
@@ -151,16 +152,16 @@ int pipeline(tstPipelineParams params)
 			//}
    //         RW::IMP::CROP::tstMyDeinitialiseControlStruct impCropDeinitialiseControlStruct;
 
-   //         if (builder.BuildNode(&kernelManager,
-   //         	&impCropInitialiseControlStruct,
-			//	iParentIndex++,
-			//	sizeof(RW::IMP::CROP::tstMyInitialiseControlStruct),
-   //         	&impCropControlStruct,
-			//	sizeof(RW::IMP::CROP::tstMyControlStruct),
-   //         	&impCropDeinitialiseControlStruct,
-			//	sizeof(RW::IMP::CROP::tstMyDeinitialiseControlStruct),
-   //         	RW::CORE::tenSubModule::nenGraphic_Crop) != RW::tenStatus::nenSuccess)
-   //         	file_logger->error("nenGraphic_Crop couldn't build correct");
+    //        if (builder.BuildNode(&kernelManager,
+    //        	&impCropInitialiseControlStruct,
+				//iParentIndex++,
+				//sizeof(RW::IMP::CROP::tstMyInitialiseControlStruct),
+    //        	&impCropControlStruct,
+				//sizeof(RW::IMP::CROP::tstMyControlStruct),
+    //        	&impCropDeinitialiseControlStruct,
+				//sizeof(RW::IMP::CROP::tstMyDeinitialiseControlStruct),
+    //        	RW::CORE::tenSubModule::nenGraphic_Crop) != RW::tenStatus::nenSuccess)
+    //        	file_logger->error("nenGraphic_Crop couldn't build correct");
 
 			//RW::IMP::MERGE::tstMyInitialiseControlStruct impMergeInitialiseControlStruct;
 			//RW::IMP::MERGE::tstMyControlStruct impMergeControlStruct;
@@ -185,111 +186,108 @@ int pipeline(tstPipelineParams params)
 			//	RW::CORE::tenSubModule::nenGraphic_Merge) != RW::tenStatus::nenSuccess)
 			//	file_logger->error("nenGraphic_Color couldn't build correct");
 
-			//RW::IMP::COLOR::tstMyInitialiseControlStruct impColorInitialiseControlStruct;
-			//RW::IMP::COLOR::tstMyControlStruct impColorControlStruct;
-   //         {
-			//	impColorControlStruct.pInput = new RW::IMP::cInputBase(impMergeControlStruct.pOutput);
-			//	impColorControlStruct.cuArray = nullptr;
-			//}
-			//RW::IMP::COLOR::tstMyDeinitialiseControlStruct impColorDeinitialiseControlStruct;
-
-   //         if (builder.BuildNode(&kernelManager,
-   //         	&impColorInitialiseControlStruct,
-			//	iParentIndex++,
-			//	sizeof(RW::IMP::COLOR::tstMyInitialiseControlStruct),
-   //         	&impColorControlStruct,
-			//	sizeof(RW::IMP::COLOR::tstMyControlStruct),
-   //         	&impColorDeinitialiseControlStruct,
-			//	sizeof(RW::IMP::COLOR::tstMyDeinitialiseControlStruct),
-   //         	RW::CORE::tenSubModule::nenGraphic_Color) != RW::tenStatus::nenSuccess)
-   //         	file_logger->error("nenGraphic_Color couldn't build correct");
-
-			//RW::ENC::tstMyInitialiseControlStruct encodeInitialiseControlStruct;
-			//{
-			//	encodeInitialiseControlStruct.pstEncodeConfig = new RW::ENC::EncodeConfig();
-			//	for (int iIndex = 0; iIndex < vRect.size(); iIndex++)
-			//	{
-			//		cv::Rect rect = vRect.at(iIndex);
-			//		encodeInitialiseControlStruct.pstEncodeConfig->width += rect.width;
-			//		encodeInitialiseControlStruct.pstEncodeConfig->height = (encodeInitialiseControlStruct.pstEncodeConfig->height > rect.height) ? encodeInitialiseControlStruct.pstEncodeConfig->height : rect.height;
-			//	}
-			//	encodeInitialiseControlStruct.pstEncodeConfig->fps = videoGrabberInitialiseControlStruct.nFPS;
-   //             encodeInitialiseControlStruct.pstEncodeConfig->endFrameIdx = videoGrabberInitialiseControlStruct.nNumberOfFrames;
-   //         }
-   //         RW::ENC::tstMyControlStruct encodeControlStruct;
-   //         {
-			//	encodeControlStruct.pcuYUVArray = impColorControlStruct.cuArray;
-   //             encodeControlStruct.pPayload = new RW::tstBitStream();
-   //             tstPayloadMsg Msg;
-   //             Msg.iTimestamp = videoGrabberControlStruct.nCurrentPositionMSec;
-   //             Msg.iFrameNbr = videoGrabberControlStruct.nCurrentFrameNumber;
-   //             encodeControlStruct.pPayload->u32Size = sizeof(stPayloadMsg);
-   //             encodeControlStruct.pPayload->pBuffer = (uint8_t*)&Msg;
-   //         }
-   //         RW::ENC::tstMyDeinitialiseControlStruct encodeDeinitialiseControlStruct;
-
-   //         if (builder.BuildNode(&kernelManager,
-   //                      &encodeInitialiseControlStruct,
-			//			 iParentIndex++,
-			//			 sizeof(RW::ENC::tstMyInitialiseControlStruct),
-   //                      &encodeControlStruct,
-   //                      sizeof(RW::ENC::tstMyControlStruct),
-   //                      &encodeDeinitialiseControlStruct,
-   //                      sizeof(RW::ENC::tstMyDeinitialiseControlStruct),
-   //                      RW::CORE::tenSubModule::nenEncode_NVIDIA) != RW::tenStatus::nenSuccess)
-   //                      file_logger->error("nenEncode_NVIDIA couldn't build correct");
-
-            FILE *pFile;
-            pFile = fopen("C:\\tool\\RemotePkg\\IntelSWTools\\Intel(R)_Media_SDK_2016.0.1\\samples\\_bin\\content\\test_stream.264", "rb");
-            if (!pFile)
+			RW::IMP::COLOR::tstMyInitialiseControlStruct impColorInitialiseControlStruct;
+			RW::IMP::COLOR::tstMyControlStruct impColorControlStruct;
             {
-                file_logger->error("File did not load!");
-                return -1;
+				impColorControlStruct.pInput = new RW::IMP::cInputBase(videoGrabberControlStruct.Output);
+				impColorControlStruct.cuArray = nullptr;
+			}
+			RW::IMP::COLOR::tstMyDeinitialiseControlStruct impColorDeinitialiseControlStruct;
+
+            if (builder.BuildNode(&kernelManager,
+            	&impColorInitialiseControlStruct,
+				iParentIndex++,
+				sizeof(RW::IMP::COLOR::tstMyInitialiseControlStruct),
+            	&impColorControlStruct,
+				sizeof(RW::IMP::COLOR::tstMyControlStruct),
+            	&impColorDeinitialiseControlStruct,
+				sizeof(RW::IMP::COLOR::tstMyDeinitialiseControlStruct),
+            	RW::CORE::tenSubModule::nenGraphic_Color) != RW::tenStatus::nenSuccess)
+            	file_logger->error("nenGraphic_Color couldn't build correct");
+
+			RW::ENC::tstMyInitialiseControlStruct encodeInitialiseControlStruct;
+			{
+				encodeInitialiseControlStruct.pstEncodeConfig = new RW::ENC::EncodeConfig();
+
+				encodeInitialiseControlStruct.pstEncodeConfig->width += videoGrabberInitialiseControlStruct.nFrameWidth;
+				encodeInitialiseControlStruct.pstEncodeConfig->height = (encodeInitialiseControlStruct.pstEncodeConfig->height > videoGrabberInitialiseControlStruct.nFrameHeight) ? encodeInitialiseControlStruct.pstEncodeConfig->height : videoGrabberInitialiseControlStruct.nFrameHeight;
+				encodeInitialiseControlStruct.pstEncodeConfig->fps = videoGrabberInitialiseControlStruct.nFPS;
+                encodeInitialiseControlStruct.pstEncodeConfig->endFrameIdx = videoGrabberInitialiseControlStruct.nNumberOfFrames;
             }
-            // obtain file size:
-            fseek(pFile, 0, SEEK_END);
-            long lSize = ftell(pFile);
-            rewind(pFile);
-
-            // allocate memory to contain the whole file:
-            char *buffer = (char*)malloc(sizeof(char)*lSize);
-            // copy the file into the buffer:
-            size_t nBytesRead = fread(buffer, sizeof(char), lSize, pFile);
-            if (!buffer)
-            { 
-                file_logger->error("Empty buffer!");
-                return -1;
+            RW::ENC::tstMyControlStruct encodeControlStruct;
+            {
+				encodeControlStruct.pcuYUVArray = impColorControlStruct.cuArray;
+                encodeControlStruct.pPayload = new RW::tstBitStream();
+                tstPayloadMsg Msg;
+                Msg.iTimestamp = videoGrabberControlStruct.nCurrentPositionMSec;
+                Msg.iFrameNbr = videoGrabberControlStruct.nCurrentFrameNumber;
+                encodeControlStruct.pPayload->u32Size = sizeof(stPayloadMsg);
+                encodeControlStruct.pPayload->pBuffer = (uint8_t*)&Msg;
             }
-            fclose(pFile);
+            RW::ENC::tstMyDeinitialiseControlStruct encodeDeinitialiseControlStruct;
 
-            RW::tstBitStream *pBitStream = new RW::tstBitStream();
-            pBitStream->pBuffer = buffer;
-            pBitStream->u32Size = nBytesRead;
+            if (builder.BuildNode(&kernelManager,
+                         &encodeInitialiseControlStruct,
+						 iParentIndex++,
+						 sizeof(RW::ENC::tstMyInitialiseControlStruct),
+                         &encodeControlStruct,
+                         sizeof(RW::ENC::tstMyControlStruct),
+                         &encodeDeinitialiseControlStruct,
+                         sizeof(RW::ENC::tstMyDeinitialiseControlStruct),
+                         RW::CORE::tenSubModule::nenEncode_NVIDIA) != RW::tenStatus::nenSuccess)
+                         file_logger->error("nenEncode_NVIDIA couldn't build correct");
 
-            RW::tstBitStream *pPayload = new RW::tstBitStream();
-            pPayload->pBuffer = nullptr;
-            pPayload->u32Size = sizeof(stPayloadMsg);
+            //FILE *pFile;
+            //pFile = fopen("C:\\tool\\RemotePkg\\IntelSWTools\\Intel(R)_Media_SDK_2016.0.1\\samples\\_bin\\content\\test_stream.264", "rb");
+            //if (!pFile)
+            //{
+            //    file_logger->error("File did not load!");
+            //    return -1;
+            //}
+            //// obtain file size:
+            //fseek(pFile, 0, SEEK_END);
+            //long lSize = ftell(pFile);
+            //rewind(pFile);
+
+            //// allocate memory to contain the whole file:
+            //char *buffer = (char*)malloc(sizeof(char)*lSize);
+            //// copy the file into the buffer:
+            //size_t result = fread(buffer, 1, lSize, pFile);
+            //if (!buffer)
+            //{ 
+            //    file_logger->error("Empty buffer!");
+            //    return -1;
+            //}
+            //fclose(pFile);
+
+            //RW::tstBitStream *pBitStream = new RW::tstBitStream();
+            //pBitStream->pBuffer = buffer;
+            //pBitStream->u32Size = lSize;
+
+            //RW::tstBitStream *pPayload = new RW::tstBitStream();
+            //pPayload->pBuffer = nullptr;
+            //pPayload->u32Size = sizeof(stPayloadMsg);
 
             RW::DEC::tstMyInitialiseControlStruct decodeInitCtrl;
             { 
 				decodeInitCtrl.inputParams = new RW::DEC::tstInputParams();
-                decodeInitCtrl.inputParams->Height = 96;
-                    //videoGrabberInitialiseControlStruct.nFrameHeight;
-                decodeInitCtrl.inputParams->Width = 176;
-                    //videoGrabberInitialiseControlStruct.nFrameWidth;
-                decodeInitCtrl.inputParams->nFrames = 85;
-                    //videoGrabberInitialiseControlStruct.nNumberOfFrames;
-                decodeInitCtrl.inputParams->nMaxFPS = 30;
-                    //videoGrabberInitialiseControlStruct.nFPS;
+                decodeInitCtrl.inputParams->Height = //96;
+                    videoGrabberInitialiseControlStruct.nFrameHeight;
+                decodeInitCtrl.inputParams->Width = //176;
+                    videoGrabberInitialiseControlStruct.nFrameWidth;
+                decodeInitCtrl.inputParams->nFrames = //85;
+                    videoGrabberInitialiseControlStruct.nNumberOfFrames;
+                decodeInitCtrl.inputParams->nMaxFPS = //30;
+                    videoGrabberInitialiseControlStruct.nFPS;
                 decodeInitCtrl.inputParams->bUseHWLib = true;
                 decodeInitCtrl.inputParams->fourcc = MFX_FOURCC_RGB4;
             }
             RW::DEC::tstMyControlStruct decodeCtrl;
             {
-                decodeCtrl.pstEncodedStream = pBitStream;
-                    //encodeControlStruct.pstBitStream;
-                decodeCtrl.pPayload = pPayload;
-                    //encodeControlStruct.pPayload;
+                decodeCtrl.pstEncodedStream = //pBitStream;
+                    encodeControlStruct.pstBitStream;
+                decodeCtrl.pPayload = //pPayload;
+                    encodeControlStruct.pPayload;
                 decodeCtrl.pOutput = new RW::tstBitStream();
                 decodeCtrl.pOutput->pBuffer = new uint8_t();
                 decodeCtrl.pOutput->u32Size = 0;
@@ -350,8 +348,8 @@ int pipeline(tstPipelineParams params)
             }
 
             /*******Cleanup. Whatever has been created here has to be destroyed here. Modules do not do that. ******/
-			//SAFE_DELETE(videoGrabberControlStruct.pOutputData->pBuffer);
-			//SAFE_DELETE(videoGrabberControlStruct.pOutputData);
+			SAFE_DELETE(videoGrabberControlStruct.pOutputData->pBuffer);
+			SAFE_DELETE(videoGrabberControlStruct.pOutputData);
 
 			//for (int iIndex = 0; iIndex < impCropControlStruct.pvOutput->size(); iIndex++)
 			//{
@@ -361,16 +359,16 @@ int pipeline(tstPipelineParams params)
 			//SAFE_DELETE(impCropControlStruct.pvOutput);
 			//SAFE_DELETE(impMergeControlStruct.pvInput);
 
-			//SAFE_DELETE(impColorControlStruct.pInput);
-			////SAFE_DELETE(impColorControlStruct.pcuArray);
+			SAFE_DELETE(impColorControlStruct.pInput);
+			//SAFE_DELETE(impColorControlStruct.pcuArray);
 
-			//SAFE_DELETE(encodeInitialiseControlStruct.pstEncodeConfig);
-			//SAFE_DELETE(encodeControlStruct.pPayload);
+			SAFE_DELETE(encodeInitialiseControlStruct.pstEncodeConfig);
+			SAFE_DELETE(encodeControlStruct.pPayload);
 
-            /****** terminate testing data *******/
-            free(buffer);
-            SAFE_DELETE(pPayload);
-            SAFE_DELETE(pBitStream);
+            // terminate testing data
+            //free(buffer);
+            //SAFE_DELETE(pPayload);
+            //SAFE_DELETE(pBitStream);
 
 			SAFE_DELETE(decodeInitCtrl.inputParams);
             SAFE_DELETE(decodeCtrl.pOutput->pBuffer);
@@ -409,8 +407,8 @@ int main(int argc, char* argv[])
         RW::VG::tstVideoGrabberInitialiseControlStruct videoGrabberInitialiseControlStruct;
         {
             videoGrabberInitialiseControlStruct.nFPS = 30;
-            videoGrabberInitialiseControlStruct.nFrameHeight = 1920;
-            videoGrabberInitialiseControlStruct.nFrameWidth = 1080;
+            videoGrabberInitialiseControlStruct.nFrameHeight = 720;
+			videoGrabberInitialiseControlStruct.nFrameWidth = 1920;
             videoGrabberInitialiseControlStruct.nNumberOfFrames = 1000;
             videoGrabberInitialiseControlStruct.sFileName = "C:\\Projekte\\BR213_24bbp_5.avi";
         }

@@ -245,22 +245,28 @@ namespace RW
             }
 			catch (std::bad_alloc &e)
 			{
-				std::cerr << "Bad memory allocation during some_function: " << e.what() << std::endl;
+				kernel->Logger()->critical("Bad memory allocation during some_function: ") << e.what();
+				status = VX_FAILURE;
 			}
 			catch (std::runtime_error &e)
 			{
-				std::cerr << "Runtime error during some_function: " << e.what() << std::endl;
+				kernel->Logger()->critical("Runtime error during some_function: ") << e.what();
+				status = VX_FAILURE;
 			}
 			catch (std::exception e)
 			{
-				std::cerr << "Exception error during some_function: " << e.what() << std::endl;
+				kernel->Logger()->critical("Exception error during some_function: ") << e.what();
+				status = VX_FAILURE;
 			}
 			catch (...)
 			{
-				std::cerr << "Unknown Exception caught !!!" << std::endl;
+				kernel->Logger()->critical("Unknown Exception caught!!! ");
+				status = VX_FAILURE;
 			}
-            vxCommitArrayRange(kernenArray, 0, 1, kernel);
-            vxCommitArrayRange(controlStructArray, 0, 1, controlStruct);
+
+			//Commit the changed arrays to the memory manager of openvx
+			vxCommitArrayRange(kernenArray, 0, 1, kernel);
+			vxCommitArrayRange(controlStructArray, 0, 1, controlStruct);
 
 
             return status;
@@ -270,7 +276,6 @@ namespace RW
         {
             tenStatus status = tenStatus::nenError;
             status = m_AbstractModule->DoRender((tstControlStruct*)ControlStruct);
-            m_Logger->debug("DoRender kernel");
             return status;
         }
 
@@ -303,6 +308,6 @@ namespace RW
 
         RW::CORE::tenSubModule Kernel::SubModuleType(){ return m_AbstractModule->SubModulType(); }
 
-
+		
 	}
 }
