@@ -19,8 +19,7 @@ namespace RW
 
         typedef struct REMOTE_API stVideoGrabberControlStruct : public CORE::tstControlStruct
 		{
-            tstBitStream *pOutputData;
-
+			cv::cuda::GpuMat *Output;
 			int nCurrentFrameNumber;
 			int nCurrentPositionMSec;
             void UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType);

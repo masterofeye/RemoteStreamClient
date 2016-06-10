@@ -67,7 +67,11 @@ namespace RW
             RW::tenStatus KernelFnc(void* ControlStruct);
         private:
             tenStatus AddKernel(uint8_t ParamterAmount);
-  
+
+			/*
+			*@brief Return the logger instance to write status about the execution of kernel in the static functions 
+			*/
+			std::shared_ptr<spdlog::logger> Logger(){ return m_Logger; }
 		};
 
 	}

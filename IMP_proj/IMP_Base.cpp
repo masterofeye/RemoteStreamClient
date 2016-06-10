@@ -60,7 +60,6 @@ namespace RW{
 			if (pvImg)
 			{
                 cv::Mat mat = cv::Mat(iHeight, iWidth, CV_8UC3, pvImg);
-				cv::imshow("test", mat);
 				m_pgMat->upload(mat);
             }
 			else
