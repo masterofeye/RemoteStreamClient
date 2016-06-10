@@ -84,7 +84,7 @@ int pipeline(tstPipelineParams params)
 	char *testLeak = new char[1000000];
 	testLeak = nullptr;
 
-
+    QList<RW::CORE::AbstractModule *> list;
     try
     {
         RW::tenStatus status = RW::tenStatus::nenError;
@@ -94,7 +94,7 @@ int pipeline(tstPipelineParams params)
         RW::CORE::ModuleLoader ml(file_logger);
 
         /*Load Plugins*/
-        QList<RW::CORE::AbstractModule *> list;
+        
         ml.LoadPlugins(&list);
 #ifdef TRACE_PERFORMANCE
         RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
@@ -372,17 +372,21 @@ int pipeline(tstPipelineParams params)
 			SAFE_DELETE(decodeInitCtrl.inputParams);
 			SAFE_DELETE(decodeCtrl.pOutput);
 
-			//Delete all modules;
-			for (auto var : list)
-			{
-				delete var;
-			}
+
        }
     }
     catch (...)
     {
         file_logger->flush();
     }
+
+    //Delete all modules;
+    for (auto var : list)
+    {
+        delete var;
+    }
+
+
     return 0;
 }
 
