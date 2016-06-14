@@ -20,6 +20,35 @@ namespace RW
 {
     namespace IMP
     {
+		class cOutputBase{
+		public:
+			cOutputBase()
+			{
+				_pgMat = nullptr;
+				_bExportImg = false;
+			};
+			cOutputBase(CUarray cuArray[3], bool bExportImg = false)
+			{
+				_cuArray[0] = cuArray[0];
+				_cuArray[1] = cuArray[1];
+				_cuArray[2] = cuArray[2];
+
+				_pgMat = nullptr;
+				_bExportImg = bExportImg;
+			};
+			cOutputBase(cv::cuda::GpuMat *pgMat, bool bExportImg = false)
+			{
+				_pgMat = pgMat;
+				_bExportImg = bExportImg;
+			};
+
+			~cOutputBase(){}
+
+			bool _bExportImg;
+			cv::cuda::GpuMat *_pgMat;
+			CUarray _cuArray[3];
+		};
+
 		class cInputBase{
 		public:
 			typedef struct stImportImg

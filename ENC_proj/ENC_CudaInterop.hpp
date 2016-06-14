@@ -28,7 +28,7 @@ namespace RW{
 
         typedef struct REMOTE_API stMyControlStruct : public CORE::tstControlStruct
 		{
-			CUarray pcuYUVArray;
+			CUarray pcuYUVArray[3];
             tstBitStream *pstBitStream;
             tstBitStream *pPayload;
 			void UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType);
@@ -63,7 +63,7 @@ namespace RW{
 			EncodeBuffer                                        m_stEncodeBuffer[MAX_ENCODE_QUEUE];
 			ENC_Queue<EncodeBuffer>                             m_EncodeBufferQueue;
 			EncodeOutputBuffer                                  m_stEOSOutputBfr;
-			CUarray                                             m_cuYUVArray;
+			CUarray                                             m_cuYUVArray[3];
 			EncodeConfig										m_encodeConfig;
 			uint32_t											m_u32NumFramesEncoded;
 
@@ -72,7 +72,7 @@ namespace RW{
 			NVENCSTATUS                                         AllocateIOBuffers(uint32_t uInputWidth, uint32_t uInputHeight);
 			NVENCSTATUS                                         ReleaseIOBuffers();
 			NVENCSTATUS                                         FlushEncoder();
-			NVENCSTATUS                                         ConvertYUVToNV12(EncodeBuffer *pEncodeBuffer, CUarray cuArray, int width, int height);
+			NVENCSTATUS                                         ConvertYUVToNV12(EncodeBuffer *pEncodeBuffer, int width, int height);
 			NVENCSTATUS											PreparePreProcCuda();
 
 #define __cu(a) do { CUresult  ret; if ((ret = (a)) != CUDA_SUCCESS) { m_Logger->error((std::string)#a) << " has returned CUDA error " << ret; return NV_ENC_ERR_GENERIC; } } while (0)

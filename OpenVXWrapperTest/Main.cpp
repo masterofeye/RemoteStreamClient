@@ -113,7 +113,7 @@ int pipeline(tstPipelineParams params)
             RW::VG::tstVideoGrabberInitialiseControlStruct videoGrabberInitialiseControlStruct = params.videoGrabberInitialiseControlStruct;
             RW::VG::tstVideoGrabberControlStruct videoGrabberControlStruct;
             {
-				videoGrabberControlStruct.Output = nullptr;
+				videoGrabberControlStruct.Output = new cv::cuda::GpuMat();
 				//Will be filled by the VideoGrabber itself
 				//videoGrabberControlStruct.pOutputData->pBuffer = nullptr;
                 videoGrabberControlStruct.nCurrentFrameNumber = 0;
@@ -187,10 +187,20 @@ int pipeline(tstPipelineParams params)
 			//	file_logger->error("nenGraphic_Color couldn't build correct");
 
 			RW::IMP::COLOR::tstMyInitialiseControlStruct impColorInitialiseControlStruct;
+			cudaArray *arr[3];
 			RW::IMP::COLOR::tstMyControlStruct impColorControlStruct;
             {
 				impColorControlStruct.pInput = new RW::IMP::cInputBase(videoGrabberControlStruct.Output);
-				impColorControlStruct.cuArray = nullptr;
+				size_t sSize = videoGrabberInitialiseControlStruct.nFrameHeight * videoGrabberInitialiseControlStruct.nFrameWidth;
+				cudaError err;
+				err = cudaMalloc((void**)&arr[0], sSize);
+				err = cudaMalloc((void**)&arr[1], sSize/4);
+				err = cudaMalloc((void**)&arr[2], sSize/4);
+				CUarray cuArr[3];
+				cuArr[0] = (CUarray)arr[0];
+				cuArr[1] = (CUarray)arr[1];
+				cuArr[2] = (CUarray)arr[2];
+				impColorControlStruct.pOutput = new RW::IMP::cOutputBase(cuArr, true);
 			}
 			RW::IMP::COLOR::tstMyDeinitialiseControlStruct impColorDeinitialiseControlStruct;
 
@@ -216,8 +226,10 @@ int pipeline(tstPipelineParams params)
             }
             RW::ENC::tstMyControlStruct encodeControlStruct;
             {
-				encodeControlStruct.pcuYUVArray = impColorControlStruct.cuArray;
-                encodeControlStruct.pPayload = new RW::tstBitStream();
+				encodeControlStruct.pcuYUVArray[0] = impColorControlStruct.pOutput->_cuArray[0];
+				encodeControlStruct.pcuYUVArray[1] = impColorControlStruct.pOutput->_cuArray[1];
+				encodeControlStruct.pcuYUVArray[2] = impColorControlStruct.pOutput->_cuArray[2];
+				encodeControlStruct.pPayload = new RW::tstBitStream();
                 tstPayloadMsg Msg;
                 Msg.iTimestamp = videoGrabberControlStruct.nCurrentPositionMSec;
                 Msg.iFrameNbr = videoGrabberControlStruct.nCurrentFrameNumber;
@@ -360,7 +372,7 @@ int pipeline(tstPipelineParams params)
 			//SAFE_DELETE(impMergeControlStruct.pvInput);
 
 			SAFE_DELETE(impColorControlStruct.pInput);
-			//SAFE_DELETE(impColorControlStruct.pcuArray);
+			SAFE_DELETE(impColorControlStruct.pOutput);
 
 			SAFE_DELETE(encodeInitialiseControlStruct.pstEncodeConfig);
 			SAFE_DELETE(encodeControlStruct.pPayload);
@@ -374,8 +386,10 @@ int pipeline(tstPipelineParams params)
             SAFE_DELETE(decodeCtrl.pOutput->pBuffer);
 			SAFE_DELETE(decodeCtrl.pOutput);
 
-
-       }
+			cudaFree(arr[0]);
+			cudaFree(arr[1]);
+			cudaFree(arr[2]);
+}
     }
     catch (...)
     {

@@ -32,7 +32,6 @@ namespace RW{
             , m_cuContext(nullptr)
             , m_cuModule(nullptr)
             , m_cuInterleaveUVFunction(nullptr)
-            , m_cuYUVArray(nullptr)
             , m_uEncodeBufferCount(0)
 
 		{
@@ -43,7 +42,6 @@ namespace RW{
 
 				memset(&m_stEncodeBuffer, 0, sizeof(m_stEncodeBuffer));
 				memset(m_ChromaDevPtr, 0, sizeof(m_ChromaDevPtr));
-				//memset(m_cuYUVArray, 0, sizeof(m_cuYUVArray));
 
 				memset(&m_encodeConfig, 0, sizeof(m_encodeConfig));
 			}
@@ -315,20 +313,9 @@ namespace RW{
 			return nvStatus;
 		}
 
-		NVENCSTATUS ENC_CudaInterop::ConvertYUVToNV12(EncodeBuffer *pEncodeBuffer, CUarray cuArray, int width, int height)
+		NVENCSTATUS ENC_CudaInterop::ConvertYUVToNV12(EncodeBuffer *pEncodeBuffer, int width, int height)
 		{
 			ENC_CudaAutoLock cuLock(m_cuContext);
-
-			// splitting up channels
-			// NEED TO TEST IF OFFSETS ARE CORRECT! WITH A TEST FRAME
-			CUarray arr[3];
-			CUresult err = CUDA_SUCCESS;
-			err = cuMemcpyAtoA(arr[0], 0, cuArray, 0, width * height * sizeof(uint8_t) * 3);
-			if (err != CUDA_SUCCESS) return NV_ENC_ERR_UNSUPPORTED_PARAM;
-			err = cuMemcpyAtoA(arr[1], 0, cuArray, sizeof(arr[0]), width * height / 4 * sizeof(uint8_t) * 3);
-			if (err != CUDA_SUCCESS) return NV_ENC_ERR_UNSUPPORTED_PARAM;
-			err = cuMemcpyAtoA(arr[2], 0, cuArray, sizeof(arr[0]) + sizeof(arr[1]), width * height / 4 * sizeof(uint8_t) * 3);
-			if (err != CUDA_SUCCESS) return NV_ENC_ERR_UNSUPPORTED_PARAM;
 
 			// copy luma
 			CUDA_MEMCPY2D copyParam;
@@ -336,16 +323,16 @@ namespace RW{
             copyParam.dstMemoryType = CU_MEMORYTYPE_ARRAY;
 			copyParam.dstDevice = pEncodeBuffer->stInputBfr.pNV12devPtr;
 			copyParam.dstPitch = pEncodeBuffer->stInputBfr.uNV12Stride;
-			copyParam.srcMemoryType = CU_MEMORYTYPE_HOST;
-			copyParam.srcArray = arr[0];
+			copyParam.srcMemoryType = CU_MEMORYTYPE_ARRAY;
+			copyParam.srcArray = m_cuYUVArray[0];
 			copyParam.srcPitch = width;
 			copyParam.WidthInBytes = width;
 			copyParam.Height = height;
 			__cu(cuMemcpy2D(&copyParam));
 
 			// copy chroma
-			__cu(cuMemcpyAtoD(m_ChromaDevPtr[0], arr[1], 0, width * height / 4));
-			__cu(cuMemcpyAtoD(m_ChromaDevPtr[1], arr[2], 0, width * height / 4));
+			__cu(cuMemcpyAtoD(m_ChromaDevPtr[0], m_cuYUVArray[1], 0, width * height / 4));
+			__cu(cuMemcpyAtoD(m_ChromaDevPtr[1], m_cuYUVArray[2], 0, width * height / 4));
 
 #define BLOCK_X 32
 #define BLOCK_Y 16
@@ -364,6 +351,7 @@ namespace RW{
 				0,
 				nullptr, args, nullptr));
 			CUresult cuResult = cuStreamQuery(nullptr);
+
 			if (!((cuResult == CUDA_SUCCESS) || (cuResult == CUDA_ERROR_NOT_READY)))
 			{
 				return NV_ENC_ERR_GENERIC;
@@ -488,7 +476,9 @@ namespace RW{
 			}
 			if (data->pcuYUVArray != nullptr)
 			{
-				m_cuYUVArray = (CUarray)data->pcuYUVArray;
+				m_cuYUVArray[0] = (CUarray)data->pcuYUVArray[0];
+				m_cuYUVArray[1] = (CUarray)data->pcuYUVArray[1];
+				m_cuYUVArray[2] = (CUarray)data->pcuYUVArray[2];
 			}
 			else
 			{
@@ -537,7 +527,7 @@ namespace RW{
 				pEncodeBuffer = m_EncodeBufferQueue.GetAvailable();
 			}
 
-			nvStatus = ConvertYUVToNV12(pEncodeBuffer, m_cuYUVArray, m_encodeConfig.width, m_encodeConfig.height);
+			nvStatus = ConvertYUVToNV12(pEncodeBuffer, m_encodeConfig.width, m_encodeConfig.height);
 			if (nvStatus != NV_ENC_SUCCESS)
 			{
 				enStatus = tenStatus::nenError;

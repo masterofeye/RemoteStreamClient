@@ -102,8 +102,9 @@ namespace RW{
 					}
 					cInputBase *pInput = data->pvInput->at(iIndex);
 
-					enStatus = impBase.tensProcessInput(pInput, data->pOutput);
-					cv::cuda::GpuMat *pgMat = impBase.cuGetGpuMat();
+					cv::cuda::GpuMat *pgMat = data->pOutput;
+					enStatus = impBase.tensProcessInput(pInput, pgMat);
+					
 					if (enStatus != tenStatus::nenSuccess || pgMat == nullptr)
 					{
 						m_Logger->error("Initialise: impBase.Initialise for gMat1 did not succeed!");

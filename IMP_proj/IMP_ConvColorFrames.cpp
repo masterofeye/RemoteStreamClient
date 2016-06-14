@@ -23,11 +23,18 @@ namespace RW{
 			{
 				switch (SubModuleType)
 				{
+				case CORE::tenSubModule::nenGraphic_Crop:
+				{
+					IMP::COLOR::tstMyControlStruct *data = static_cast<IMP::COLOR::tstMyControlStruct*>(*Data);
+					data->pInput->_pgMat = this->pOutput->_pgMat;
+				}
 				case CORE::tenSubModule::nenEncode_NVIDIA:
 				{
 					RW::ENC::tstMyControlStruct *data = static_cast<RW::ENC::tstMyControlStruct*>(*Data);
 
-					data->pcuYUVArray = this->cuArray;
+					data->pcuYUVArray[0] = this->pOutput->_cuArray[0];
+					data->pcuYUVArray[1] = this->pOutput->_cuArray[1];
+					data->pcuYUVArray[2] = this->pOutput->_cuArray[2];
 					break;
 				}
 				default:
@@ -82,56 +89,36 @@ namespace RW{
 					return tenStatus::nenError;
 				}
 
-				bool bInternalGpuMat = false;
-				cv::cuda::GpuMat *pgMat = data->pInput->_pgMat;
-				if (!pgMat)
-				{
-					pgMat = new cv::cuda::GpuMat();
-					bInternalGpuMat = true;
-				}
 				IMP::IMP_Base cBase = IMP_Base(m_Logger);
+				cv::cuda::GpuMat *pgMat = data->pOutput->_pgMat;
+				bool bCreateAndDeleteGpuMatHere = false;
+				if (pgMat == nullptr && data->pOutput->_bExportImg)
+				{
+					if (data->pInput->_pgMat)
+					{
+						pgMat = data->pInput->_pgMat;
+					}
+					else
+					{
+						pgMat = new cv::cuda::GpuMat();
+						bCreateAndDeleteGpuMatHere = true;
+					}
+				}
 				enStatus = impBase.tensProcessInput(data->pInput, pgMat);
-				pgMat = impBase.cuGetGpuMat();
+				size_t sSize = pgMat->cols * pgMat->rows * pgMat->elemSize();
 
 				cv::cuda::cvtColor(*pgMat, *pgMat, cv::COLOR_BGR2YUV);// , 0, cv::cuda::Stream::Stream());
-#ifdef TRACE_PERFORMANCE
-				cv::Mat controlMat;
-				pgMat->download(controlMat);
-#endif
 
-				//data->pcuArray = (CUarray*)pgMat;
+				IMP_Base imp(m_Logger);
+				enStatus = imp.tensProcessOutput(pgMat, data->pOutput);
 
-				//size_t sArraySize = m_pgMat->cols *  m_pgMat->rows * sizeof(uint8_t);
-				//cuMemcpyHtoA(*data->pcuArray, 0, m_pgMat->data, sArraySize);
-
-				//CUDA_MEMCPY2D* pCopy = new CUDA_MEMCPY2D();
-				//pCopy->srcHost = m_pgMat->data;
-				//pCopy->srcMemoryType = CU_MEMORYTYPE_HOST;
-				//pCopy->dstArray = *pOutput->_pcuArray;
-				//pCopy->dstMemoryType = CU_MEMORYTYPE_ARRAY;
-				//pCopy->Height = m_pgMat->rows;
-				//pCopy->WidthInBytes = m_pgMat->cols * sizeof(uint8_t);
-				//cuMemcpy2D(pCopy);
-
-				size_t pitch;
-				cudaArray *u_dev = (cudaArray*)data->cuArray;
-				cudaError err = cudaMallocPitch((void**)&u_dev, &pitch, pgMat->cols * sizeof(uint8_t) * 3 /*channels*/, pgMat->rows);
-				if (err != cudaSuccess)
-					return tenStatus::nenError;
-
-				err = cudaMemcpy2D(u_dev, pitch, pgMat->data, pgMat->step, pgMat->cols * sizeof(uint8_t) * 3 /*channels*/, pgMat->rows, cudaMemcpyDeviceToDevice);
-				if (err != cudaSuccess)
-					return tenStatus::nenError;
-
-				data->cuArray = (CUarray)u_dev;
-
-				if (bInternalGpuMat)
+				if (bCreateAndDeleteGpuMatHere)
 				{
 					delete pgMat;
 					pgMat = nullptr;
 				}
 
-				if (enStatus != tenStatus::nenSuccess || !data->cuArray)
+				if (enStatus != tenStatus::nenSuccess || !data->pOutput->_cuArray)
 				{
 					m_Logger->error("DoRender: impBase.tensProcessOutput did not succeed!");
 				}

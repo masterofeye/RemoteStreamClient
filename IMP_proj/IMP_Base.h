@@ -9,9 +9,8 @@ namespace RW
 		class IMP_Base
 		{
 		public:
-            cv::cuda::GpuMat* cuGetGpuMat(){ return m_pgMat; };
-
-            tenStatus tensProcessInput(cInputBase *pInput, cv::cuda::GpuMat *pOutput);
+            tenStatus tensProcessInput(cInputBase *pInput, cv::cuda::GpuMat *pgMat);
+			tenStatus tensProcessOutput(cv::cuda::GpuMat *pgMat, cOutputBase *pOutput);
 
             IMP_Base(std::shared_ptr<spdlog::logger> Logger) : m_Logger(Logger)
             {
@@ -21,11 +20,7 @@ namespace RW
             };
 
 		private:
-            cv::cuda::GpuMat *m_pgMat;
             std::shared_ptr<spdlog::logger> m_Logger;
-
-			tenStatus tensConvertArrayToGpuMat(int iWidth, int iHeight, void *pvImg);
-
 		};
 	}
 }
