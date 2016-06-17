@@ -60,4 +60,7 @@
   <ItemGroup>
     <None Include="IMP.json" />
   </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="Copy420.cu" />
+  </ItemGroup>
 </Project>

@@ -160,7 +160,7 @@ namespace RW{
 			jitOptVals[2] = (void *)(size_t)jitRegCount;
 
 			//Has to be fixed. For some reason i could not bring it to load from relative path.
-			char * ptx_path = "C:/Projekte/RemoteStreamClient/build/x64/Debug/preproc64_cuda.ptx"; //(char*)PTX_FILE;
+			char * ptx_path = "C:/Projekte/RemoteStreamClient/build/x64/Debug/preproc64_cuda.ptx"; //PTX_FILE: contains the cuda kernel to convert the data into NV12
 			FILE *fp = fopen(ptx_path, "rb");
 			if (!fp)
 			{

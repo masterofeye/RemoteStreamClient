@@ -1,7 +1,9 @@
 #include "IMP_Base.h"
-#include "cuda_runtime_api.h"
+#include <cuda_runtime.h>
 #include "opencv2/cudev/common.hpp"
 
+// CUDA D3D9 kernel
+extern "C" void Copy420(unsigned char *pArrayFull, unsigned char *pArrayU, unsigned char *pArrayV, int width, int height);
 
 namespace RW{
 	namespace IMP{
@@ -24,11 +26,19 @@ namespace RW{
 				}
 
 				/* Check if pgMat is okay */
-				cv::Mat matDummy;
-				pgMat->download(matDummy);
+				//cv::Mat matDummy;
+				//pgMat->download(matDummy);
+				//cv::Mat yuv[3];
+				//cv::split(matDummy, yuv);
+				//cv::imwrite("C:\\dummy\\yuv_0.png", yuv[0]);
+				//cv::imwrite("C:\\dummy\\yuv_1.png", yuv[1]);
+				//cv::imwrite("C:\\dummy\\yuv_2.png", yuv[2]);
 				/* Check done */
 
-				size_t sSize = pgMat->cols * pgMat->rows * pgMat->elemSize();
+				int width = pgMat->cols;
+				int height = pgMat->rows;
+
+				size_t sSize = width * height * pgMat->elemSize();
 
 				/* Check for previous errors */
 				cudaError err;
@@ -51,26 +61,47 @@ namespace RW{
 				pCudaArray[1] = (cudaArray *)pOutput->_cuArray[1];
 				pCudaArray[2] = (cudaArray *)pOutput->_cuArray[2];
 
-				//size_t pitch;
 				size_t pitchY;
-				size_t pitchU;
-				size_t pitchV;
+				err = cudaMallocPitch((void**)&pCudaArray[0], &pitchY, width, height);
+				if (err != cudaSuccess) return tenStatus::nenError;
+				err = cudaMemcpy2D(pCudaArray[0], pitchY, pgMat->data, pitchY, width, height, cudaMemcpyDeviceToDevice);
+				if (err != cudaSuccess) return tenStatus::nenError;
+
+				uchar* arrayU;
+				uchar* arrayV;
+				err = cudaMalloc((void**)&arrayU, (int)(width * height / 4));
+				if (err != cudaSuccess) return tenStatus::nenError;
+				err = cudaMalloc((void**)&arrayV, (int)(width * height / 4));
+				if (err != cudaSuccess) return tenStatus::nenError;
+				err = cudaMemset(arrayU, 0, width * height / 4);
+				if (err != cudaSuccess) return tenStatus::nenError;
+				err = cudaMemset(arrayV, 0, width * height / 4);
+				if (err != cudaSuccess) return tenStatus::nenError;
+
+				Copy420(pgMat->data, arrayU, arrayV, width, height);
+				err = cudaGetLastError();
+				if (err != cudaSuccess) return tenStatus::nenError;
+
+				size_t pitchUV;
+				err = cudaMallocPitch((void**)&pCudaArray[1], &pitchUV, width/2, height/2); 
+				if (err != cudaSuccess) return tenStatus::nenError;
+
+				//err = cudaMemcpy2D(pCudaArray[1], 0, 0, pgMat->data, pitchUV, width/4, 2 * height/2, cudaMemcpyDeviceToDevice);
+				//if (err != cudaSuccess) return tenStatus::nenError;
+
+				err = cudaMemcpy2D(pCudaArray[1], pitchUV, arrayU, pitchUV, width / 2, height / 2, cudaMemcpyDeviceToDevice);
+				if (err != cudaSuccess) return tenStatus::nenError;
+				err = cudaMemcpy2D(pCudaArray[2], pitchUV, arrayV, pitchUV, width / 2, height / 2, cudaMemcpyDeviceToDevice);
+				if (err != cudaSuccess) return tenStatus::nenError;
+
+				cudaFree(arrayU);
+				cudaFree(arrayV);
+
+				//size_t pitch;
 				//err = cudaMallocPitch((void**)&u_dev, &pitch, pgMat->cols * pgMat->elemSize(), pgMat->rows); 
-				err = cudaMallocPitch((void**)&pCudaArray[0], &pitchY, pgMat->cols * pgMat->elemSize(), pgMat->rows);
-				if (err != cudaSuccess) return tenStatus::nenError;
-				err = cudaMallocPitch((void**)&pCudaArray[1], &pitchU, pgMat->cols * pgMat->elemSize() / 4, pgMat->rows);
-				if (err != cudaSuccess) return tenStatus::nenError;
-				err = cudaMallocPitch((void**)&pCudaArray[2], &pitchU, pgMat->cols * pgMat->elemSize() / 4, pgMat->rows);
-				if (err != cudaSuccess) return tenStatus::nenError;
 
 				/* Before doing cudaMemcpy the cudaMemset and cudaMallocPitch need to be performed */
 				//err = cudaMemcpy(u_dev, pgMat->data, sSize, cudaMemcpyDeviceToDevice);
-				err = cudaMemcpy2DToArray(pCudaArray[0], 0, 0, pgMat->data, pitchY, pgMat->cols * pgMat->elemSize(), pgMat->rows, cudaMemcpyDeviceToDevice);
-				if (err != cudaSuccess) return tenStatus::nenError;
-				err = cudaMemcpy2DToArray(pCudaArray[1], 0, 0, pgMat->data, pitchU + pitchY, pgMat->cols * pgMat->elemSize() / 4, pgMat->rows, cudaMemcpyDeviceToDevice);
-				if (err != cudaSuccess) return tenStatus::nenError;
-				err = cudaMemcpy2DToArray(pCudaArray[2], 0, 0, pgMat->data, pitchV + pitchU + pitchY, pgMat->cols * pgMat->elemSize() / 4, pgMat->rows, cudaMemcpyDeviceToDevice);
-				if (err != cudaSuccess) return tenStatus::nenError;
 
 				/* Check if cudaMemcpy was successfull */
 				//uint8_t *pDummy;
@@ -170,9 +201,6 @@ namespace RW{
 
 				data->cuArray = (CUarray)u_dev; 
 				********************************************************************************************/
-
-				//cudaFree(u_dev);
-
 			}
 			else
 			{
