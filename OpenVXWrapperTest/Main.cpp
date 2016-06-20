@@ -187,20 +187,17 @@ int pipeline(tstPipelineParams params)
 			//	file_logger->error("nenGraphic_Color couldn't build correct");
 
 			RW::IMP::COLOR::tstMyInitialiseControlStruct impColorInitialiseControlStruct;
-			cudaArray *arr[3];
+			cudaArray *arrY;
+			cudaArray *arrUV[2];
 			RW::IMP::COLOR::tstMyControlStruct impColorControlStruct;
             {
 				impColorControlStruct.pInput = new RW::IMP::cInputBase(videoGrabberControlStruct.Output);
 				size_t sSize = videoGrabberInitialiseControlStruct.nFrameHeight * videoGrabberInitialiseControlStruct.nFrameWidth;
 				cudaError err;
-				err = cudaMalloc((void**)&arr[0], sSize);
-				err = cudaMalloc((void**)&arr[1], sSize/4);
-				err = cudaMalloc((void**)&arr[2], sSize/4);
-				CUarray cuArr[3];
-				cuArr[0] = (CUarray)arr[0];
-				cuArr[1] = (CUarray)arr[1];
-				cuArr[2] = (CUarray)arr[2];
-				impColorControlStruct.pOutput = new RW::IMP::cOutputBase(cuArr, true);
+				err = cudaMalloc((void**)&arrY, sSize);
+				err = cudaMalloc((void**)&arrUV[0], sSize/4);
+				err = cudaMalloc((void**)&arrUV[1], sSize/4);
+				impColorControlStruct.pOutput = new RW::IMP::cOutputBase((CUarray)arrY, (CUarray)arrUV[0], (CUarray)arrUV[1], true);
 			}
 			RW::IMP::COLOR::tstMyDeinitialiseControlStruct impColorDeinitialiseControlStruct;
 
@@ -226,9 +223,9 @@ int pipeline(tstPipelineParams params)
             }
             RW::ENC::tstMyControlStruct encodeControlStruct;
             {
-				encodeControlStruct.pcuYUVArray[0] = impColorControlStruct.pOutput->_cuArray[0];
-				encodeControlStruct.pcuYUVArray[1] = impColorControlStruct.pOutput->_cuArray[1];
-				encodeControlStruct.pcuYUVArray[2] = impColorControlStruct.pOutput->_cuArray[2];
+				encodeControlStruct.pcuYUVArray[0] = impColorControlStruct.pOutput->_cuArrayY;
+				encodeControlStruct.pcuYUVArray[1] = impColorControlStruct.pOutput->_cuArrayUV[0];
+				encodeControlStruct.pcuYUVArray[2] = impColorControlStruct.pOutput->_cuArrayUV[1];
 				encodeControlStruct.pPayload = new RW::tstBitStream();
                 tstPayloadMsg Msg;
                 Msg.iTimestamp = videoGrabberControlStruct.nCurrentPositionMSec;
@@ -386,9 +383,9 @@ int pipeline(tstPipelineParams params)
             SAFE_DELETE(decodeCtrl.pOutput->pBuffer);
 			SAFE_DELETE(decodeCtrl.pOutput);
 
-			cudaFree(arr[0]);
-			cudaFree(arr[1]);
-			cudaFree(arr[2]);
+			cudaFree(arrY);
+			cudaFree(arrUV[0]);
+			cudaFree(arrUV[1]);
 }
     }
     catch (...)

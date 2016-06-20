@@ -32,9 +32,9 @@ namespace RW{
 				{
 					RW::ENC::tstMyControlStruct *data = static_cast<RW::ENC::tstMyControlStruct*>(*Data);
 
-					data->pcuYUVArray[0] = this->pOutput->_cuArray[0];
-					data->pcuYUVArray[1] = this->pOutput->_cuArray[1];
-					data->pcuYUVArray[2] = this->pOutput->_cuArray[2];
+					data->pcuYUVArray[0] = this->pOutput->_cuArrayY;
+					data->pcuYUVArray[1] = this->pOutput->_cuArrayUV[0];
+					data->pcuYUVArray[2] = this->pOutput->_cuArrayUV[1];
 					break;
 				}
 				default:
@@ -105,7 +105,6 @@ namespace RW{
 					}
 				}
 				enStatus = impBase.tensProcessInput(data->pInput, pgMat);
-				size_t sSize = pgMat->cols * pgMat->rows * pgMat->elemSize();
 
 				cv::cuda::cvtColor(*pgMat, *pgMat, cv::COLOR_BGR2YUV);// , 0, cv::cuda::Stream::Stream());
 
@@ -118,7 +117,7 @@ namespace RW{
 					pgMat = nullptr;
 				}
 
-				if (enStatus != tenStatus::nenSuccess || !data->pOutput->_cuArray)
+				if (enStatus != tenStatus::nenSuccess || !data->pOutput->_cuArrayY || !data->pOutput->_cuArrayUV)
 				{
 					m_Logger->error("DoRender: impBase.tensProcessOutput did not succeed!");
 				}
