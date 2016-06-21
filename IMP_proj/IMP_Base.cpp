@@ -69,7 +69,14 @@ namespace RW{
 				//err = cudaMemcpy2D(arrayY, pitchY, pgMat->data, pitchY, width * sizeof(uint8_t), height, cudaMemcpyDeviceToDevice);
 				//if (err != cudaSuccess) return tenStatus::nenError;
 
-				IMP_CopyTo420((uint8_t *)pgMat->data, arrayY, arrayU, arrayV, width, height);
+				size_t pitchInput;
+				uint8_t *inputArray;
+				err = cudaMallocPitch((void**)&inputArray, &pitchInput, width * sizeof(uint8_t) * 3, height);
+				if (err != cudaSuccess) return tenStatus::nenError;
+				err = cudaMemcpy2D(inputArray, pitchInput, pgMat->data, pitchInput, width *3,  height, cudaMemcpyDeviceToDevice);
+				if (err != cudaSuccess) return tenStatus::nenError;
+
+				IMP_CopyTo420(inputArray, arrayY, arrayU, arrayV, width, height);
 
 				//err = cudaMemcpy(pCudaArrayY, arrayY,width * sizeof(uint8_t) * height, cudaMemcpyDeviceToDevice);
 				//if (err != cudaSuccess) return tenStatus::nenError;
@@ -82,6 +89,7 @@ namespace RW{
 				cv::Mat matDummyY(height, width, CV_8U);
 				cv::Mat matDummyU(height / 2, width / 2, CV_8U);
 				cv::Mat matDummyV(height / 2, width / 2, CV_8U);
+				cv::Mat matDummy(height, 3 * width, CV_8U);
 
 				err = cudaMemcpy2D(matDummyY.data, width, arrayY, pitchY, width * sizeof(uint8_t), height, cudaMemcpyDeviceToHost);
 				if (err != cudaSuccess) return tenStatus::nenError;
@@ -89,15 +97,20 @@ namespace RW{
 				if (err != cudaSuccess) return tenStatus::nenError;
 				err = cudaMemcpy2D(matDummyV.data, width / 2, arrayV, pitchV, width * sizeof(uint8_t) / 2, height / 2, cudaMemcpyDeviceToHost);
 				if (err != cudaSuccess) return tenStatus::nenError;
+				err = cudaMemcpy2D(matDummy.data, width * 3, inputArray, pitchInput, width * sizeof(uint8_t) * 3, height, cudaMemcpyDeviceToHost);
+				if (err != cudaSuccess) return tenStatus::nenError;
+
 
 				cv::imwrite("C:\\dummy\\yuv420_0.png", matDummyY);
 				cv::imwrite("C:\\dummy\\yuv420_1.png", matDummyU);
 				cv::imwrite("C:\\dummy\\yuv420_2.png", matDummyV);
+				cv::imwrite("C:\\dummy\\yuv444_flat.png", matDummy);
 				/* Check done */
 
 				cudaFree(arrayY);
 				cudaFree(arrayU);
 				cudaFree(arrayV);
+				cudaFree(inputArray);
 
 				pOutput->_cuArrayY = (CUarray)pCudaArrayY;
 				pOutput->_cuArrayUV[0] = (CUarray)pCudaArrayUV[0];
