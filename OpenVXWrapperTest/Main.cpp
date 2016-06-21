@@ -195,8 +195,8 @@ int pipeline(tstPipelineParams params)
 				size_t sSize = videoGrabberInitialiseControlStruct.nFrameHeight * videoGrabberInitialiseControlStruct.nFrameWidth;
 				cudaError err;
 				err = cudaMalloc((void**)&arrY, sSize);
-				err = cudaMalloc((void**)&arrUV[0], sSize/4);
-				err = cudaMalloc((void**)&arrUV[1], sSize/4);
+				err = cudaMalloc((void**)&arrUV[0], sSize / 4);
+				err = cudaMalloc((void**)&arrUV[1], sSize / 4);
 				impColorControlStruct.pOutput = new RW::IMP::cOutputBase((CUarray)arrY, (CUarray)arrUV[0], (CUarray)arrUV[1], true);
 			}
 			RW::IMP::COLOR::tstMyDeinitialiseControlStruct impColorDeinitialiseControlStruct;

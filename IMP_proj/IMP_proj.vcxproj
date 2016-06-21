@@ -218,7 +218,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="IMP.json" />
-    <CudaCompile Include="Copy420.cu" />
+    <CudaCompile Include="IMP_CopyTo420.cu" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

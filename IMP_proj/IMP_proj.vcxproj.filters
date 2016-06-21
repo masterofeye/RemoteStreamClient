@@ -61,6 +61,6 @@
     <None Include="IMP.json" />
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="Copy420.cu" />
+    <CudaCompile Include="IMP_CopyTo420.cu" />
   </ItemGroup>
 </Project>
