@@ -7,7 +7,7 @@
 #include <stdint.h>
 
 
-__global__ void kernel(uint8_t *pArrayFull, uint8_t *pArrayY, uint8_t *pArrayU, uint8_t *pArrayV, int width, int height)
+__global__ void kernel(uint8_t *pArrayFull, uint8_t *pArrayY, uint8_t *pArrayU, uint8_t *pArrayV, int width)
 {
 	/********************
 	pgMat->data is organized like this:
@@ -41,22 +41,22 @@ __global__ void kernel(uint8_t *pArrayFull, uint8_t *pArrayY, uint8_t *pArrayU, 
 
 	int iPosY = blockIdx.y * blockDim.y + threadIdx.y;
 	int iPosX = blockIdx.x * blockDim.x + threadIdx.x;
-
-	int iPosXIn = 3 * blockIdx.x * blockDim.x + 3 * threadIdx.x;
-	int iPosIn = iPosY * 3 * width + iPosXIn;
-
 	int iPos = iPosY * width + iPosX;
+
+	int iPosIn = iPosY * 3 * width + 3 * iPosX;
+
 	pArrayY[iPos] = pArrayFull[iPosIn];
 
 	if ((iPosX % 2 == 0) && (iPosY % 2 == 0))
 	{
-		int iPos2 = iPosY / 2 * width / 2 + iPosX / 2;
+		int iPos2 = iPosY / 2 * (width / 2) + iPosX / 2;
 		pArrayU[iPos2] = pArrayFull[iPosIn + 1];
 		pArrayV[iPos2] = pArrayFull[iPosIn + 2];
+		//printf("%d\t%d\t%d\t%d\t%d\t%d\n", iPosX, iPosY, iPosX * 3, pArrayFull[iPosIn], pArrayFull[iPosIn + 1], pArrayFull[iPosIn + 2]);
 	}
 
 	/************************************
-	As a next step I should organize it like NV12 to spare out the converting step later (in ENC)
+	As a next step I should organize it like NV12 to spare out the convestep later (in ENC)
 	YYYYYYYY
 	YYYYYYYY
 	YYYYYYYY
@@ -76,11 +76,11 @@ extern "C" void IMP_CopyTo420(uint8_t *pArrayFull, uint8_t *pArrayY, uint8_t *pA
 {
 	cudaError_t error = cudaSuccess;
 
-	dim3 block(24, 16, 1);
-	dim3 grid(width / block.x, height / block.y, 1);
-	kernel<<<grid, block>>>(pArrayFull, pArrayY, pArrayU, pArrayV, width, height);
+	dim3 block(24, 16);
+	dim3 grid(width / block.x, height / block.y);
+	kernel<<<grid, block>>>(pArrayFull, pArrayY, pArrayU, pArrayV, width);
 	
-	error = cudaDeviceSynchronize();
+ 	error = cudaDeviceSynchronize();
 	if (error != cudaSuccess)
 	{
 		printf("Device synchronize failed! Error = %d\n", error);
