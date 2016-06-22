@@ -13,13 +13,6 @@
 #include "HighResolution\HighResClock.h"
 #endif
 
-
-#if defined(__x86_64) || defined(AMD64) || defined(_M_AMD64) || defined(__aarch64__)
-#define PTX_FILE "preproc64_cuda.ptx"
-#else
-#define PTX_FILE "preproc32_cuda.ptx"
-#endif
-
 using namespace std;
 
 #define BITSTREAM_BUFFER_SIZE 2*1024*1024
@@ -97,9 +90,20 @@ namespace RW{
 			CUDADRIVER hHandleDriver = 0;
 
 			// CUDA interfaces
-			__cu(cuInit(0, __CUDA_API_VERSION, hHandleDriver));
+			CUresult err = cuInit(0, __CUDA_API_VERSION, hHandleDriver);
+			if (err != CUDA_SUCCESS)
+			{
+				m_Logger->error("ENC_CudaInterop::InitCuda: cuInit(...)") << " has returned CUDA error " << err; 
+				return NV_ENC_ERR_GENERIC;
+			}
 
-			__cu(cuDeviceGetCount(&deviceCount));
+			err = cuDeviceGetCount(&deviceCount);
+			if (err != CUDA_SUCCESS)
+			{
+				m_Logger->error("ENC_CudaInterop::InitCuda: cuDeviceGetCount(...)") << " has returned CUDA error " << err;
+				return NV_ENC_ERR_GENERIC;
+			}
+
 			if (deviceCount == 0)
 			{
 				return NV_ENC_ERR_NO_ENCODE_DEVICE;
@@ -112,10 +116,20 @@ namespace RW{
 			}
 
 			// Now we get the actual device
-			__cu(cuDeviceGet(&cuDevice, deviceID));
+			err = cuDeviceGet(&cuDevice, deviceID);
+			if (err != CUDA_SUCCESS)
+			{
+				m_Logger->error("ENC_CudaInterop::InitCuda: cuDeviceGet(...)") << " has returned CUDA error " << err;
+				return NV_ENC_ERR_GENERIC;
+			}
 
 			//on client PC this function is failing. Has to be done on server PC
-			__cu(cuDeviceComputeCapability(&SMmajor, &SMminor, deviceID));
+			err = cuDeviceComputeCapability(&SMmajor, &SMminor, deviceID);
+			if (err != CUDA_SUCCESS)
+			{
+				m_Logger->error("ENC_CudaInterop::InitCuda: cuDeviceComputeCapability(...)") << " has returned CUDA error " << err;
+				return NV_ENC_ERR_GENERIC;
+			}
 			if (((SMmajor << 4) + SMminor) < 0x30)
 			{
 				m_Logger->error("InitCuda: Insufficient NVENC capabilities exiting of GPU ") << deviceID;
@@ -123,71 +137,20 @@ namespace RW{
 			}
 
 			// Create the CUDA Context and Pop the current one
-			__cu(cuCtxCreate(&m_cuContext, 0, cuDevice));
+			err = cuCtxCreate(&m_cuContext, 0, cuDevice);
+			if (err != CUDA_SUCCESS)
+			{
+				m_Logger->error("ENC_CudaInterop::InitCuda: cuCtxCreate(...)") << " has returned CUDA error " << err;
+				return NV_ENC_ERR_GENERIC;
+			}
 
-			PreparePreProcCuda();
-
-			__cu(cuModuleGetFunction(&m_cuInterleaveUVFunction, m_cuModule, "InterleaveUV"));
-
-			__cu(cuCtxPopCurrent(&cuContextCurr));
+			err = cuCtxPopCurrent(&cuContextCurr);
+			if (err != CUDA_SUCCESS)
+			{
+				m_Logger->error("ENC_CudaInterop::InitCuda: cuCtxPopCurrent(...)") << " has returned CUDA error " << err;
+				return NV_ENC_ERR_GENERIC;
+			}
 			return NV_ENC_SUCCESS;
-		}
-
-		NVENCSTATUS ENC_CudaInterop::PreparePreProcCuda()
-		{
-
-			NVENCSTATUS nvStatus = NV_ENC_SUCCESS;
-			CUresult        cuResult = CUDA_SUCCESS;
-
-			// in this branch we use compilation with parameters
-			const unsigned int jitNumOptions = 3;
-			CUjit_option *jitOptions = new CUjit_option[jitNumOptions];
-			void **jitOptVals = new void *[jitNumOptions];
-
-			// set up size of compilation log buffer
-			jitOptions[0] = CU_JIT_INFO_LOG_BUFFER_SIZE_BYTES;
-			int jitLogBufferSize = 1024;
-			jitOptVals[0] = (void *)(size_t)jitLogBufferSize;
-
-			// set up pointer to the compilation log buffer
-			jitOptions[1] = CU_JIT_INFO_LOG_BUFFER;
-			char *jitLogBuffer = new char[jitLogBufferSize];
-			jitOptVals[1] = jitLogBuffer;
-
-			// set up pointer to set the Maximum # of registers for a particular kernel
-			jitOptions[2] = CU_JIT_MAX_REGISTERS;
-			int jitRegCount = 32;
-			jitOptVals[2] = (void *)(size_t)jitRegCount;
-
-			//Has to be fixed. For some reason i could not bring it to load from relative path.
-			char * ptx_path = "C:/Projekte/RemoteStreamClient/build/x64/Debug/preproc64_cuda.ptx"; //PTX_FILE: contains the cuda kernel to convert the data into NV12
-			FILE *fp = fopen(ptx_path, "rb");
-			if (!fp)
-			{
-				m_Logger->error("PreparePreProcCuda: Unable to read ptx file ") << ptx_path;
-				return NV_ENC_ERR_INVALID_PARAM;
-			}
-			fseek(fp, 0, SEEK_END);
-			int file_size = ftell(fp);
-			char *buf = new char[file_size + 1];
-			fseek(fp, 0, SEEK_SET);
-			fread(buf, sizeof(char), file_size, fp);
-			fclose(fp);
-			buf[file_size] = '\0';
-			string ptx_source = buf;
-			delete[] buf;
-
-			cuResult = cuModuleLoadDataEx(&m_cuModule, ptx_source.c_str(), jitNumOptions, jitOptions, (void **)jitOptVals);
-			if (cuResult != CUDA_SUCCESS)
-			{
-				return NV_ENC_ERR_OUT_OF_MEMORY;
-			}
-
-			delete[] jitOptions;
-			delete[] jitOptVals;
-			delete[] jitLogBuffer;
-
-			return nvStatus;
 		}
 
 		NVENCSTATUS ENC_CudaInterop::AllocateIOBuffers(uint32_t uInputWidth, uint32_t uInputHeight)
@@ -198,17 +161,27 @@ namespace RW{
 
 			ENC_CudaAutoLock cuLock(m_cuContext);
 
-			__cu(cuMemAlloc(&m_ChromaDevPtr[0], uInputWidth*uInputHeight / 4));
-			__cu(cuMemAlloc(&m_ChromaDevPtr[1], uInputWidth*uInputHeight / 4));
-
-			// should not be necessary if data is already on gpu
-			//__cu(cuMemAllocHost((void **)&m_yuv[0], uInputWidth*uInputHeight));
-			//__cu(cuMemAllocHost((void **)&m_yuv[1], uInputWidth*uInputHeight / 4));
-			//__cu(cuMemAllocHost((void **)&m_yuv[2], uInputWidth*uInputHeight / 4));
+			CUresult err = cuMemAlloc(&m_ChromaDevPtr[0], uInputWidth*uInputHeight / 4);
+			if (err != CUDA_SUCCESS)
+			{
+				m_Logger->error("ENC_CudaInterop::AllocateIOBuffers: cuMemAlloc(...)") << " has returned CUDA error " << err;
+				return NV_ENC_ERR_GENERIC;
+			}
+			err = cuMemAlloc(&m_ChromaDevPtr[1], uInputWidth*uInputHeight / 4);
+			if (err != CUDA_SUCCESS)
+			{
+				m_Logger->error("ENC_CudaInterop::AllocateIOBuffers: cuMemAlloc(...)") << " has returned CUDA error " << err;
+				return NV_ENC_ERR_GENERIC;
+			}
 
 			for (uint32_t i = 0; i < m_uEncodeBufferCount; i++)
 			{
-				__cu(cuMemAllocPitch(&m_stEncodeBuffer[i].stInputBfr.pNV12devPtr, (size_t *)&m_stEncodeBuffer[i].stInputBfr.uNV12Stride, uInputWidth, uInputHeight * 3 / 2, 8));
+				err = cuMemAllocPitch(&m_stEncodeBuffer[i].stInputBfr.pNV12devPtr, (size_t *)&m_stEncodeBuffer[i].stInputBfr.uNV12Stride, uInputWidth, uInputHeight * 3 / 2, 8);
+				if (err != CUDA_SUCCESS)
+				{
+					m_Logger->error("ENC_CudaInterop::AllocateIOBuffers: cuMemAllocPitch(...)") << " has returned CUDA error " << err;
+					return NV_ENC_ERR_GENERIC;
+				}
 
 				nvStatus = m_pNvHWEncoder->NvEncRegisterResource(NV_ENC_INPUT_RESOURCE_TYPE_CUDADEVICEPTR, (void*)m_stEncodeBuffer[i].stInputBfr.pNV12devPtr,
 					uInputWidth, uInputHeight, m_stEncodeBuffer[i].stInputBfr.uNV12Stride, &m_stEncodeBuffer[i].stInputBfr.nvRegisteredResource);
@@ -249,10 +222,16 @@ namespace RW{
 		NVENCSTATUS ENC_CudaInterop::ReleaseIOBuffers()
 		{
 			ENC_CudaAutoLock cuLock(m_cuContext);
+			CUresult err = CUDA_SUCCESS;
 
 			for (uint32_t i = 0; i < m_uEncodeBufferCount; i++)
 			{
-				__cu(cuMemFree(m_stEncodeBuffer[i].stInputBfr.pNV12devPtr));
+				err = cuMemFree(m_stEncodeBuffer[i].stInputBfr.pNV12devPtr);
+				if (err != CUDA_SUCCESS)
+				{
+					m_Logger->error("ENC_CudaInterop::AllocateIOBuffers: cuMemAllocPitch(...)") << " has returned CUDA error " << err;
+					return NV_ENC_ERR_GENERIC;
+				}
 
 				m_pNvHWEncoder->NvEncDestroyBitstreamBuffer(m_stEncodeBuffer[i].stOutputBfr.hBitstreamBuffer);
 				m_stEncodeBuffer[i].stOutputBfr.hBitstreamBuffer = nullptr;
@@ -288,12 +267,6 @@ namespace RW{
 			EncodeBuffer *pEncodeBuffer = m_EncodeBufferQueue.GetPending();
 			while (pEncodeBuffer)
 			{
-				//nvStatus = m_pNvHWEncoder->ProcessOutput(pEncodeBuffer, pstBitStreamData);
-				//if (nvStatus != NV_ENC_SUCCESS)
-				//{
-				//	m_Logger->error("FlushEncoder: m_pNvHWEncoder->ProcessOutput(...) did not succeed!");
-				//}
-
 				pEncodeBuffer = m_EncodeBufferQueue.GetPending();
 
 				// UnMap the input buffer after frame is done
@@ -311,52 +284,6 @@ namespace RW{
 			}
 #endif
 			return nvStatus;
-		}
-
-		NVENCSTATUS ENC_CudaInterop::ConvertYUVToNV12(EncodeBuffer *pEncodeBuffer, int width, int height)
-		{
-			ENC_CudaAutoLock cuLock(m_cuContext);
-
-			// copy luma
-			CUDA_MEMCPY2D copyParam;
-			memset(&copyParam, 0, sizeof(copyParam));
-            copyParam.dstMemoryType = CU_MEMORYTYPE_ARRAY;
-			copyParam.dstDevice = pEncodeBuffer->stInputBfr.pNV12devPtr;
-			copyParam.dstPitch = pEncodeBuffer->stInputBfr.uNV12Stride;
-			copyParam.srcMemoryType = CU_MEMORYTYPE_ARRAY;
-			copyParam.srcArray = m_cuYUVArray[0];
-			copyParam.srcPitch = width;
-			copyParam.WidthInBytes = width;
-			copyParam.Height = height;
-			__cu(cuMemcpy2D(&copyParam));
-
-			// copy chroma
-			__cu(cuMemcpyAtoD(m_ChromaDevPtr[0], m_cuYUVArray[1], 0, width * height / 4));
-			__cu(cuMemcpyAtoD(m_ChromaDevPtr[1], m_cuYUVArray[2], 0, width * height / 4));
-
-#define BLOCK_X 32
-#define BLOCK_Y 16
-			int chromaHeight = height / 2;
-			int chromaWidth = width / 2;
-			dim3 block(BLOCK_X, BLOCK_Y, 1);
-			dim3 grid((chromaWidth + BLOCK_X - 1) / BLOCK_X, (chromaHeight + BLOCK_Y - 1) / BLOCK_Y, 1);
-#undef BLOCK_Y
-#undef BLOCK_X
-
-			CUdeviceptr dNV12Chroma = (CUdeviceptr)((unsigned char*)pEncodeBuffer->stInputBfr.pNV12devPtr + pEncodeBuffer->stInputBfr.uNV12Stride*height);
-			void *args[8] = { &m_ChromaDevPtr[0], &m_ChromaDevPtr[1], &dNV12Chroma, &chromaWidth, &chromaHeight, &chromaWidth, &chromaWidth, &pEncodeBuffer->stInputBfr.uNV12Stride };
-
-			__cu(cuLaunchKernel(m_cuInterleaveUVFunction, grid.x, grid.y, grid.z,
-				block.x, block.y, block.z,
-				0,
-				nullptr, args, nullptr));
-			CUresult cuResult = cuStreamQuery(nullptr);
-
-			if (!((cuResult == CUDA_SUCCESS) || (cuResult == CUDA_ERROR_NOT_READY)))
-			{
-				return NV_ENC_ERR_GENERIC;
-			}
-			return NV_ENC_SUCCESS;
 		}
 
 		tenStatus ENC_CudaInterop::Initialise(CORE::tstInitialiseControlStruct * InitialiseControlStruct)
@@ -408,31 +335,29 @@ namespace RW{
 
 			m_encodeConfig.presetGUID = m_pNvHWEncoder->GetPresetGUID(m_encodeConfig.encoderPreset, m_encodeConfig.codec);
 
-			m_Logger->debug(" codec            :") << ((m_encodeConfig.codec == NV_ENC_HEVC) ? "HEVC" : "H264");
-            m_Logger->debug(" size             :") << m_encodeConfig.width << m_encodeConfig.height;
-            m_Logger->debug(" bitrate (bit/sec):") << m_encodeConfig.bitrate;
-            m_Logger->debug(" vbvMaxBitrate    :") << m_encodeConfig.vbvMaxBitrate;
-            m_Logger->debug(" vbvSize (bits)   :") << m_encodeConfig.vbvSize;
-            m_Logger->debug(" fps (frame/sec)  :") << m_encodeConfig.fps;
-            m_Logger->debug(" rcMode           :") << ((m_encodeConfig.rcMode == NV_ENC_PARAMS_RC_CONSTQP) ? "CONSTQP" :
-				(m_encodeConfig.rcMode == NV_ENC_PARAMS_RC_VBR) ? "VBR" :
-				(m_encodeConfig.rcMode == NV_ENC_PARAMS_RC_CBR) ? "CBR" :
-				(m_encodeConfig.rcMode == NV_ENC_PARAMS_RC_VBR_MINQP) ? "VBR MINQP" :
-				(m_encodeConfig.rcMode == NV_ENC_PARAMS_RC_2_PASS_QUALITY) ? "TWO_PASS_QUALITY" :
-				(m_encodeConfig.rcMode == NV_ENC_PARAMS_RC_2_PASS_FRAMESIZE_CAP) ? "TWO_PASS_FRAMESIZE_CAP" :
-				(m_encodeConfig.rcMode == NV_ENC_PARAMS_RC_2_PASS_VBR) ? "TWO_PASS_VBR" : "UNKNOWN");
-			if (m_encodeConfig.gopLength == NVENC_INFINITE_GOPLENGTH)
-                m_Logger->debug(" goplength        : INFINITE GOP \n");
-			else
-                m_Logger->debug(" goplength        :") << m_encodeConfig.gopLength;
-            m_Logger->debug(" B frames         :") << m_encodeConfig.numB;
-            m_Logger->debug(" QP               :") << m_encodeConfig.qp;
-            m_Logger->debug(" preset           :") << ((m_encodeConfig.presetGUID == NV_ENC_PRESET_LOW_LATENCY_HQ_GUID) ? "LOW_LATENCY_HQ" :
-				(m_encodeConfig.presetGUID == NV_ENC_PRESET_LOW_LATENCY_HP_GUID) ? "LOW_LATENCY_HP" :
-				(m_encodeConfig.presetGUID == NV_ENC_PRESET_HQ_GUID) ? "HQ_PRESET" :
-				(m_encodeConfig.presetGUID == NV_ENC_PRESET_HP_GUID) ? "HP_PRESET" :
-				(m_encodeConfig.presetGUID == NV_ENC_PRESET_LOSSLESS_HP_GUID) ? "LOSSLESS_HP" :
-				(m_encodeConfig.presetGUID == NV_ENC_PRESET_LOW_LATENCY_DEFAULT_GUID) ? "LOW_LATENCY_DEFAULT" : "DEFAULT");
+			m_Logger->debug(" ENC_CudaInterop::Initialise: >>>ENCODING INFO<<<") \
+				<< "\n codec            :" << ((m_encodeConfig.codec == NV_ENC_HEVC) ? "HEVC" : "H264")\
+				<< "\n size             :" << m_encodeConfig.width << m_encodeConfig.height \
+				<< "\n bitrate (bit/sec):" << m_encodeConfig.bitrate \
+				<< "\n vbvMaxBitrate    :" << m_encodeConfig.vbvMaxBitrate \
+				<< "\n vbvSize (bits)   :" << m_encodeConfig.vbvSize \
+				<< "\n fps (frame/sec)  :" << m_encodeConfig.fps \
+				<< "\n rcMode           :" << ((m_encodeConfig.rcMode == NV_ENC_PARAMS_RC_CONSTQP) ? "CONSTQP" :
+					(m_encodeConfig.rcMode == NV_ENC_PARAMS_RC_VBR) ? "VBR" :
+					(m_encodeConfig.rcMode == NV_ENC_PARAMS_RC_CBR) ? "CBR" :
+					(m_encodeConfig.rcMode == NV_ENC_PARAMS_RC_VBR_MINQP) ? "VBR MINQP" :
+					(m_encodeConfig.rcMode == NV_ENC_PARAMS_RC_2_PASS_QUALITY) ? "TWO_PASS_QUALITY" :
+					(m_encodeConfig.rcMode == NV_ENC_PARAMS_RC_2_PASS_FRAMESIZE_CAP) ? "TWO_PASS_FRAMESIZE_CAP" :
+					(m_encodeConfig.rcMode == NV_ENC_PARAMS_RC_2_PASS_VBR) ? "TWO_PASS_VBR" : "UNKNOWN") \
+				<< "\n goplength        :" << m_encodeConfig.gopLength \
+				<< "\n B frames         :" << m_encodeConfig.numB\
+				<< "\n QP               :" << m_encodeConfig.qp\
+				<< "\n preset           :" << ((m_encodeConfig.presetGUID == NV_ENC_PRESET_LOW_LATENCY_HQ_GUID) ? "LOW_LATENCY_HQ" :
+					(m_encodeConfig.presetGUID == NV_ENC_PRESET_LOW_LATENCY_HP_GUID) ? "LOW_LATENCY_HP" :
+					(m_encodeConfig.presetGUID == NV_ENC_PRESET_HQ_GUID) ? "HQ_PRESET" :
+					(m_encodeConfig.presetGUID == NV_ENC_PRESET_HP_GUID) ? "HP_PRESET" :
+					(m_encodeConfig.presetGUID == NV_ENC_PRESET_LOSSLESS_HP_GUID) ? "LOSSLESS_HP" :
+					(m_encodeConfig.presetGUID == NV_ENC_PRESET_LOW_LATENCY_DEFAULT_GUID) ? "LOW_LATENCY_DEFAULT" : "DEFAULT");
 
 			nvStatus = m_pNvHWEncoder->CreateEncoder(&m_encodeConfig);
 			if (nvStatus != NV_ENC_SUCCESS)
@@ -471,25 +396,15 @@ namespace RW{
 			if (data == nullptr)
 			{
 				m_Logger->error("DoRender: Data of stMyControlStruct is empty!");
-				enStatus = tenStatus::nenError;
-				return enStatus;
+				return tenStatus::nenError;
 			}
-			if (data->pcuYUVArray != nullptr)
+			if (!data->pcuYUVArray)
 			{
-				m_cuYUVArray[0] = (CUarray)data->pcuYUVArray[0];
-				m_cuYUVArray[1] = (CUarray)data->pcuYUVArray[1];
-				m_cuYUVArray[2] = (CUarray)data->pcuYUVArray[2];
-			}
-			else
-			{
-				enStatus = tenStatus::nenError;
-				m_Logger->error("DoRender: Input Array is empty!");
-				return enStatus;
+				m_Logger->error("DoRender: device pointer of stMyControlStruct is empty!");
+				return tenStatus::nenError;
 			}
 
-			//uint32_t numBytesRead = 0;
 			NVENCSTATUS nvStatus = NV_ENC_SUCCESS;
-			//bool bError = false;
 			EncodeBuffer *pEncodeBuffer;
 
 			pEncodeBuffer = m_EncodeBufferQueue.GetAvailable();
@@ -503,9 +418,8 @@ namespace RW{
 					nvStatus = m_pNvHWEncoder->ProcessOutput(pEncodeBuffer, &stBitStreamData);
 					if (nvStatus != NV_ENC_SUCCESS)
 					{
-						enStatus = tenStatus::nenError;
 						m_Logger->error("DoRender: m_pNvHWEncoder->ProcessOutput(...) did not succeed!");
-						return enStatus;
+						return tenStatus::nenError;
 					}
 					data->pstBitStream->pBuffer = stBitStreamData.bitstreamBufferPtr;
                     data->pstBitStream->u32Size = stBitStreamData.bitstreamSizeInBytes;
@@ -516,9 +430,8 @@ namespace RW{
 						nvStatus = m_pNvHWEncoder->NvEncUnmapInputResource(pEncodeBuffer->stInputBfr.hInputSurface);
 						if (nvStatus != NV_ENC_SUCCESS)
 						{
-							enStatus = tenStatus::nenError;
 							m_Logger->error("DoRender: m_pNvHWEncoder->NvEncUnmapInputResource(...) did not succeed!");
-							return enStatus;
+							return tenStatus::nenError;
 						}
 
 						pEncodeBuffer->stInputBfr.hInputSurface = nullptr;
@@ -527,28 +440,20 @@ namespace RW{
 				pEncodeBuffer = m_EncodeBufferQueue.GetAvailable();
 			}
 
-			nvStatus = ConvertYUVToNV12(pEncodeBuffer, m_encodeConfig.width, m_encodeConfig.height);
-			if (nvStatus != NV_ENC_SUCCESS)
-			{
-				enStatus = tenStatus::nenError;
-				m_Logger->error("DoRender: ConvertYUVToNV12(...) did not succeed!");
-				return enStatus;
-			}
+			pEncodeBuffer->stInputBfr.pNV12devPtr = data->pcuYUVArray;
 
 			nvStatus = m_pNvHWEncoder->NvEncMapInputResource(pEncodeBuffer->stInputBfr.nvRegisteredResource, &pEncodeBuffer->stInputBfr.hInputSurface);
 			if (nvStatus != NV_ENC_SUCCESS)
 			{
-				enStatus = tenStatus::nenError;
 				m_Logger->error("DoRender: m_pNvHWEncoder->NvEncMapInputResource(...) did not succeed!");
-				return enStatus;
+				return tenStatus::nenError;
 			}
 
 			nvStatus = m_pNvHWEncoder->NvEncEncodeFrame(pEncodeBuffer, nullptr, m_encodeConfig.width, m_encodeConfig.height, data->pPayload);
 			if (nvStatus != NV_ENC_SUCCESS)
 			{
-				enStatus = tenStatus::nenError;
 				m_Logger->error("DoRender: m_pNvHWEncoder->NvEncEncodeFrame(...) did not succeed!");
-				return enStatus;
+				return tenStatus::nenError;
 			}
 
 			m_u32NumFramesEncoded++;
@@ -564,7 +469,12 @@ namespace RW{
 		NVENCSTATUS ENC_CudaInterop::CuDestroy()
 		{
 			NVENCSTATUS nvStatus = NV_ENC_SUCCESS;
-			__cu(cuCtxDestroy(m_cuContext));
+			CUresult err = cuCtxDestroy(m_cuContext);
+			if (err != CUDA_SUCCESS)
+			{
+				m_Logger->error("ENC_CudaInterop::CuDestroy: cuCtxDestroy(...)") << " has returned CUDA error " << err;
+				return NV_ENC_ERR_GENERIC;
+			}
 			return nvStatus;
 		}
 

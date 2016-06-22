@@ -32,9 +32,10 @@ namespace RW{
 				{
 					RW::ENC::tstMyControlStruct *data = static_cast<RW::ENC::tstMyControlStruct*>(*Data);
 
-					data->pcuYUVArray[0] = this->pOutput->_cuArrayY;
-					data->pcuYUVArray[1] = this->pOutput->_cuArrayUV[0];
-					data->pcuYUVArray[2] = this->pOutput->_cuArrayUV[1];
+					data->pcuYUVArray = this->pOutput->_pcuYUV420;
+					//data->pcuYUVArray[0] = this->pOutput->_cuArrayY;
+					//data->pcuYUVArray[1] = this->pOutput->_cuArrayUV[0];
+					//data->pcuYUVArray[2] = this->pOutput->_cuArrayUV[1];
 					break;
 				}
 				default:
@@ -117,7 +118,7 @@ namespace RW{
 					pgMat = nullptr;
 				}
 
-				if (enStatus != tenStatus::nenSuccess || !data->pOutput->_cuArrayY || !data->pOutput->_cuArrayUV)
+				if (enStatus != tenStatus::nenSuccess || !data->pOutput->_pcuYUV420)
 				{
 					m_Logger->error("DoRender: impBase.tensProcessOutput did not succeed!");
 				}

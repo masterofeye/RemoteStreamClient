@@ -7,78 +7,31 @@
 #include <stdint.h>
 
 
-__global__ void kernel(uint8_t *pArrayFull, uint8_t *pArrayY, uint8_t *pArrayU, uint8_t *pArrayV, int width)
+__global__ void kernel(uint8_t *pArrayFull, uint8_t *pYUV420, int iWidth, int iHeight)
 {
-	/********************
-	pgMat->data is organized like this:
-	YUVYUVYUVYUVYUVYUVYUVYUV
-	YUVYUVYUVYUVYUVYUVYUVYUV
-	YUVYUVYUVYUVYUVYUVYUVYUV
-	YUVYUVYUVYUVYUVYUVYUVYUV
-	YUVYUVYUVYUVYUVYUVYUVYUV
-	YUVYUVYUVYUVYUVYUVYUVYUV
-	YUVYUVYUVYUVYUVYUVYUVYUV
-	YUVYUVYUVYUVYUVYUVYUVYUV
-
-	but we want to have 
-	YYYYYYYY
-	YYYYYYYY
-	YYYYYYYY
-	YYYYYYYY
-	YYYYYYYY
-	YYYYYYYY
-	YYYYYYYY
-	YYYYYYYY
-	UUUU
-	UUUU
-	UUUU
-	UUUU
-	VVVV
-	VVVV
-	VVVV
-	VVVV
-	********************/
-
 	int iPosY = blockIdx.y * blockDim.y + threadIdx.y;
 	int iPosX = blockIdx.x * blockDim.x + threadIdx.x;
-	int iPos = iPosY * width + iPosX;
+	int iPos = iPosY * iWidth + iPosX;
 
-	int iPosIn = iPosY * 3 * width + 3 * iPosX;
+	int iPosIn = iPosY * 3 * iWidth + 3 * iPosX;
 
-	pArrayY[iPos] = pArrayFull[iPosIn];
+	pYUV420[iPos] = pArrayFull[iPosIn];
 
 	if ((iPosX % 2 == 0) && (iPosY % 2 == 0))
 	{
-		int iPos2 = iPosY / 2 * (width / 2) + iPosX / 2;
-		pArrayU[iPos2] = pArrayFull[iPosIn + 1];
-		pArrayV[iPos2] = pArrayFull[iPosIn + 2];
-		//printf("%d\t%d\t%d\t%d\t%d\t%d\n", iPosX, iPosY, iPosX * 3, pArrayFull[iPosIn], pArrayFull[iPosIn + 1], pArrayFull[iPosIn + 2]);
+		int iPosUV = iWidth * iHeight + iPosY / 2 * iWidth + iPosX;
+		pYUV420[iPosUV] = pArrayFull[iPosIn + 1];
+		pYUV420[iPosUV + 1] = pArrayFull[iPosIn + 2];
 	}
-
-	/************************************
-	As a next step I should organize it like NV12 to spare out the convestep later (in ENC)
-	YYYYYYYY
-	YYYYYYYY
-	YYYYYYYY
-	YYYYYYYY
-	YYYYYYYY
-	YYYYYYYY
-	YYYYYYYY
-	YYYYYYYY
-	UVUVUVUV
-	UVUVUVUV
-	UVUVUVUV
-	UVUVUVUV
-	*************************************/
 }
 
-extern "C" void IMP_CopyTo420(uint8_t *pArrayFull, uint8_t *pArrayY, uint8_t *pArrayU, uint8_t *pArrayV, int width, int height)
+extern "C" void IMP_CopyTo420(uint8_t *pArrayFull, uint8_t *pArrayYUV420, int iWidth, int iHeight, size_t pitchY)
 {
 	cudaError_t error = cudaSuccess;
 
-	dim3 block(24, 16);
-	dim3 grid(width / block.x, height / block.y);
-	kernel<<<grid, block>>>(pArrayFull, pArrayY, pArrayU, pArrayV, width);
+	dim3 block(24, 16, 1);
+	dim3 grid(iWidth / block.x, iHeight / block.y, 1);
+	kernel<<<grid, block>>>(pArrayFull,pArrayYUV420, (int)pitchY, iHeight);
 	
  	error = cudaDeviceSynchronize();
 	if (error != cudaSuccess)
@@ -90,8 +43,6 @@ extern "C" void IMP_CopyTo420(uint8_t *pArrayFull, uint8_t *pArrayY, uint8_t *pA
 	{
 		printf("kernel() failed to launch error = %d\n", error);
 	}
-
-	//cudaDeviceReset();
 }
 
 #endif

@@ -27,15 +27,21 @@ namespace RW
 				_pgMat = nullptr;
 				_bExportImg = false;
 			};
-			cOutputBase(CUarray cuArrayY, CUarray cuArrayU, CUarray cuArrayV, bool bExportImg = false)
+			cOutputBase(CUdeviceptr pcuYUV420, bool bExportImg = false)
 			{
-				_cuArrayY = cuArrayY;
-				_cuArrayUV[0] = cuArrayU;
-				_cuArrayUV[1] = cuArrayV;
-
+				_pcuYUV420 = pcuYUV420;
 				_pgMat = nullptr;
 				_bExportImg = bExportImg;
-			};
+			}
+			//cOutputBase(CUarray cuArrayY, CUarray cuArrayU, CUarray cuArrayV, bool bExportImg = false)
+			//{
+			//	_cuArrayY = cuArrayY;
+			//	_cuArrayUV[0] = cuArrayU;
+			//	_cuArrayUV[1] = cuArrayV;
+
+			//	_pgMat = nullptr;
+			//	_bExportImg = bExportImg;
+			//};
 			cOutputBase(cv::cuda::GpuMat *pgMat, bool bExportImg = false)
 			{
 				_pgMat = pgMat;
@@ -44,10 +50,11 @@ namespace RW
 
 			~cOutputBase(){}
 
+			CUdeviceptr _pcuYUV420;
 			bool _bExportImg;
 			cv::cuda::GpuMat *_pgMat;
-			CUarray _cuArrayUV[2];
-			CUarray _cuArrayY;
+			//CUarray _cuArrayUV[2];
+			//CUarray _cuArrayY;
 		};
 
 		class cInputBase{

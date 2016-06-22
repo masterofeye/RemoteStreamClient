@@ -1145,31 +1145,29 @@ namespace RW{
 
         void CDecodingPipeline::PrintInfo()
         {
-            //m_Logger->debug("CDecodingPipeline::PrintInfo: Decoding Sample Version = ") << MSDK_SAMPLE_VERSION;
-            m_Logger->debug("CDecodingPipeline::PrintInfo: Input video CodecID = ") << m_mfxVideoParams.mfx.CodecId;//CodecIdToStr(m_mfxVideoParams.mfx.CodecId).c_str();
-            m_Logger->debug("CDecodingPipeline::PrintInfo: Output format = ") << m_mfxVideoParams.mfx.FrameInfo.FourCC;//CodecIdToStr(m_mfxVideoParams.mfx.FrameInfo.FourCC).c_str(); 
+			mfxFrameInfo Info = m_mfxVideoParams.mfx.FrameInfo;
+			mfxF64 dFrameRate = CalculateFrameRate(Info.FrameRateExtN, Info.FrameRateExtD);
+			const char* sMemType = m_memType == D3D9_MEMORY ? "d3d"
+				: (m_memType == D3D11_MEMORY ? "d3d11" : "system");
 
-            mfxFrameInfo Info = m_mfxVideoParams.mfx.FrameInfo;
-            m_Logger->debug("CDecodingPipeline::PrintInfo:   Resolution = ") << Info.Width << " x " << Info.Height;
-            m_Logger->debug("CDecodingPipeline::PrintInfo:   Crop X,Y,W,H = ") << Info.CropX << ", " << Info.CropY << ", " << Info.CropW << ", " << Info.CropH;
+			mfxIMPL impl;
+			m_mfxSession.QueryIMPL(&impl);
 
-            mfxF64 dFrameRate = CalculateFrameRate(Info.FrameRateExtN, Info.FrameRateExtD);
-            m_Logger->debug("CDecodingPipeline::PrintInfo:   Frame rate = ") << dFrameRate;
+			mfxVersion ver;
+			m_mfxSession.QueryVersion(&ver);
 
-            const char* sMemType = m_memType == D3D9_MEMORY ? "d3d"
-                : (m_memType == D3D11_MEMORY ? "d3d11" : "system");
-            m_Logger->debug("CDecodingPipeline::PrintInfo: Memory type = ") << sMemType;
+			const char* sImpl = (MFX_IMPL_VIA_D3D11 == MFX_IMPL_VIA_MASK(impl)) ? "hw_d3d11"
+				: (MFX_IMPL_HARDWARE & impl) ? "hw" : "sw";
 
-            mfxIMPL impl;
-            m_mfxSession.QueryIMPL(&impl);
-
-            const char* sImpl = (MFX_IMPL_VIA_D3D11 == MFX_IMPL_VIA_MASK(impl)) ? "hw_d3d11"
-                : (MFX_IMPL_HARDWARE & impl) ? "hw" : "sw";
-            m_Logger->debug("CDecodingPipeline::PrintInfo: MediaSDK impl = ") << sImpl;
-
-            mfxVersion ver;
-            m_mfxSession.QueryVersion(&ver);
-            m_Logger->debug("CDecodingPipeline::PrintInfo: MediaSDK version = ") << ver.Major << "." << ver.Minor;
+			m_Logger->debug("CDecodingPipeline::PrintInfo: ") \
+				<< "\n Input video CodecID	= " << m_mfxVideoParams.mfx.CodecId \
+				<< "\n Output format		= " << m_mfxVideoParams.mfx.FrameInfo.FourCC \
+				<< "\n Resolution			= " << Info.Width << " x " << Info.Height \
+				<< "\n Crop X,Y,W,H			= " << Info.CropX << ", " << Info.CropY << ", " << Info.CropW << ", " << Info.CropH \
+				<< "\n Frame rate			= " << dFrameRate \
+				<< "\n Memory type			= " << sMemType \
+				<< "\n MediaSDK impl		= " << sImpl \
+				<< "\n MediaSDK version		= " << ver.Major << "." << ver.Minor;
 
 
             return;
