@@ -145,6 +145,7 @@
   <ItemGroup>
     <ClInclude Include="common\inc\cudaModuleMgr.h" />
     <ClInclude Include="common\inc\dynlink_cuda.h" />
+    <ClInclude Include="common\inc\nvEncodeAPI.h" />
     <ClInclude Include="common\inc\NvHWEncoder.h" />
     <ClInclude Include="ENC_CudaAutoLock.h" />
     <ClInclude Include="ENC_CudaInterop.hpp" />

@@ -59,6 +59,9 @@
     <ClInclude Include="common\inc\dynlink_cuda.h">
       <Filter>common</Filter>
     </ClInclude>
+    <ClInclude Include="common\inc\nvEncodeAPI.h">
+      <Filter>common</Filter>
+    </ClInclude>
     <ClInclude Include="common\inc\NvHWEncoder.h">
       <Filter>common</Filter>
     </ClInclude>

@@ -14,97 +14,6 @@
 namespace RW{
     namespace ENC{
 
-        NVENCSTATUS CNvHWEncoder::NvEncOpenEncodeSession(void* device, uint32_t deviceType)
-        {
-            NVENCSTATUS nvStatus = NV_ENC_SUCCESS;
-
-            nvStatus = m_pEncodeAPI->nvEncOpenEncodeSession(device, deviceType, &m_hEncoder);
-            if (nvStatus != NV_ENC_SUCCESS)
-            {
-                m_Logger->error("CNvHWEncoder::NvEncOpenEncodeSession: m_pEncodeAPI->nvEncOpenEncodeSession(...) did not succeed!");
-            }
-
-            return nvStatus;
-        }
-
-        NVENCSTATUS CNvHWEncoder::NvEncGetEncodeGUIDCount(uint32_t* encodeGUIDCount)
-        {
-            NVENCSTATUS nvStatus = NV_ENC_SUCCESS;
-
-            nvStatus = m_pEncodeAPI->nvEncGetEncodeGUIDCount(m_hEncoder, encodeGUIDCount);
-            if (nvStatus != NV_ENC_SUCCESS)
-            {
-                m_Logger->error("CNvHWEncoder::NvEncGetEncodeGUIDCount: m_pEncodeAPI->nvEncGetEncodeGUIDCount(...) did not succeed!");
-            }
-
-            return nvStatus;
-        }
-
-        NVENCSTATUS CNvHWEncoder::NvEncGetEncodeGUIDs(GUID* GUIDs, uint32_t guidArraySize, uint32_t* GUIDCount)
-        {
-            NVENCSTATUS nvStatus = NV_ENC_SUCCESS;
-
-            nvStatus = m_pEncodeAPI->nvEncGetEncodeGUIDs(m_hEncoder, GUIDs, guidArraySize, GUIDCount);
-            if (nvStatus != NV_ENC_SUCCESS)
-            {
-                m_Logger->error("CNvHWEncoder::NvEncGetEncodeGUIDs: m_pEncodeAPI->nvEncGetEncodeGUIDs(...) did not succeed!");
-            }
-
-            return nvStatus;
-        }
-
-        NVENCSTATUS CNvHWEncoder::NvEncGetEncodeCaps(GUID encodeGUID, NV_ENC_CAPS_PARAM* capsParam, int* capsVal)
-        {
-            NVENCSTATUS nvStatus = NV_ENC_SUCCESS;
-
-            nvStatus = m_pEncodeAPI->nvEncGetEncodeCaps(m_hEncoder, encodeGUID, capsParam, capsVal);
-            if (nvStatus != NV_ENC_SUCCESS)
-            {
-                m_Logger->error("CNvHWEncoder::NvEncGetEncodeCaps: m_pEncodeAPI->nvEncGetEncodeCaps(...) did not succeed!");
-            }
-
-            return nvStatus;
-        }
-
-        NVENCSTATUS CNvHWEncoder::NvEncGetEncodePresetCount(GUID encodeGUID, uint32_t* encodePresetGUIDCount)
-        {
-            NVENCSTATUS nvStatus = NV_ENC_SUCCESS;
-
-            nvStatus = m_pEncodeAPI->nvEncGetEncodePresetCount(m_hEncoder, encodeGUID, encodePresetGUIDCount);
-            if (nvStatus != NV_ENC_SUCCESS)
-            {
-                m_Logger->error("CNvHWEncoder::NvEncGetEncodePresetCount: m_pEncodeAPI->nvEncGetEncodePresetCount(...) did not succeed!");
-            }
-
-            return nvStatus;
-        }
-
-        NVENCSTATUS CNvHWEncoder::NvEncGetEncodePresetGUIDs(GUID encodeGUID, GUID* presetGUIDs, uint32_t guidArraySize, uint32_t* encodePresetGUIDCount)
-        {
-            NVENCSTATUS nvStatus = NV_ENC_SUCCESS;
-
-            nvStatus = m_pEncodeAPI->nvEncGetEncodePresetGUIDs(m_hEncoder, encodeGUID, presetGUIDs, guidArraySize, encodePresetGUIDCount);
-            if (nvStatus != NV_ENC_SUCCESS)
-            {
-                m_Logger->error("CNvHWEncoder::NvEncGetEncodePresetGUIDs: m_pEncodeAPI->nvEncGetEncodePresetGUIDs(...) did not succeed!");
-            }
-
-            return nvStatus;
-        }
-
-        NVENCSTATUS CNvHWEncoder::NvEncGetEncodePresetConfig(GUID encodeGUID, GUID  presetGUID, NV_ENC_PRESET_CONFIG* presetConfig)
-        {
-            NVENCSTATUS nvStatus = NV_ENC_SUCCESS;
-
-            nvStatus = m_pEncodeAPI->nvEncGetEncodePresetConfig(m_hEncoder, encodeGUID, presetGUID, presetConfig);
-            if (nvStatus != NV_ENC_SUCCESS)
-            {
-                m_Logger->error("CNvHWEncoder::NvEncGetEncodePresetConfig: m_pEncodeAPI->nvEncGetEncodePresetConfig(...) did not succeed!");
-            }
-
-            return nvStatus;
-        }
-
         NVENCSTATUS CNvHWEncoder::NvEncCreateBitstreamBuffer(uint32_t size, void** bitstreamBuffer)
         {
             NVENCSTATUS nvStatus = NV_ENC_SUCCESS;
@@ -138,32 +47,6 @@ namespace RW{
                 {
                     m_Logger->error("CNvHWEncoder::NvEncDestroyBitstreamBuffer: m_pEncodeAPI->nvEncDestroyBitstreamBuffer(...) did not succeed!");
                 }
-            }
-
-            return nvStatus;
-        }
-
-        NVENCSTATUS CNvHWEncoder::NvEncLockBitstream(NV_ENC_LOCK_BITSTREAM* lockBitstreamBufferParams)
-        {
-            NVENCSTATUS nvStatus = NV_ENC_SUCCESS;
-
-            nvStatus = m_pEncodeAPI->nvEncLockBitstream(m_hEncoder, lockBitstreamBufferParams);
-            if (nvStatus != NV_ENC_SUCCESS)
-            {
-                m_Logger->error("CNvHWEncoder::NvEncLockBitstream: m_pEncodeAPI->nvEncLockBitstream(...) did not succeed!");
-            }
-
-            return nvStatus;
-        }
-
-        NVENCSTATUS CNvHWEncoder::NvEncUnlockBitstream(NV_ENC_OUTPUT_PTR bitstreamBuffer)
-        {
-            NVENCSTATUS nvStatus = NV_ENC_SUCCESS;
-
-            nvStatus = m_pEncodeAPI->nvEncUnlockBitstream(m_hEncoder, bitstreamBuffer);
-            if (nvStatus != NV_ENC_SUCCESS)
-            {
-                m_Logger->error("CNvHWEncoder::NvEncUnlockBitstream: m_pEncodeAPI->nvEncUnlockBitstream(...) did not succeed!");
             }
 
             return nvStatus;
@@ -314,63 +197,6 @@ namespace RW{
             return nvStatus;
         }
 
-        NVENCSTATUS CNvHWEncoder::NvEncUnregisterResource(NV_ENC_REGISTERED_PTR registeredRes)
-        {
-            NVENCSTATUS nvStatus = NV_ENC_SUCCESS;
-
-            nvStatus = m_pEncodeAPI->nvEncUnregisterResource(m_hEncoder, registeredRes);
-            if (nvStatus != NV_ENC_SUCCESS)
-            {
-                m_Logger->error("CNvHWEncoder::NvEncUnregisterResource: m_pEncodeAPI->nvEncUnregisterResource(...) did not succeed!");
-            }
-
-            return nvStatus;
-        }
-
-        NVENCSTATUS CNvHWEncoder::NvEncReconfigureEncoder(const NvEncPictureCommand *pEncPicCommand)
-        {
-            NVENCSTATUS nvStatus = NV_ENC_SUCCESS;
-
-            if (pEncPicCommand->bBitrateChangePending || pEncPicCommand->bResolutionChangePending)
-            {
-                if (pEncPicCommand->bResolutionChangePending)
-                {
-                    m_uCurWidth = pEncPicCommand->newWidth;
-                    m_uCurHeight = pEncPicCommand->newHeight;
-                    if ((m_uCurWidth > m_uMaxWidth) || (m_uCurHeight > m_uMaxHeight))
-                    {
-                        return NV_ENC_ERR_INVALID_PARAM;
-                    }
-                    m_stCreateEncodeParams.encodeWidth = m_uCurWidth;
-                    m_stCreateEncodeParams.encodeHeight = m_uCurHeight;
-                    m_stCreateEncodeParams.darWidth = m_uCurWidth;
-                    m_stCreateEncodeParams.darHeight = m_uCurHeight;
-                }
-
-                if (pEncPicCommand->bBitrateChangePending)
-                {
-                    m_stEncodeConfig.rcParams.averageBitRate = pEncPicCommand->newBitrate;
-                    m_stEncodeConfig.rcParams.maxBitRate = pEncPicCommand->newBitrate;
-                    m_stEncodeConfig.rcParams.vbvBufferSize = pEncPicCommand->newVBVSize != 0 ? pEncPicCommand->newVBVSize : (pEncPicCommand->newBitrate * m_stCreateEncodeParams.frameRateDen) / m_stCreateEncodeParams.frameRateNum;
-                    m_stEncodeConfig.rcParams.vbvInitialDelay = m_stEncodeConfig.rcParams.vbvBufferSize;
-                }
-
-                NV_ENC_RECONFIGURE_PARAMS stReconfigParams;
-                memset(&stReconfigParams, 0, sizeof(stReconfigParams));
-                memcpy(&stReconfigParams.reInitEncodeParams, &m_stCreateEncodeParams, sizeof(m_stCreateEncodeParams));
-                stReconfigParams.version = NV_ENC_RECONFIGURE_PARAMS_VER;
-                stReconfigParams.forceIDR = pEncPicCommand->bResolutionChangePending ? 1 : 0;
-
-                nvStatus = m_pEncodeAPI->nvEncReconfigureEncoder(m_hEncoder, &stReconfigParams);
-                if (nvStatus != NV_ENC_SUCCESS)
-                {
-                    m_Logger->error("CNvHWEncoder::NvEncReconfigureEncoder: m_pEncodeAPI->nvEncReconfigureEncoder(...) did not succeed!");
-                }
-            }
-
-            return nvStatus;
-        }
-
         CNvHWEncoder::CNvHWEncoder(std::shared_ptr<spdlog::logger> Logger) : m_Logger(Logger)
         {
             m_bEncoderInitialized = false;
@@ -441,8 +267,8 @@ namespace RW{
                 return nvStatus;
             }
 
-            m_Logger->debug("CNvHWEncoder::ValidateEncodeGUID: encodeGUIDArraySize <= encodeGUIDCount ?");
-            m_Logger->debug(encodeGUIDArraySize <= encodeGUIDCount);
+            m_Logger->debug("CNvHWEncoder::ValidateEncodeGUID: encodeGUIDArraySize <= encodeGUIDCount ? ") \
+            << (encodeGUIDArraySize <= encodeGUIDCount);
 
             codecFound = 0;
             for (i = 0; i < encodeGUIDArraySize; i++)
@@ -541,13 +367,8 @@ namespace RW{
                 m_Logger->error("CNvHWEncoder::CreateEncoder: parameters invalid (width or height)!");
                 return NV_ENC_ERR_INVALID_PARAM;
             }
-            if (pEncCfg->isYuv444 && (pEncCfg->codec == NV_ENC_HEVC))
-            {
-                m_Logger->error("CNvHWEncoder::CreateEncoder: 444 is not supported with HEVC");
-                return NV_ENC_ERR_INVALID_PARAM;
-            }
 
-            GUID inputCodecGUID = pEncCfg->codec == NV_ENC_H264 ? NV_ENC_CODEC_H264_GUID : NV_ENC_CODEC_HEVC_GUID;
+			GUID inputCodecGUID = pEncCfg->codec == NV_ENC_H264 ? NV_ENC_CODEC_H264_GUID : NV_ENC_CODEC_HEVC_GUID;
             nvStatus = ValidateEncodeGUID(inputCodecGUID);
             if (nvStatus != NV_ENC_SUCCESS)
             {
@@ -641,14 +462,7 @@ namespace RW{
 
             }
 
-            if (pEncCfg->isYuv444)
-            {
-                m_stEncodeConfig.encodeCodecConfig.h264Config.chromaFormatIDC = 3;
-            }
-            else
-            {
-                m_stEncodeConfig.encodeCodecConfig.h264Config.chromaFormatIDC = 1;
-            }
+            m_stEncodeConfig.encodeCodecConfig.h264Config.chromaFormatIDC = 1;
 
             if (pEncCfg->intraRefreshEnableFlag)
             {
@@ -888,11 +702,11 @@ namespace RW{
             encPicParams.qpDeltaMap = qpDeltaMapArray;
             encPicParams.qpDeltaMapSize = qpDeltaMapArraySize;
 
-            NV_ENC_SEI_PAYLOAD *pnvPayload = new NV_ENC_SEI_PAYLOAD();
-            pnvPayload->payload = (uint8_t*)pPayload->pBuffer;
-            pnvPayload->payloadSize = pPayload->u32Size;
-            pnvPayload->payloadType = 5;
-            encPicParams.codecPicParams.h264PicParams.seiPayloadArray = pnvPayload;
+            //NV_ENC_SEI_PAYLOAD *pnvPayload = new NV_ENC_SEI_PAYLOAD();
+            //pnvPayload->payload = (uint8_t*)pPayload->pBuffer;
+            //pnvPayload->payloadSize = pPayload->u32Size;
+            //pnvPayload->payloadType = 5;
+            //encPicParams.codecPicParams.h264PicParams.seiPayloadArray = pnvPayload;
 
             if (encPicCommand)
             {

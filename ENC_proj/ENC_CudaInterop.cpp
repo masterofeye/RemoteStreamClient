@@ -24,7 +24,7 @@ namespace RW{
 			RW::CORE::AbstractModule(Logger) 
             , m_cuContext(nullptr)
             , m_cuModule(nullptr)
-            , m_cuInterleaveUVFunction(nullptr)
+            //, m_cuInterleaveUVFunction(nullptr)
             , m_uEncodeBufferCount(0)
 
 		{
@@ -34,7 +34,7 @@ namespace RW{
 				memset(&m_stEOSOutputBfr, 0, sizeof(m_stEOSOutputBfr));
 
 				memset(&m_stEncodeBuffer, 0, sizeof(m_stEncodeBuffer));
-				memset(m_ChromaDevPtr, 0, sizeof(m_ChromaDevPtr));
+				//memset(m_ChromaDevPtr, 0, sizeof(m_ChromaDevPtr));
 
 				memset(&m_encodeConfig, 0, sizeof(m_encodeConfig));
 			}
@@ -161,19 +161,7 @@ namespace RW{
 
 			ENC_CudaAutoLock cuLock(m_cuContext);
 
-			CUresult err = cuMemAlloc(&m_ChromaDevPtr[0], uInputWidth*uInputHeight / 4);
-			if (err != CUDA_SUCCESS)
-			{
-				m_Logger->error("ENC_CudaInterop::AllocateIOBuffers: cuMemAlloc(...)") << " has returned CUDA error " << err;
-				return NV_ENC_ERR_GENERIC;
-			}
-			err = cuMemAlloc(&m_ChromaDevPtr[1], uInputWidth*uInputHeight / 4);
-			if (err != CUDA_SUCCESS)
-			{
-				m_Logger->error("ENC_CudaInterop::AllocateIOBuffers: cuMemAlloc(...)") << " has returned CUDA error " << err;
-				return NV_ENC_ERR_GENERIC;
-			}
-
+			CUresult err;
 			for (uint32_t i = 0; i < m_uEncodeBufferCount; i++)
 			{
 				err = cuMemAllocPitch(&m_stEncodeBuffer[i].stInputBfr.pNV12devPtr, (size_t *)&m_stEncodeBuffer[i].stInputBfr.uNV12Stride, uInputWidth, uInputHeight * 3 / 2, 8);

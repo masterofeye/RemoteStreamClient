@@ -58,8 +58,6 @@ namespace RW{
 			uint32_t                                            m_uEncodeBufferCount;
 			CUcontext                                           m_cuContext;
 			CUmodule                                            m_cuModule;
-			CUfunction                                          m_cuInterleaveUVFunction;
-			CUdeviceptr                                         m_ChromaDevPtr[2];
 			EncodeBuffer                                        m_stEncodeBuffer[MAX_ENCODE_QUEUE];
 			ENC_Queue<EncodeBuffer>                             m_EncodeBufferQueue;
 			EncodeOutputBuffer                                  m_stEOSOutputBfr;

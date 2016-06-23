@@ -1159,15 +1159,15 @@ namespace RW{
 			const char* sImpl = (MFX_IMPL_VIA_D3D11 == MFX_IMPL_VIA_MASK(impl)) ? "hw_d3d11"
 				: (MFX_IMPL_HARDWARE & impl) ? "hw" : "sw";
 
-			m_Logger->debug("CDecodingPipeline::PrintInfo: ") \
-				<< "\n Input video CodecID	= " << m_mfxVideoParams.mfx.CodecId \
-				<< "\n Output format		= " << m_mfxVideoParams.mfx.FrameInfo.FourCC \
-				<< "\n Resolution			= " << Info.Width << " x " << Info.Height \
-				<< "\n Crop X,Y,W,H			= " << Info.CropX << ", " << Info.CropY << ", " << Info.CropW << ", " << Info.CropH \
-				<< "\n Frame rate			= " << dFrameRate \
-				<< "\n Memory type			= " << sMemType \
-				<< "\n MediaSDK impl		= " << sImpl \
-				<< "\n MediaSDK version		= " << ver.Major << "." << ver.Minor;
+			m_Logger->debug("CDecodingPipeline::PrintInfo ") \
+				<< "\n Input video CodecID  = " << m_mfxVideoParams.mfx.CodecId \
+				<< "\n Output format        = " << m_mfxVideoParams.mfx.FrameInfo.FourCC \
+				<< "\n Resolution           = " << Info.Width << " x " << Info.Height \
+				<< "\n Crop X,Y,W,H         = " << Info.CropX << ", " << Info.CropY << ", " << Info.CropW << ", " << Info.CropH \
+				<< "\n Frame rate           = " << dFrameRate \
+				<< "\n Memory type          = " << sMemType \
+				<< "\n MediaSDK impl        = " << sImpl \
+				<< "\n MediaSDK version     = " << ver.Major << "." << ver.Minor;
 
 
             return;
