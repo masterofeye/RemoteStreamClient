@@ -702,11 +702,11 @@ namespace RW{
             encPicParams.qpDeltaMap = qpDeltaMapArray;
             encPicParams.qpDeltaMapSize = qpDeltaMapArraySize;
 
-            //NV_ENC_SEI_PAYLOAD *pnvPayload = new NV_ENC_SEI_PAYLOAD();
-            //pnvPayload->payload = (uint8_t*)pPayload->pBuffer;
-            //pnvPayload->payloadSize = pPayload->u32Size;
-            //pnvPayload->payloadType = 5;
-            //encPicParams.codecPicParams.h264PicParams.seiPayloadArray = pnvPayload;
+            NV_ENC_SEI_PAYLOAD *pnvPayload = new NV_ENC_SEI_PAYLOAD();
+            pnvPayload->payload = (uint8_t*)pPayload->pBuffer;
+            pnvPayload->payloadSize = pPayload->u32Size;
+            pnvPayload->payloadType = 5;
+            encPicParams.codecPicParams.h264PicParams.seiPayloadArray = pnvPayload;
 
             if (encPicCommand)
             {

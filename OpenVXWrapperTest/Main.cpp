@@ -216,7 +216,7 @@ int pipeline(tstPipelineParams params)
 				encodeInitialiseControlStruct.pstEncodeConfig->width += videoGrabberInitialiseControlStruct.nFrameWidth;
 				encodeInitialiseControlStruct.pstEncodeConfig->height = (encodeInitialiseControlStruct.pstEncodeConfig->height > videoGrabberInitialiseControlStruct.nFrameHeight) ? encodeInitialiseControlStruct.pstEncodeConfig->height : videoGrabberInitialiseControlStruct.nFrameHeight;
 				encodeInitialiseControlStruct.pstEncodeConfig->fps = videoGrabberInitialiseControlStruct.nFPS;
-                encodeInitialiseControlStruct.pstEncodeConfig->endFrameIdx = videoGrabberInitialiseControlStruct.nNumberOfFrames;
+                encodeInitialiseControlStruct.pstEncodeConfig->uBitstreamBufferSize = 2 * 1024 * 1024;
             }
             RW::ENC::tstMyControlStruct encodeControlStruct;
             {
@@ -229,6 +229,7 @@ int pipeline(tstPipelineParams params)
                 Msg.iFrameNbr = videoGrabberControlStruct.nCurrentFrameNumber;
                 encodeControlStruct.pPayload->u32Size = sizeof(stPayloadMsg);
                 encodeControlStruct.pPayload->pBuffer = (uint8_t*)&Msg;
+                encodeControlStruct.pstBitStream = new RW::tstBitStream;
             }
             RW::ENC::tstMyDeinitialiseControlStruct encodeDeinitialiseControlStruct;
 
@@ -281,12 +282,12 @@ int pipeline(tstPipelineParams params)
                     videoGrabberInitialiseControlStruct.nFrameHeight;
                 decodeInitCtrl.inputParams->Width = //176;
                     videoGrabberInitialiseControlStruct.nFrameWidth;
-                decodeInitCtrl.inputParams->nFrames = //85;
-                    videoGrabberInitialiseControlStruct.nNumberOfFrames;
                 decodeInitCtrl.inputParams->nMaxFPS = //30;
                     videoGrabberInitialiseControlStruct.nFPS;
                 decodeInitCtrl.inputParams->bUseHWLib = true;
                 decodeInitCtrl.inputParams->fourcc = MFX_FOURCC_RGB4;
+                decodeInitCtrl.inputParams->uBitstreamBufferSize = 
+                    encodeInitialiseControlStruct.pstEncodeConfig->uBitstreamBufferSize;
             }
             RW::DEC::tstMyControlStruct decodeCtrl;
             {
@@ -295,7 +296,7 @@ int pipeline(tstPipelineParams params)
                 decodeCtrl.pPayload = //pPayload;
                     encodeControlStruct.pPayload;
                 decodeCtrl.pOutput = new RW::tstBitStream();
-                decodeCtrl.pOutput->pBuffer = new uint8_t();
+                decodeCtrl.pOutput->pBuffer = new uint8_t;
                 decodeCtrl.pOutput->u32Size = 0;
             }
             RW::DEC::tstMyDeinitialiseControlStruct decodeDeinitCtrl;
@@ -331,31 +332,34 @@ int pipeline(tstPipelineParams params)
                 RW::CORE::tenSubModule::nenPlayback_Simple) != RW::tenStatus::nenSuccess)
                 file_logger->error("nenPlayback_Simple couldn't build correct");
 
-
+            uint32_t u32NOFrames = 4;
             if (graph.VerifyGraph() == RW::tenStatus::nenSuccess)
             {
-                if (graph.ScheduleGraph() == RW::tenStatus::nenSuccess)
+                for (uint32_t u32Index = 0; u32Index < u32NOFrames; u32Index++)
                 {
+                    if (graph.ScheduleGraph() == RW::tenStatus::nenSuccess)
+                    {
 
-                    file_logger->debug("******************");
-                    file_logger->debug("*Graph excecution*");
-                    file_logger->debug("******************");
-#ifdef TRACE_PERFORMANCE
-                    t2 = RW::CORE::HighResClock::now();
-                    file_logger->trace() << "Prepare Graph: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
-                    t1 = RW::CORE::HighResClock::now();
-#endif
-                    graph.WaitGraph();
-#ifdef TRACE_PERFORMANCE
-                    t2 = RW::CORE::HighResClock::now();
-                    file_logger->trace() << "Graph execution: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
-#endif
+                        file_logger->debug("******************");
+                        file_logger->debug("*Graph excecution*");
+                        file_logger->debug("******************");
+                    }
                 }
+#ifdef TRACE_PERFORMANCE
+                t2 = RW::CORE::HighResClock::now();
+                file_logger->trace() << "Prepare Graph: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+                t1 = RW::CORE::HighResClock::now();
+#endif
+                graph.WaitGraph();
+#ifdef TRACE_PERFORMANCE
+                t2 = RW::CORE::HighResClock::now();
+                file_logger->trace() << "Graph execution: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+#endif
             }
 
             /*******Cleanup. Whatever has been created here has to be destroyed here. Modules do not do that. ******/
 			//SAFE_DELETE(videoGrabberControlStruct.pOutputData->pBuffer);
-			//SAFE_DELETE(videoGrabberControlStruct.pOutputData);
+			SAFE_DELETE(videoGrabberControlStruct.Output);
 
 			//for (int iIndex = 0; iIndex < impCropControlStruct.pvOutput->size(); iIndex++)
 			//{

@@ -15,8 +15,6 @@
 
 using namespace std;
 
-#define BITSTREAM_BUFFER_SIZE 2*1024*1024
-
 namespace RW{
 	namespace ENC{
 
@@ -180,10 +178,10 @@ namespace RW{
 				m_stEncodeBuffer[i].stInputBfr.dwWidth = uInputWidth;
 				m_stEncodeBuffer[i].stInputBfr.dwHeight = uInputHeight;
 
-				nvStatus = m_pNvHWEncoder->NvEncCreateBitstreamBuffer(BITSTREAM_BUFFER_SIZE, &m_stEncodeBuffer[i].stOutputBfr.hBitstreamBuffer);
+                nvStatus = m_pNvHWEncoder->NvEncCreateBitstreamBuffer(m_encodeConfig.uBitstreamBufferSize, &m_stEncodeBuffer[i].stOutputBfr.hBitstreamBuffer);
 				if (nvStatus != NV_ENC_SUCCESS)
 					return nvStatus;
-				m_stEncodeBuffer[i].stOutputBfr.dwBitstreamBufferSize = BITSTREAM_BUFFER_SIZE;
+                m_stEncodeBuffer[i].stOutputBfr.dwBitstreamBufferSize = m_encodeConfig.uBitstreamBufferSize;
 
 #if defined(NV_WINDOWS)
 				nvStatus = m_pNvHWEncoder->NvEncRegisterAsyncEvent(&m_stEncodeBuffer[i].stOutputBfr.hOutputEvent);
@@ -255,7 +253,7 @@ namespace RW{
 			EncodeBuffer *pEncodeBuffer = m_EncodeBufferQueue.GetPending();
 			while (pEncodeBuffer)
 			{
-				pEncodeBuffer = m_EncodeBufferQueue.GetPending();
+                pEncodeBuffer = m_EncodeBufferQueue.GetPending();
 
 				// UnMap the input buffer after frame is done
 				if (pEncodeBuffer && pEncodeBuffer->stInputBfr.hInputSurface)
@@ -400,31 +398,6 @@ namespace RW{
 			{
 				pEncodeBuffer = m_EncodeBufferQueue.GetPending();
 
-				if (pEncodeBuffer != nullptr)
-				{
-					NV_ENC_LOCK_BITSTREAM stBitStreamData;
-					nvStatus = m_pNvHWEncoder->ProcessOutput(pEncodeBuffer, &stBitStreamData);
-					if (nvStatus != NV_ENC_SUCCESS)
-					{
-						m_Logger->error("DoRender: m_pNvHWEncoder->ProcessOutput(...) did not succeed!");
-						return tenStatus::nenError;
-					}
-					data->pstBitStream->pBuffer = stBitStreamData.bitstreamBufferPtr;
-                    data->pstBitStream->u32Size = stBitStreamData.bitstreamSizeInBytes;
-
-					// UnMap the input buffer after frame done
-					if (pEncodeBuffer->stInputBfr.hInputSurface)
-					{
-						nvStatus = m_pNvHWEncoder->NvEncUnmapInputResource(pEncodeBuffer->stInputBfr.hInputSurface);
-						if (nvStatus != NV_ENC_SUCCESS)
-						{
-							m_Logger->error("DoRender: m_pNvHWEncoder->NvEncUnmapInputResource(...) did not succeed!");
-							return tenStatus::nenError;
-						}
-
-						pEncodeBuffer->stInputBfr.hInputSurface = nullptr;
-					}
-				}
 				pEncodeBuffer = m_EncodeBufferQueue.GetAvailable();
 			}
 
@@ -444,6 +417,31 @@ namespace RW{
 				return tenStatus::nenError;
 			}
 
+            if (pEncodeBuffer != nullptr)
+            {
+                NV_ENC_LOCK_BITSTREAM stBitStreamData;
+                nvStatus = m_pNvHWEncoder->ProcessOutput(pEncodeBuffer, &stBitStreamData);
+                if (nvStatus != NV_ENC_SUCCESS)
+                {
+                    m_Logger->error("DoRender: m_pNvHWEncoder->ProcessOutput(...) did not succeed!");
+                    return tenStatus::nenError;
+                }
+                data->pstBitStream->pBuffer = stBitStreamData.bitstreamBufferPtr;
+                data->pstBitStream->u32Size = stBitStreamData.bitstreamSizeInBytes;
+
+                // UnMap the input buffer after frame done
+                if (pEncodeBuffer->stInputBfr.hInputSurface)
+                {
+                    nvStatus = m_pNvHWEncoder->NvEncUnmapInputResource(pEncodeBuffer->stInputBfr.hInputSurface);
+                    if (nvStatus != NV_ENC_SUCCESS)
+                    {
+                        m_Logger->error("DoRender: m_pNvHWEncoder->NvEncUnmapInputResource(...) did not succeed!");
+                        return tenStatus::nenError;
+                    }
+
+                    pEncodeBuffer->stInputBfr.hInputSurface = nullptr;
+                }
+            }
 			m_u32NumFramesEncoded++;
 
 #ifdef TRACE_PERFORMANCE

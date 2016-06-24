@@ -99,11 +99,15 @@ namespace RW{
             RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
 #endif
             stMyControlStruct* data = static_cast<stMyControlStruct*>(ControlStruct);
-            if (data == NULL)
+            if (!data)
             {
                 m_Logger->error("DoRender: Data of stMyControlStruct is empty!");
-                enStatus = tenStatus::nenError;
-                return enStatus;
+                return tenStatus::nenError;
+            }
+            if (!data->pOutput)
+            {
+                m_Logger->error("DoRender: pOutput of stMyControlStruct is empty!");
+                return tenStatus::nenError;
             }
 
             mfxStatus sts = MFX_ERR_NONE; // return value check

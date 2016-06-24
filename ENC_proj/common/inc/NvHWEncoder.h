@@ -53,6 +53,7 @@ namespace RW{
             int   height;                    //Height of frame
             int   maxWidth;                  //optional. maxWidth ? maxWidth : width
             int   maxHeight;                 //optional. maxHeight ? maxHeight : height
+            uint32_t uBitstreamBufferSize;
             int   fps;                       //Specify encoding frame rate in frames/sec
             int   bitrate;                   //Specify the encoding average bitrate in bits/sec
             int   vbvMaxBitrate;             //Specify the vbv max bitrate in bits/sec
@@ -70,8 +71,6 @@ namespace RW{
             int   intraRefreshPeriod;        //Specify period for cyclic intra refresh
             int   intraRefreshDuration;      //Specify the intra refresh duration
             int   deviceType;                //valid parameters: NV_ENC_DX9 or NV_ENC_CUDA or NV_ENC_DX11 or NV_ENC_DX10
-            int   startFrameIdx;
-            int   endFrameIdx;
             int   gopLength;	                //Group of Pictures length. Specifies the number of pictures in one GOP. Low latency application client can set goplength to NVENC_INFINITE_GOPLENGTH so that keyframes are not inserted automatically.
             int   numB;                      //Specify number of B frame
             int   pictureStruct;             //valid parameters: NV_ENC_PIC_STRUCT_FRAME or NV_ENC_PIC_STRUCT_FIELD_TOP_BOTTOM or NV_ENC_PIC_STRUCT_FIELD_BOTTOM_TOP
@@ -80,7 +79,7 @@ namespace RW{
             int		enableMEOnly;              //valid parameters: 0 or 1 or 2
 
             _EncodeConfig() : width(0), height(0), maxWidth(0), maxHeight(0), 
-                fps(30), bitrate(5000000), vbvMaxBitrate(0), vbvSize(0), 
+                uBitstreamBufferSize(2*1024*1024), fps(30), bitrate(5000000), vbvMaxBitrate(0), vbvSize(0),
                 rcMode(NV_ENC_PARAMS_RC_CONSTQP), qp(28), 
                 i_quant_factor(DEFAULT_I_QFACTOR), b_quant_factor(DEFAULT_B_QFACTOR), i_quant_offset(DEFAULT_I_QOFFSET), b_quant_offset(DEFAULT_B_QOFFSET), 
                 presetGUID(NV_ENC_PRESET_DEFAULT_GUID), 
@@ -88,7 +87,6 @@ namespace RW{
                 invalidateRefFramesEnableFlag(0), 
                 intraRefreshEnableFlag(0), intraRefreshPeriod(0), intraRefreshDuration(0), 
                 deviceType(NV_ENC_CUDA), 
-                startFrameIdx(0), endFrameIdx(INT_MAX), 
                 gopLength(NVENC_INFINITE_GOPLENGTH), 
                 numB(0), 
                 pictureStruct(NV_ENC_PIC_STRUCT_FRAME), deviceID(0), 
@@ -104,6 +102,7 @@ namespace RW{
         {
             unsigned int      dwWidth;
             unsigned int      dwHeight;
+
 #if defined (NV_WINDOWS)
             IDirect3DSurface9 *pNV12Surface;
 #endif

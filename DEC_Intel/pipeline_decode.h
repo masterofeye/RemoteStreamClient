@@ -71,8 +71,8 @@ namespace RW{
 
         public:
             CDecodingPipeline(std::shared_ptr<spdlog::logger> Logger);
-            //CDecodingPipeline();
             virtual ~CDecodingPipeline();
+
             void SetEncodedData(tstBitStream *pstEncodedStream)
             {
                 m_mfxBS.DataLength = pstEncodedStream->u32Size;
@@ -96,18 +96,9 @@ namespace RW{
             std::unique_ptr<CSmplBitstreamReader>  m_FileReader;
             virtual void Close();
 
-            void SetExtBuffersFlag()       { m_bIsExtBuffers = true; }
             virtual mfxStatus InitMfxParams();
-
-            // function for allocating a specific external buffer
-            template <typename Buffer>
-            mfxStatus AllocateExtBuffer();
-            virtual void DeleteExtBuffers();
-
-            virtual mfxStatus AllocateExtMVCBuffers();
-            virtual void    DeallocateExtMVCBuffers();
-
-            virtual void AttachExtParam();
+            virtual mfxStatus InitVppParams();
+            virtual mfxStatus AllocAndInitVppDoNotUse();
 
             virtual mfxStatus CreateAllocator();
             virtual mfxStatus CreateHWDevice();
@@ -142,18 +133,22 @@ namespace RW{
 
             MFXVideoSession         m_mfxSession;
             MFXVideoDECODE*         m_pmfxDEC;
+            MFXVideoVPP*            m_pmfxVPP;
             mfxVideoParam           m_mfxVideoParams;
+            mfxVideoParam           m_mfxVppVideoParams;
             std::auto_ptr<MFXVideoUSER>  m_pUserModule;
             std::auto_ptr<MFXPlugin> m_pPlugin;
-            std::vector<mfxExtBuffer *> m_ExtBuffers;
 
             MFXFrameAllocator*      m_pMFXAllocator;
             mfxAllocatorParams*     m_pmfxAllocatorParams;
             MemType                 m_memType;      // memory type of surfaces to use
             bool                    m_bExternalAlloc; // use memory allocator as external for Media SDK
-            mfxFrameAllocResponse   m_mfxResponse; // memory allocation response for decoder
+            bool                    m_bSysmemBetween; // use system memory between Decoder and VPP, if false - video memory
+            mfxFrameAllocResponse   m_mfxResponse;      // memory allocation response for decoder
+            mfxFrameAllocResponse   m_mfxVppResponse;   // memory allocation response for vpp
 
             msdkFrameSurface*       m_pCurrentFreeSurface; // surface detached from free surfaces array
+            msdkFrameSurface*       m_pCurrentFreeVppSurface; // VPP surface detached from free VPP surfaces array
             msdkOutputSurface*      m_pCurrentFreeOutputSurface; // surface detached from free output surfaces array
             msdkOutputSurface*      m_pCurrentOutputSurface; // surface detached from output surfaces array
 
@@ -162,14 +157,16 @@ namespace RW{
             mfxStatus               m_error; // error returned by DeliverOutput method
             bool                    m_bStopDeliverLoop;
 
-            bool                    m_bIsExtBuffers; // indicates if external buffers were allocated
-            bool                    m_bIsVideoWall; // indicates special mode: decoding will be done in a loop
             bool                    m_bIsCompleteFrame;
+            mfxU32                  m_fourcc; // color format of vpp out, i420 by default
             bool                    m_bPrintLatency;
 
             mfxU32                  m_nTimeout; // enables timeout for video playback, measured in seconds
             mfxU32                  m_nMaxFps; // limit of fps, if isn't specified equal 0.
             mfxU32                  m_nFrames; //limit number of output frames
+
+            mfxExtVPPDoNotUse       m_VppDoNotUse;      // for disabling VPP algorithms
+            mfxExtBuffer*           m_VppExtParams[2];
 
             std::vector<msdk_tick>  m_vLatency;
 
