@@ -191,9 +191,9 @@ int pipeline(tstPipelineParams params)
 			RW::IMP::COLOR::tstMyControlStruct impColorControlStruct;
             {
 				impColorControlStruct.pInput = new RW::IMP::cInputBase(videoGrabberControlStruct.Output);
-				size_t sSize = videoGrabberInitialiseControlStruct.nFrameHeight * videoGrabberInitialiseControlStruct.nFrameWidth;
+                size_t pitch;
 				cudaError err;
-				err = cudaMalloc((void**)&arrYUV, sSize * 3 / 2);
+                err = cudaMallocPitch((void**)&arrYUV, &pitch, videoGrabberInitialiseControlStruct.nFrameWidth, videoGrabberInitialiseControlStruct.nFrameHeight * 3 / 2);
 				impColorControlStruct.pOutput = new RW::IMP::cOutputBase(arrYUV, true);
 			}
 			RW::IMP::COLOR::tstMyDeinitialiseControlStruct impColorDeinitialiseControlStruct;

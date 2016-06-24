@@ -30,10 +30,18 @@ namespace RW{
 
 				/* Check for previous errors */
 				cudaError err;
-				err = cudaPeekAtLastError();
-				if (err != cudaSuccess) return tenStatus::nenError;
+                err = cudaGetLastError();
+                if (err != cudaSuccess)
+                {
+                    printf("IMP_Base::tensProcessOutput: cudaGetLastError returns error = %d\n", err);
+                    return tenStatus::nenError;
+                }
 				err = cudaDeviceSynchronize();
-				if (err != cudaSuccess) return tenStatus::nenError;
+                if (err != cudaSuccess)
+                {
+                    printf("IMP_Base::tensProessOutput: Device synchronize failed! Error = %d\n", err);
+                    return tenStatus::nenError;
+                }
 				/* Check done */
 
 				size_t pitchY;
@@ -43,7 +51,20 @@ namespace RW{
 				err = cudaMallocPitch((void**)&arrayY, &pitchY, iWidth, 1);
 				if (err != cudaSuccess) return tenStatus::nenError;
 
-				IMP_CopyTo420(pgMat->data, arrayYUV420, iWidth, iHeight, pitchY);
+                err = cudaDeviceSynchronize();
+                if (err != cudaSuccess)
+                {
+                    printf("IMP_Base::tensProessOutput: Device synchronize failed! Error = %d\n", err);
+                    return tenStatus::nenError;
+                }
+                err = cudaGetLastError();
+                if (err != cudaSuccess)
+                {
+                    printf("IMP_Base::tensProcessOutput: cudaGetLastError returns error = %d\n", err);
+                    return tenStatus::nenError;
+                }
+                
+                IMP_CopyTo420(pgMat->data, arrayYUV420, iWidth, iHeight, pitchY);
 
 				cudaFree(arrayY);
 

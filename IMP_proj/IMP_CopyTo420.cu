@@ -31,18 +31,20 @@ extern "C" void IMP_CopyTo420(uint8_t *pArrayFull, uint8_t *pArrayYUV420, int iW
 
 	dim3 block(24, 16, 1);
 	dim3 grid(iWidth / block.x, iHeight / block.y, 1);
-	kernel<<<grid, block>>>(pArrayFull,pArrayYUV420, (int)pitchY, iHeight);
+	kernel<<<grid, block>>>(pArrayFull, pArrayYUV420, (int)pitchY, iHeight);
 	
- 	error = cudaDeviceSynchronize();
-	if (error != cudaSuccess)
-	{
-		printf("Device synchronize failed! Error = %d\n", error);
-	}
 	error = cudaGetLastError();   
 	if (error != cudaSuccess)
 	{
-		printf("kernel() failed to launch error = %d\n", error);
+        printf("IMP_CopyTo420: kernel() failed to launch error = %d\n", error);
+        return;
 	}
+    error = cudaDeviceSynchronize();
+    if (error != cudaSuccess)
+    {
+        printf("IMP_CopyTo420: Device synchronize failed! Error = %d\n", error);
+        return;
+    }
 }
 
 #endif
