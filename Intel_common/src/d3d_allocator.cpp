@@ -1,12 +1,21 @@
-/*********************************************************************************
+/******************************************************************************\
+Copyright (c) 2005-2016, Intel Corporation
+All rights reserved.
 
-INTEL CORPORATION PROPRIETARY INFORMATION
-This software is supplied under the terms of a license agreement or nondisclosure
-agreement with Intel Corporation and may not be copied or disclosed except in
-accordance with the terms of that agreement
-Copyright(c) 2008-2014 Intel Corporation. All Rights Reserved.
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
-**********************************************************************************/
+1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+This sample was distributed or derived from the Intel's Media Samples package.
+The original version of this sample may be obtained from https://software.intel.com/en-us/intel-media-server-studio
+or https://software.intel.com/en-us/media-client-solutions-support.
+\**********************************************************************************/
 
 #include "mfx_samples_config.h"
 #include "sample_defs.h"
@@ -23,6 +32,9 @@ Copyright(c) 2008-2014 Intel Corporation. All Rights Reserved.
 #define D3DFMT_NV12 (D3DFORMAT)MAKEFOURCC('N','V','1','2')
 #define D3DFMT_YV12 (D3DFORMAT)MAKEFOURCC('Y','V','1','2')
 #define D3DFMT_P010 (D3DFORMAT)MAKEFOURCC('P','0','1','0')
+#define D3DFMT_IMC3 (D3DFORMAT)MAKEFOURCC('I','M','C','3')
+
+#define MFX_FOURCC_IMC3 (MFX_MAKEFOURCC('I','M','C','3')) // This line should be moved into mfxstructures.h in new API version
 
 D3DFORMAT ConvertMfxFourccToD3dFormat(mfxU32 fourcc)
 {
@@ -44,6 +56,8 @@ D3DFORMAT ConvertMfxFourccToD3dFormat(mfxU32 fourcc)
         return D3DFMT_P010;
     case MFX_FOURCC_A2RGB10:
         return D3DFMT_A2R10G10B10;
+    case MFX_FOURCC_IMC3:
+        return D3DFMT_IMC3;
     default:
         return D3DFMT_UNKNOWN;
     }
@@ -96,8 +110,8 @@ mfxStatus D3DFrameAllocator::LockFrame(mfxMemId mid, mfxFrameData *ptr)
     if (!ptr || !mid)
         return MFX_ERR_NULL_PTR;
 
-    directxMemId *dxmid = (directxMemId*)mid;
-    IDirect3DSurface9 *pSurface = dxmid->m_surface;
+    mfxHDLPair *dxmid = (mfxHDLPair*)mid;
+    IDirect3DSurface9 *pSurface = static_cast<IDirect3DSurface9*>(dxmid->first);
     if (pSurface == 0)
         return MFX_ERR_INVALID_HANDLE;
 
@@ -113,7 +127,8 @@ mfxStatus D3DFrameAllocator::LockFrame(mfxMemId mid, mfxFrameData *ptr)
         desc.Format != D3DFMT_A8R8G8B8 &&
         desc.Format != D3DFMT_P8 &&
         desc.Format != D3DFMT_P010 &&
-        desc.Format != D3DFMT_A2R10G10B10)
+        desc.Format != D3DFMT_A2R10G10B10 &&
+        desc.Format != D3DFMT_IMC3)
         return MFX_ERR_LOCK_MEMORY;
 
     D3DLOCKED_RECT locked;
@@ -169,6 +184,12 @@ mfxStatus D3DFrameAllocator::LockFrame(mfxMemId mid, mfxFrameData *ptr)
         ptr->U = (mfxU8 *)locked.pBits + desc.Height * locked.Pitch;
         ptr->V = ptr->U + 1;
         break;
+    case D3DFMT_IMC3:
+        ptr->Pitch = (mfxU16)locked.Pitch;
+        ptr->Y = (mfxU8 *)locked.pBits;
+        ptr->V = ptr->Y + desc.Height * locked.Pitch;
+        ptr->U = ptr->Y + desc.Height * locked.Pitch *2;
+        break;
     }
 
     return MFX_ERR_NONE;
@@ -179,8 +200,8 @@ mfxStatus D3DFrameAllocator::UnlockFrame(mfxMemId mid, mfxFrameData *ptr)
     if (!mid)
         return MFX_ERR_NULL_PTR;
 
-    directxMemId *dxmid = (directxMemId*)mid;
-    IDirect3DSurface9 *pSurface = dxmid->m_surface;
+    mfxHDLPair *dxmid = (mfxHDLPair*)mid;
+    IDirect3DSurface9 *pSurface = static_cast<IDirect3DSurface9*>(dxmid->first);
     if (pSurface == 0)
         return MFX_ERR_INVALID_HANDLE;
 
@@ -202,8 +223,8 @@ mfxStatus D3DFrameAllocator::GetFrameHDL(mfxMemId mid, mfxHDL * handle)
     if (!mid || !handle)
         return MFX_ERR_NULL_PTR;
 
-    directxMemId *dxMid = (directxMemId*)mid;
-    *handle = dxMid->m_surface;
+    mfxHDLPair *dxMid = (mfxHDLPair*)mid;
+    *handle = dxMid->first;
     return MFX_ERR_NONE;
 }
 
@@ -229,8 +250,8 @@ mfxStatus D3DFrameAllocator::ReleaseResponse(mfxFrameAllocResponse *response)
     if (response->mids) {
         for (mfxU32 i = 0; i < response->NumFrameActual; i++) {
             if (response->mids[i]) {
-                directxMemId *dxMids = (directxMemId*)response->mids[i];
-                dxMids->m_surface->Release();
+                mfxHDLPair *dxMids = (mfxHDLPair*)response->mids[i];
+                static_cast<IDirect3DSurface9*>(dxMids->first)->Release();
             }
         }
         MSDK_SAFE_FREE(response->mids[0]);
@@ -294,9 +315,9 @@ mfxStatus D3DFrameAllocator::AllocImpl(mfxFrameAllocRequest *request, mfxFrameAl
         videoService = m_decoderService;
     }
 
-    directxMemId *dxMids = NULL, **dxMidPtrs = NULL;
-    dxMids = (directxMemId*)calloc(request->NumFrameSuggested, sizeof(directxMemId));
-    dxMidPtrs = (directxMemId**)calloc(request->NumFrameSuggested, sizeof(directxMemId*));
+    mfxHDLPair *dxMids = NULL, **dxMidPtrs = NULL;
+    dxMids = (mfxHDLPair*)calloc(request->NumFrameSuggested, sizeof(mfxHDLPair));
+    dxMidPtrs = (mfxHDLPair**)calloc(request->NumFrameSuggested, sizeof(mfxHDLPair*));
 
     if (!dxMids || !dxMidPtrs) {
         MSDK_SAFE_FREE(dxMids);
@@ -310,7 +331,7 @@ mfxStatus D3DFrameAllocator::AllocImpl(mfxFrameAllocRequest *request, mfxFrameAl
     if (request->Type & MFX_MEMTYPE_EXTERNAL_FRAME) {
         for (int i = 0; i < request->NumFrameSuggested; i++) {
             hr = videoService->CreateSurface(request->Info.Width, request->Info.Height, 0,  format,
-                                                D3DPOOL_DEFAULT, m_surfaceUsage, target, &dxMids[i].m_surface, &dxMids[i].m_handle);
+                D3DPOOL_DEFAULT, m_surfaceUsage, target, (IDirect3DSurface9**)&dxMids[i].first, &dxMids[i].second);
             if (FAILED(hr)) {
                 ReleaseResponse(response);
                 MSDK_SAFE_FREE(dxMids);
@@ -333,8 +354,9 @@ mfxStatus D3DFrameAllocator::AllocImpl(mfxFrameAllocRequest *request, mfxFrameAl
             return MFX_ERR_MEMORY_ALLOC;
         }
 
+
         for (int i = 0; i < request->NumFrameSuggested; i++) {
-            dxMids[i].m_surface = dxSrf.get()[i];
+            dxMids[i].first = dxSrf.get()[i];
             dxMidPtrs[i] = &dxMids[i];
         }
     }

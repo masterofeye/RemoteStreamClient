@@ -257,9 +257,9 @@ int pipeline(tstPipelineParams params)
             //rewind(pFile);
 
             //// allocate memory to contain the whole file:
-            //char *buffer = (char*)malloc(sizeof(char)*lSize);
+            //uint8_t *buffer = (uint8_t*)malloc(sizeof(uint8_t)*lSize);
             //// copy the file into the buffer:
-            //size_t result = fread(buffer, 1, lSize, pFile);
+            //size_t result = fread(buffer, sizeof(uint8_t), lSize, pFile);
             //if (!buffer)
             //{ 
             //    file_logger->error("Empty buffer!");
@@ -284,7 +284,7 @@ int pipeline(tstPipelineParams params)
                     videoGrabberInitialiseControlStruct.nFrameWidth;
                 decodeInitCtrl.inputParams->nMaxFPS = //30;
                     videoGrabberInitialiseControlStruct.nFPS;
-                decodeInitCtrl.inputParams->bUseHWLib = true;
+                decodeInitCtrl.inputParams->bUseHWLib = false;
                 decodeInitCtrl.inputParams->fourcc = MFX_FOURCC_RGB4;
                 decodeInitCtrl.inputParams->uBitstreamBufferSize = 
                     encodeInitialiseControlStruct.pstEncodeConfig->uBitstreamBufferSize;
@@ -316,8 +316,8 @@ int pipeline(tstPipelineParams params)
             RW::VPL::tstMyControlStruct playerCtrl;
             {
                 playerCtrl.pstBitStream = decodeCtrl.pOutput;
-                playerCtrl.TimeStamp = 1000;
-                    //videoGrabberControlStruct.nCurrentPositionMSec;
+                playerCtrl.TimeStamp = //1000;
+                    videoGrabberControlStruct.nCurrentPositionMSec;
             }
             RW::VPL::tstMyDeinitialiseControlStruct playerDeinitCtrl;
 
@@ -379,6 +379,7 @@ int pipeline(tstPipelineParams params)
             //free(buffer);
             //SAFE_DELETE(pPayload);
             //SAFE_DELETE(pBitStream);
+            //SAFE_DELETE(pFile);
 
 			SAFE_DELETE(decodeInitCtrl.inputParams);
             SAFE_DELETE(decodeCtrl.pOutput->pBuffer);

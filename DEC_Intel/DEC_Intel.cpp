@@ -116,6 +116,7 @@ namespace RW{
             m_pPipeline->SetOutput(data->pOutput);
 
             sts = m_pPipeline->RunDecoding(data->pPayload);
+            data->pOutput = m_pPipeline->GetOutput();
             if (sts != MFX_ERR_NONE)
             {
                 enStatus = tenStatus::nenError;

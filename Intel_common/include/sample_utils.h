@@ -1,12 +1,21 @@
-/*********************************************************************************
+/******************************************************************************\
+Copyright (c) 2005-2016, Intel Corporation
+All rights reserved.
 
-INTEL CORPORATION PROPRIETARY INFORMATION
-This software is supplied under the terms of a license agreement or nondisclosure
-agreement with Intel Corporation and may not be copied or disclosed except in
-accordance with the terms of that agreement
-Copyright(c) 2005-2014 Intel Corporation. All Rights Reserved.
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
-**********************************************************************************/
+1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+This sample was distributed or derived from the Intel's Media Samples package.
+The original version of this sample may be obtained from https://software.intel.com/en-us/intel-media-server-studio
+or https://software.intel.com/en-us/media-client-solutions-support.
+\**********************************************************************************/
 
 #ifndef __SAMPLE_UTILS_H__
 #define __SAMPLE_UTILS_H__
@@ -18,6 +27,7 @@ Copyright(c) 2005-2014 Intel Corporation. All Rights Reserved.
 
 #include "mfxstructures.h"
 #include "mfxvideo.h"
+#include "mfxvideo++.h"
 #include "mfxjpeg.h"
 #include "mfxplugin.h"
 
@@ -27,6 +37,12 @@ Copyright(c) 2005-2014 Intel Corporation. All Rights Reserved.
 #include "vm/atomic_defs.h"
 
 #include "sample_types.h"
+
+#include "abstract_splitter.h"
+#include "avc_bitstream.h"
+#include "avc_spl.h"
+#include "avc_headers.h"
+#include "avc_nal_spl.h"
 
 // A macro to disallow the copy constructor and operator= functions
 // This should be used in the private: declarations for a class
@@ -144,30 +160,46 @@ protected:
     bool      m_bInited;
 };
 
-//provides output bistream with at least 1 slice, reports about error
 class CH264FrameReader : public CSmplBitstreamReader
 {
 public:
     CH264FrameReader();
+    virtual ~CH264FrameReader();
+
+    /** Free resources.*/
+    virtual void      Close();
+    virtual mfxStatus Init(const msdk_char *strFileName);
     virtual mfxStatus ReadNextFrame(mfxBitstream *pBS);
-protected:
-    //1 - means slice start indicator present
-    //2 - means slice start and backend startcode present
-    int FindSlice(mfxBitstream *pBS, int & pos2ndnalu);
 
+private:
+    mfxBitstream *m_processedBS;
+    // input bit stream
+    std::auto_ptr<mfxBitstream>  m_originalBS;
 
-    mfxBitstream m_lastBs;
-    std::vector<mfxU8> m_bsBuffer;
+    mfxStatus PrepareNextFrame(mfxBitstream *in, mfxBitstream **out);
+
+    // is stream ended
+    bool m_isEndOfStream;
+
+    std::auto_ptr<AbstractSplitter> m_pNALSplitter;
+    FrameSplitterInfo *m_frame;
+    mfxU8 *m_plainBuffer;
+    mfxU32 m_plainBufferSize;
+    mfxBitstream m_outBS;
 };
 
 //provides output bistream with at least 1 frame, reports about error
 class CJPEGFrameReader : public CSmplBitstreamReader
 {
+    enum JPEGMarker
+    {
+        SOI=0xD8FF,
+        EOI=0xD9FF
+    };
 public:
     virtual mfxStatus ReadNextFrame(mfxBitstream *pBS);
 protected:
-    bool SOImarkerIsFound(mfxBitstream *pBS);
-    bool EOImarkerIsFound(mfxBitstream *pBS);
+    mfxU32 FindMarker(mfxBitstream *pBS,mfxU32 startOffset,JPEGMarker marker);
 };
 
 //appends output bistream with exactly 1 frame, reports about error
@@ -628,11 +660,12 @@ template<typename T>
 template<size_t S>
     mfxStatus msdk_opt_read(const msdk_char* string, msdk_char (&value)[S])
     {
+        value[0]=0;
     #if defined(_WIN32) || defined(_WIN64)
         return (0 == _tcscpy_s(value, string))? MFX_ERR_NONE: MFX_ERR_UNKNOWN;
     #else
         if (strlen(string) < S) {
-            strncpy(value, string, S);
+            strncpy(value, string, S-1);
             return MFX_ERR_NONE;
         }
         return MFX_ERR_UNKNOWN;
@@ -646,5 +679,9 @@ template<typename T>
     }
 
 mfxStatus StrFormatToCodecFormatFourCC(msdk_char* strInput, mfxU32 &codecFormat);
+
+mfxI32 getMonitorType(msdk_char* str);
+
+void WaitForDeviceToBecomeFree(MFXVideoSession& session, mfxSyncPoint& syncPoint,mfxStatus& currentStatus);
 
 #endif //__SAMPLE_UTILS_H__

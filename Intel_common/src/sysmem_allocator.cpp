@@ -1,12 +1,21 @@
-/* ****************************************************************************** *\
+/******************************************************************************\
+Copyright (c) 2005-2016, Intel Corporation
+All rights reserved.
 
-INTEL CORPORATION PROPRIETARY INFORMATION
-This software is supplied under the terms of a license agreement or nondisclosure
-agreement with Intel Corporation and may not be copied or disclosed except in
-accordance with the terms of that agreement
-Copyright(c) 2008-2014 Intel Corporation. All Rights Reserved.
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
-\* ****************************************************************************** */
+1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+This sample was distributed or derived from the Intel's Media Samples package.
+The original version of this sample may be obtained from https://software.intel.com/en-us/intel-media-server-studio
+or https://software.intel.com/en-us/media-client-solutions-support.
+\**********************************************************************************/
 
 #include "sysmem_allocator.h"
 
@@ -96,10 +105,21 @@ mfxStatus SysMemFrameAllocator::LockFrame(mfxMemId mid, mfxFrameData *ptr)
         ptr->V = ptr->U + 1;
         ptr->Pitch = Width2;
         break;
+    case MFX_FOURCC_NV16:
+        ptr->U = ptr->Y + Width2 * Height2;
+        ptr->V = ptr->U + 1;
+        ptr->Pitch = Width2;
+        break;
     case MFX_FOURCC_YV12:
         ptr->V = ptr->Y + Width2 * Height2;
         ptr->U = ptr->V + (Width2 >> 1) * (Height2 >> 1);
         ptr->Pitch = Width2;
+        break;
+    case MFX_FOURCC_UYVY:
+        ptr->U = ptr->Y;
+        ptr->Y = ptr->U + 1;
+        ptr->V = ptr->U + 2;
+        ptr->Pitch = 2 * Width2;
         break;
     case MFX_FOURCC_YUY2:
         ptr->U = ptr->Y + 1;
@@ -123,6 +143,11 @@ mfxStatus SysMemFrameAllocator::LockFrame(mfxMemId mid, mfxFrameData *ptr)
         ptr->Pitch = 2 * Width2;
         break;
     case MFX_FOURCC_P010:
+        ptr->U = ptr->Y + Width2 * Height2 * 2;
+        ptr->V = ptr->U + 2;
+        ptr->Pitch = Width2 * 2;
+        break;
+    case MFX_FOURCC_P210:
         ptr->U = ptr->Y + Width2 * Height2 * 2;
         ptr->V = ptr->U + 2;
         ptr->Pitch = Width2 * 2;
@@ -189,12 +214,16 @@ mfxStatus SysMemFrameAllocator::AllocImpl(mfxFrameAllocRequest *request, mfxFram
     case MFX_FOURCC_NV12:
         nbytes = Width2*Height2 + (Width2>>1)*(Height2>>1) + (Width2>>1)*(Height2>>1);
         break;
+    case MFX_FOURCC_NV16:
+        nbytes = Width2*Height2 + (Width2>>1)*(Height2) + (Width2>>1)*(Height2);
+        break;
     case MFX_FOURCC_RGB3:
         nbytes = Width2*Height2 + Width2*Height2 + Width2*Height2;
         break;
     case MFX_FOURCC_RGB4:
         nbytes = Width2*Height2 + Width2*Height2 + Width2*Height2 + Width2*Height2;
         break;
+    case MFX_FOURCC_UYVY:
     case MFX_FOURCC_YUY2:
         nbytes = Width2*Height2 + (Width2>>1)*(Height2) + (Width2>>1)*(Height2);
         break;
@@ -207,6 +236,10 @@ mfxStatus SysMemFrameAllocator::AllocImpl(mfxFrameAllocRequest *request, mfxFram
         break;
     case MFX_FOURCC_A2RGB10:
         nbytes = Width2*Height2*4; // 4 bytes per pixel
+        break;
+    case MFX_FOURCC_P210:
+        nbytes = Width2*Height2 + (Width2>>1)*(Height2) + (Width2>>1)*(Height2);
+        nbytes *= 2; // 16bits
         break;
     default:
         return MFX_ERR_UNSUPPORTED;

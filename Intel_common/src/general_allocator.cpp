@@ -1,12 +1,21 @@
-/*********************************************************************************
+/******************************************************************************\
+Copyright (c) 2005-2016, Intel Corporation
+All rights reserved.
 
-INTEL CORPORATION PROPRIETARY INFORMATION
-This software is supplied under the terms of a license agreement or nondisclosure
-agreement with Intel Corporation and may not be copied or disclosed except in
-accordance with the terms of that agreement
-Copyright(c) 2010-2014 Intel Corporation. All Rights Reserved.
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
-**********************************************************************************/
+1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+This sample was distributed or derived from the Intel's Media Samples package.
+The original version of this sample may be obtained from https://software.intel.com/en-us/intel-media-server-studio
+or https://software.intel.com/en-us/media-client-solutions-support.
+\**********************************************************************************/
 
 #include "mfx_samples_config.h"
 
@@ -37,28 +46,31 @@ mfxStatus GeneralAllocator::Init(mfxAllocatorParams *pParams)
     mfxStatus sts = MFX_ERR_NONE;
 
 #if defined(_WIN32) || defined(_WIN64)
+    D3DAllocatorParams *d3dAllocParams = dynamic_cast<D3DAllocatorParams*>(pParams);
+    if (d3dAllocParams)
+        m_D3DAllocator.reset(new D3DFrameAllocator);
 #if MFX_D3D11_SUPPORT
     D3D11AllocatorParams *d3d11AllocParams = dynamic_cast<D3D11AllocatorParams*>(pParams);
     if (d3d11AllocParams)
         m_D3DAllocator.reset(new D3D11FrameAllocator);
-    else
 #endif
-        m_D3DAllocator.reset(new D3DFrameAllocator);
-#endif
-#ifdef LIBVA_SUPPORT
-    m_D3DAllocator.reset(new vaapiFrameAllocator);
 #endif
 
-    m_SYSAllocator.reset(new SysMemFrameAllocator);
+#ifdef LIBVA_SUPPORT
+    vaapiAllocatorParams *vaapiAllocParams = dynamic_cast<vaapiAllocatorParams*>(pParams);
+    if (vaapiAllocParams)
+        m_D3DAllocator.reset(new vaapiFrameAllocator);
+#endif
 
     if (m_D3DAllocator.get())
     {
         sts = m_D3DAllocator.get()->Init(pParams);
-        MSDK_CHECK_RESULT(MFX_ERR_NONE, sts, sts);
+        MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
     }
 
+    m_SYSAllocator.reset(new SysMemFrameAllocator);
     sts = m_SYSAllocator.get()->Init(0);
-    MSDK_CHECK_RESULT(MFX_ERR_NONE, sts, sts);
+    MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
 
     return sts;
 }
@@ -68,11 +80,11 @@ mfxStatus GeneralAllocator::Close()
     if (m_D3DAllocator.get())
     {
         sts = m_D3DAllocator.get()->Close();
-        MSDK_CHECK_RESULT(MFX_ERR_NONE, sts, sts);
+        MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
     }
 
     sts = m_SYSAllocator.get()->Close();
-    MSDK_CHECK_RESULT(MFX_ERR_NONE, sts, sts);
+    MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
 
    return sts;
 }
@@ -114,11 +126,13 @@ mfxStatus GeneralAllocator::AllocImpl(mfxFrameAllocRequest *request, mfxFrameAll
     if ((request->Type & MFX_MEMTYPE_VIDEO_MEMORY_DECODER_TARGET || request->Type & MFX_MEMTYPE_VIDEO_MEMORY_PROCESSOR_TARGET) && m_D3DAllocator.get())
     {
         sts = m_D3DAllocator.get()->Alloc(m_D3DAllocator.get(), request, response);
+        MSDK_CHECK_NOT_EQUAL(MFX_ERR_NONE, sts, sts);
         StoreFrameMids(true, response);
     }
     else
     {
         sts = m_SYSAllocator.get()->Alloc(m_SYSAllocator.get(), request, response);
+        MSDK_CHECK_NOT_EQUAL(MFX_ERR_NONE, sts, sts);
         StoreFrameMids(false, response);
     }
     return sts;

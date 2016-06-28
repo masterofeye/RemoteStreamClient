@@ -1,12 +1,21 @@
-/*********************************************************************************
+/******************************************************************************\
+Copyright (c) 2005-2016, Intel Corporation
+All rights reserved.
 
-INTEL CORPORATION PROPRIETARY INFORMATION
-This software is supplied under the terms of a license agreement or nondisclosure
-agreement with Intel Corporation and may not be copied or disclosed except in
-accordance with the terms of that agreement
-Copyright(c) 2011-2014 Intel Corporation. All Rights Reserved.
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
-**********************************************************************************/
+1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+This sample was distributed or derived from the Intel's Media Samples package.
+The original version of this sample may be obtained from https://software.intel.com/en-us/intel-media-server-studio
+or https://software.intel.com/en-us/media-client-solutions-support.
+\**********************************************************************************/
 
 #include "mfx_samples_config.h"
 
@@ -367,7 +376,7 @@ mfxStatus D3D11FrameAllocator::AllocImpl(mfxFrameAllocRequest *request, mfxFrame
         desc.Format = ConverColortFormat(request->Info.FourCC);
         desc.SampleDesc.Count = 1;
         desc.Usage = D3D11_USAGE_DEFAULT;
-        desc.MiscFlags = m_initParams.uncompressedResourceMiscFlags;
+        desc.MiscFlags = m_initParams.uncompressedResourceMiscFlags | D3D11_RESOURCE_MISC_SHARED;
 
         desc.BindFlags = D3D11_BIND_DECODER;
 
@@ -419,7 +428,7 @@ mfxStatus D3D11FrameAllocator::AllocImpl(mfxFrameAllocRequest *request, mfxFrame
 
             if (FAILED(hRes))
             {
-                printf("Create staging texture(%lld) failed hr = 0x%X\n", (long long)i, (unsigned int)hRes);
+                msdk_printf(MSDK_STRING("Create staging texture(%lld) failed hr = 0x%X\n"), (long long)i, (unsigned int)hRes);
                 return MFX_ERR_MEMORY_ALLOC;
             }
             newTexture.stagingTexture.push_back(pTexture2D);
