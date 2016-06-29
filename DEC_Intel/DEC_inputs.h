@@ -17,7 +17,8 @@ namespace RW{
         enum eWorkMode {
             MODE_PERFORMANCE,
             MODE_RENDERING,
-            MODE_FILE_DUMP
+            MODE_FILE_DUMP, 
+            MODE_DATA_DUMP
         };
 
         typedef struct stInputParams
@@ -58,7 +59,6 @@ namespace RW{
             mfxU32  nWallTimeout;     //DON'T USE: timeout for -wall option
             mfxU32  numViews;         //DON'T USE: number of views for Multi-View Codec
             mfxU32  nRotation;        //DON'T USE: rotation for Motion JPEG Codec
-            bool    bPerfMode;        //DON'T USE  
             bool    bRenderWin;       //DON'T USE  
             mfxU32  nRenderWinX;      //DON'T USE  
             mfxU32  nRenderWinY;      //DON'T USE  
@@ -73,7 +73,7 @@ namespace RW{
             sPluginParams pluginParams;
 
             stInputParams() : videoType(MFX_CODEC_AVC), memType(SYSTEM_MEMORY), bUseHWLib(true), bLowLat(true), bCalLat(true),
-                nThreadsNum(0), SchedulingType(0), Priority(0), mode(MODE_PERFORMANCE),
+                nThreadsNum(0), SchedulingType(0), Priority(0), mode(MODE_PERFORMANCE), monitorType(0),
                 numViews(1), bIsMVC(false), eDeinterlace(0), bRenderWin(false), nWallCell(0), nWallW(0), nWallH(0), nWallMonitor(0), bWallNoTitle(true), nWallTimeout(0), nRotation(0),
                 nMaxFPS(30), uBitstreamBufferSize(2*1024*1024),
                 nAsyncDepth(4), gpuCopy(MFX_GPUCOPY_DEFAULT), nFrames(1), Width(0), Height(0), fourcc(MFX_FOURCC_RGB4)

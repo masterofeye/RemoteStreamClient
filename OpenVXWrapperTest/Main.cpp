@@ -66,11 +66,11 @@ typedef struct stPipelineParams
 
 typedef struct stPayloadMsg
 {
-    int     iTimestamp;
-    int     iFrameNbr;
-    uint8_t u8CANSignal1;
-    uint8_t u8CANSignal2;
-    uint8_t u8CANSignal3;
+    uint32_t u32Timestamp;
+    uint32_t u32FrameNbr;
+    uint8_t  u8CANSignal1;
+    uint8_t  u8CANSignal2;
+    uint8_t  u8CANSignal3;
 }tstPayloadMsg;
 
 int pipeline(tstPipelineParams params)
@@ -225,8 +225,8 @@ int pipeline(tstPipelineParams params)
 				//encodeControlStruct.pcuYUVArray[2] = impColorControlStruct.pOutput->_cuArrayUV[1];
 				encodeControlStruct.pPayload = new RW::tstBitStream();
                 tstPayloadMsg Msg;
-                Msg.iTimestamp = videoGrabberControlStruct.nCurrentPositionMSec;
-                Msg.iFrameNbr = videoGrabberControlStruct.nCurrentFrameNumber;
+                Msg.u32Timestamp = videoGrabberControlStruct.nCurrentPositionMSec;
+                Msg.u32FrameNbr = videoGrabberControlStruct.nCurrentFrameNumber;
                 encodeControlStruct.pPayload->u32Size = sizeof(stPayloadMsg);
                 encodeControlStruct.pPayload->pBuffer = (uint8_t*)&Msg;
                 encodeControlStruct.pstBitStream = new RW::tstBitStream;
@@ -288,6 +288,8 @@ int pipeline(tstPipelineParams params)
                 decodeInitCtrl.inputParams->fourcc = MFX_FOURCC_RGB4;
                 decodeInitCtrl.inputParams->uBitstreamBufferSize = 
                     encodeInitialiseControlStruct.pstEncodeConfig->uBitstreamBufferSize;
+                decodeInitCtrl.inputParams->memType = RW::DEC::D3D9_MEMORY;
+                decodeInitCtrl.inputParams->mode = RW::DEC::MODE_DATA_DUMP;
             }
             RW::DEC::tstMyControlStruct decodeCtrl;
             {
@@ -296,7 +298,8 @@ int pipeline(tstPipelineParams params)
                 decodeCtrl.pPayload = //pPayload;
                     encodeControlStruct.pPayload;
                 decodeCtrl.pOutput = new RW::tstBitStream();
-                decodeCtrl.pOutput->pBuffer = new uint8_t;
+                uint32_t size = videoGrabberInitialiseControlStruct.nFrameWidth * videoGrabberInitialiseControlStruct.nFrameHeight * sizeof(uint8_t) * 4;
+                decodeCtrl.pOutput->pBuffer = new uint8_t[size];
                 decodeCtrl.pOutput->u32Size = 0;
             }
             RW::DEC::tstMyDeinitialiseControlStruct decodeDeinitCtrl;
@@ -356,6 +359,12 @@ int pipeline(tstPipelineParams params)
                 file_logger->trace() << "Graph execution: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
             }
+
+            /*********Check if payload is correctly*******/
+            tstPayloadMsg *pMsg = (tstPayloadMsg*)(decodeCtrl.pPayload->pBuffer);
+            uint32_t u32FrameNbr = pMsg->u32FrameNbr;
+            uint32_t u32Timestamp = pMsg->u32Timestamp;
+            /*********************************************/
 
             /*******Cleanup. Whatever has been created here has to be destroyed here. Modules do not do that. ******/
 			//SAFE_DELETE(videoGrabberControlStruct.pOutputData->pBuffer);

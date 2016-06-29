@@ -180,11 +180,6 @@ namespace RW{
                 if (pParams->fourcc)
                 m_fourcc = pParams->fourcc;
 
-#ifdef LIBVA_SUPPORT
-            if(pParams->bPerfMode)
-                m_bPerfMode = true;
-#endif
-
             if (pParams->Width)
                 m_vppOutWidth = pParams->Width;
             if (pParams->Height)
@@ -387,9 +382,9 @@ namespace RW{
             m_eWorkMode = m_pInputParams->mode;
             if (m_eWorkMode == MODE_FILE_DUMP) {
                 // prepare YUV file writer
-                //sts = m_FileWriter.Init(pParams->strDstFile, pParams->numViews);
+                sts = m_FileWriter.Init(m_pInputParams->strDstFile, m_pInputParams->numViews);
             }
-            else if ((m_eWorkMode != MODE_PERFORMANCE) && (m_eWorkMode != MODE_RENDERING)) {
+            else if ((m_eWorkMode != MODE_PERFORMANCE) && (m_eWorkMode != MODE_RENDERING) && (m_eWorkMode != MODE_DATA_DUMP)) {
                 m_Logger->error("CDecodingPipeline::InitForFirstFrame: unsupported work mode");
                 sts = MFX_ERR_UNSUPPORTED;
             }
@@ -1085,7 +1080,7 @@ namespace RW{
             mfxStatus sts = MFX_ERR_NONE;
 
             m_pGeneralAllocator = new GeneralAllocator();
-            if (m_memType != SYSTEM_MEMORY || !m_bDecOutSysmem)
+            if (m_memType != SYSTEM_MEMORY)// || !m_bDecOutSysmem)
             {
 #if D3D_SURFACES_SUPPORT
                 sts = CreateHWDevice();
@@ -1130,7 +1125,7 @@ namespace RW{
                 sts = m_mfxSession.SetFrameAllocator(m_pGeneralAllocator);
                 MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
 
-                //m_bExternalAlloc = true;
+                m_bExternalAlloc = true;
 #elif LIBVA_SUPPORT
                 sts = CreateHWDevice();
                 MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
@@ -1503,8 +1498,18 @@ namespace RW{
                         res = sts;
                     }
                 }
-                else 
-                    if (m_eWorkMode == MODE_RENDERING) {
+                else if (m_eWorkMode == MODE_DATA_DUMP)
+                {
+                    res = m_pGeneralAllocator->Lock(m_pGeneralAllocator->pthis, frame->Data.MemId, &(frame->Data));
+                    if (MFX_ERR_NONE == res) {
+                        res = WriteNextFrameToBuffer(frame); 
+                        sts = m_pGeneralAllocator->Unlock(m_pGeneralAllocator->pthis, frame->Data.MemId, &(frame->Data));
+                    }
+                    if ((MFX_ERR_NONE == res) && (MFX_ERR_NONE != sts)) {
+                        res = sts;
+                    }
+                }
+                else if (m_eWorkMode == MODE_RENDERING) {
 #if D3D_SURFACES_SUPPORT
                         res = m_d3dRender.RenderFrame(frame, m_pGeneralAllocator);
 #elif LIBVA_SUPPORT
@@ -1513,7 +1518,14 @@ namespace RW{
                 }
             }
             else {
-                res = WriteNextFrameToBuffer(frame);
+                if (m_eWorkMode == MODE_FILE_DUMP)
+                {
+                    res = m_FileWriter.WriteNextFrame(frame);
+                }
+                else if (m_eWorkMode == MODE_DATA_DUMP)
+                {
+                    res = WriteNextFrameToBuffer(frame);
+                }
             }
 
             return res;
@@ -1608,7 +1620,7 @@ namespace RW{
                 else {
                     PrintPerFrameStat();
                 }
-                if (m_eWorkMode == MODE_FILE_DUMP || !m_bExternalAlloc) {
+                if (m_eWorkMode == MODE_FILE_DUMP || m_eWorkMode == MODE_DATA_DUMP) {
                     m_output_count = m_synced_count;
                     sts = DeliverOutput(&(m_pCurrentOutputSurface->surface->frame));
                     if (MFX_ERR_NONE != sts) {
@@ -1687,25 +1699,29 @@ namespace RW{
                     m_Logger->error("CDecodingPipeline::RunDecoding: DeliverOutput return error = ")<< m_error;
                     break;
                 }
-                if (pBitstream && ((MFX_ERR_MORE_DATA == sts) || (m_bIsCompleteFrame && !pBitstream->DataLength))) {
+                if (pBitstream && ((MFX_ERR_MORE_DATA == sts) || m_bIsCompleteFrame)) {
                     if (m_pInputParams->mode == MODE_FILE_DUMP){
                         CAutoTimer timer_fread(m_tick_fread);
                         sts = m_FileReader->ReadNextFrame(pBitstream); // read more data to input bit stream
 
                         if (MFX_ERR_MORE_DATA == sts) {
-                            if (m_bIsVideoWall) {
+                            if (!m_bIsVideoWall) {
+                                // we almost reached end of stream, need to pull buffered data now
+                                pBitstream = NULL;
+                                sts = MFX_ERR_NONE;
+                            }
+                            else {
                                 // videowall mode: decoding in a loop
                                 m_FileReader->Reset();
                                 sts = MFX_ERR_NONE;
                                 continue;
                             }
                         }
-                        else if (MFX_ERR_NONE != sts)
-                        {
+                        else if (MFX_ERR_NONE != sts) {
                             break;
                         }
                     }
-                    else
+                    else if (m_eWorkMode == MODE_DATA_DUMP && sts == MFX_ERR_MORE_DATA)
                     {
                         // we almost reached end of stream, need to pull buffered data now
                         pBitstream = NULL;
@@ -1742,7 +1758,7 @@ namespace RW{
                         // we stuck with no free surface available, now we will sync...
                         sts = SyncOutputSurface(MSDK_DEC_WAIT_INTERVAL);
                         if (MFX_ERR_MORE_DATA == sts) {
-                            if ((m_eWorkMode == MODE_PERFORMANCE) || (m_eWorkMode == MODE_FILE_DUMP)) {
+                            if ((m_eWorkMode == MODE_PERFORMANCE) || (m_eWorkMode == MODE_FILE_DUMP) || (m_eWorkMode == MODE_DATA_DUMP)) {
                                 sts = MFX_ERR_NOT_FOUND;
                             }
                             else if (m_eWorkMode == MODE_RENDERING) {
@@ -1917,26 +1933,26 @@ namespace RW{
                         m_OutputSurfacesPool.AddSurface(m_pCurrentFreeOutputSurface);
                         m_pCurrentFreeOutputSurface = NULL;
                     }
-                }
-                if (pPayload)
-                {
-                    mfxPayload dec_payload;
-                    mfxU64 ts;
-                    dec_payload.Data = (mfxU8*)pPayload->pBuffer;
-                    dec_payload.BufSize = pPayload->u32Size;
-                    dec_payload.Type = 5;
-                    dec_payload.NumBit = 100;
-
-                    while (dec_payload.NumBit != 0)
+                    if (pPayload)
                     {
-                        mfxStatus stats = m_pmfxDEC->GetPayload(&ts, &dec_payload);
-                        if ((stats == MFX_ERR_NONE) && (dec_payload.Type == 5))
+                        mfxPayload dec_payload;
+                        mfxU64 ts;
+                        dec_payload.Data = (mfxU8*)pPayload->pBuffer;
+                        dec_payload.BufSize = pPayload->u32Size;
+                        dec_payload.Type = 5;
+                        dec_payload.NumBit = dec_payload.BufSize * 8;
+
+                        while (dec_payload.NumBit != 0)
                         {
-                            memcpy(pPayload->pBuffer, dec_payload.Data, dec_payload.BufSize);
-                        }
-                        else
-                        {
-                            break;
+                            mfxStatus stats = m_pmfxDEC->GetPayload(&ts, &dec_payload);
+                            if ((stats == MFX_ERR_NONE) && (dec_payload.Type == 5))
+                            {
+                                memcpy(pPayload->pBuffer, dec_payload.Data, dec_payload.BufSize);
+                            }
+                            else
+                            {
+                                break;
+                            }
                         }
                     }
                 }

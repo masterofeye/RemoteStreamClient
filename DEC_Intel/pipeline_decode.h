@@ -151,34 +151,34 @@ namespace RW{
             CSmplYUVWriter          m_FileWriter;
             std::auto_ptr<CSmplBitstreamReader>  m_FileReader;
             mfxBitstream            m_mfxBS; // contains encoded data
-            tstInputParams          *m_pInputParams;
-            RW::tstBitStream        *m_pOutput;
+            tstInputParams         *m_pInputParams;
+            RW::tstBitStream       *m_pOutput;
 
             MFXVideoSession         m_mfxSession;
             mfxIMPL                 m_impl;
-            MFXVideoDECODE*         m_pmfxDEC;
-            MFXVideoVPP*            m_pmfxVPP;
+            MFXVideoDECODE         *m_pmfxDEC;
+            MFXVideoVPP            *m_pmfxVPP;
             mfxVideoParam           m_mfxVideoParams;
             mfxVideoParam           m_mfxVppVideoParams;
             std::auto_ptr<MFXVideoUSER>  m_pUserModule;
             std::auto_ptr<MFXPlugin> m_pPlugin;
             std::vector<mfxExtBuffer *> m_ExtBuffers;
 
-            GeneralAllocator*       m_pGeneralAllocator;
-            mfxAllocatorParams*     m_pmfxAllocatorParams;
+            GeneralAllocator       *m_pGeneralAllocator;
+            mfxAllocatorParams     *m_pmfxAllocatorParams;
             MemType                 m_memType;      // memory type of surfaces to use
             bool                    m_bExternalAlloc; // use memory allocator as external for Media SDK
             bool                    m_bDecOutSysmem; // use system memory between Decoder and VPP, if false - video memory
             mfxFrameAllocResponse   m_mfxResponse; // memory allocation response for decoder
             mfxFrameAllocResponse   m_mfxVppResponse;   // memory allocation response for vpp
 
-            msdkFrameSurface*       m_pCurrentFreeSurface; // surface detached from free surfaces array
-            msdkFrameSurface*       m_pCurrentFreeVppSurface; // VPP surface detached from free VPP surfaces array
-            msdkOutputSurface*      m_pCurrentFreeOutputSurface; // surface detached from free output surfaces array
-            msdkOutputSurface*      m_pCurrentOutputSurface; // surface detached from output surfaces array
+            msdkFrameSurface       *m_pCurrentFreeSurface; // surface detached from free surfaces array
+            msdkFrameSurface       *m_pCurrentFreeVppSurface; // VPP surface detached from free VPP surfaces array
+            msdkOutputSurface      *m_pCurrentFreeOutputSurface; // surface detached from free output surfaces array
+            msdkOutputSurface      *m_pCurrentOutputSurface; // surface detached from output surfaces array
 
-            MSDKSemaphore*          m_pDeliverOutputSemaphore; // to access to DeliverOutput method
-            MSDKEvent*              m_pDeliveredEvent; // to signal when output surfaces will be processed
+            MSDKSemaphore          *m_pDeliverOutputSemaphore; // to access to DeliverOutput method
+            MSDKEvent              *m_pDeliveredEvent; // to signal when output surfaces will be processed
             mfxStatus               m_error; // error returned by DeliverOutput method
             bool                    m_bStopDeliverLoop;
 
@@ -207,11 +207,11 @@ namespace RW{
             mfxExtVPPDeinterlacing  m_VppDeinterlacing;
             std::vector<mfxExtBuffer*> m_VppExtParams;
 
-            CHWDevice               *m_hwdev;
+            CHWDevice              *m_hwdev;
 #if D3D_SURFACES_SUPPORT
-            IGFXS3DControl          *m_pS3DControl;
+            IGFXS3DControl         *m_pS3DControl;
 
-            CDecodeD3DRender         m_d3dRender;
+            CDecodeD3DRender        m_d3dRender;
 #endif
 
             bool                    m_bRenderWin;
