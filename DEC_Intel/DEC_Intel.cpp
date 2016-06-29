@@ -126,12 +126,11 @@ namespace RW{
             {
                 if (MFX_ERR_INCOMPATIBLE_VIDEO_PARAM == sts)
                 {
-                    m_Logger->error("Incompatible video parameters detected. Recovering...");
+                    m_Logger->error("DoRender: Incompatible video parameters detected. Recovering...");
                 }
                 else
                 {
-                    m_Logger->error("Hardware device was lost or returned unexpected error. Recovering...");
-                    sts = m_pPipeline->ResetDevice();
+                    m_Logger->error("DoRender: Hardware device was lost or returned unexpected error. Recovering...");
                 }
 
                 sts = m_pPipeline->ResetDecoder();

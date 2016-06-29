@@ -69,7 +69,6 @@ namespace RW{
 
             m_pGeneralAllocator = NULL;
             m_pmfxAllocatorParams = NULL;
-            m_memType = SYSTEM_MEMORY;
             m_bExternalAlloc = false;
             m_bDecOutSysmem = false;
             MSDK_ZERO_MEMORY(m_mfxResponse);
@@ -80,15 +79,7 @@ namespace RW{
             m_pCurrentFreeOutputSurface = NULL;
             m_pCurrentOutputSurface = NULL;
 
-            m_pDeliverOutputSemaphore = NULL;
-            m_pDeliveredEvent = NULL;
-            m_error = MFX_ERR_NONE;
-            m_bStopDeliverLoop = false;
-
-            m_eWorkMode = MODE_PERFORMANCE;
-            m_bIsMVC = false;
             m_bIsExtBuffers = false;
-            m_bIsVideoWall = false;
             m_bIsCompleteFrame = false;
             m_bPrintLatency = false;
             m_fourcc = 0;
@@ -99,12 +90,8 @@ namespace RW{
             m_nMaxFps = 0;
 
             m_diMode = 0;
-            m_bRenderWin = false;
             m_vppOutWidth = 0;
             m_vppOutHeight = 0;
-
-            m_nRenderWinX = 0;
-            m_nRenderWinY = 0;
 
             m_vLatency.reserve(1000); // reserve some space to reduce dynamic reallocation impact on pipeline execution
 
@@ -114,17 +101,6 @@ namespace RW{
 
             m_VppDeinterlacing.Header.BufferId = MFX_EXTBUFF_VPP_DEINTERLACING;
             m_VppDeinterlacing.Header.BufferSz = sizeof(m_VppDeinterlacing);
-
-            m_hwdev = NULL;
-
-#ifdef LIBVA_SUPPORT
-            m_export_mode = vaapiAllocatorParams::DONOT_EXPORT;
-            m_bPerfMode = false;
-#endif
-#if D3D_SURFACES_SUPPORT
-            m_pS3DControl = NULL;
-#endif
-
         }
 
         CDecodingPipeline::~CDecodingPipeline()
@@ -158,25 +134,6 @@ namespace RW{
                         return MFX_ERR_UNSUPPORTED; // latency mode is supported only for H.264 and JPEG codecs
                     }
                 }
-                if (pParams->mode == MODE_FILE_DUMP)
-                {
-                    switch (pParams->videoType)
-                    {
-                    case MFX_CODEC_HEVC:
-                    case MFX_CODEC_AVC:
-                        m_FileReader.reset(new CH264FrameReader());
-                        break;
-                    case MFX_CODEC_JPEG:
-                        m_FileReader.reset(new CJPEGFrameReader());
-                        break;
-                    case CODEC_VP8:
-                        m_FileReader.reset(new CIVFFrameReader());
-                        break;
-                    default:
-                        m_FileReader.reset(new CSmplBitstreamReader());
-                        break;
-                    }
-                }
                 if (pParams->fourcc)
                 m_fourcc = pParams->fourcc;
 
@@ -185,20 +142,8 @@ namespace RW{
             if (pParams->Height)
                 m_vppOutHeight = pParams->Height;
 
-
-            m_memType = pParams->memType;
-
             m_nMaxFps = pParams->nMaxFPS;
             m_nFrames = pParams->nFrames ? pParams->nFrames : MFX_INFINITE;
-
-            if (pParams->mode == MODE_FILE_DUMP)
-            {
-                if (MFX_CODEC_CAPTURE != pParams->videoType)
-                {
-                    sts = m_FileReader->Init(pParams->strSrcFile);
-                    MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
-                }
-            }
 
             mfxInitParam initPar;
             mfxExtThreadsParam threadsPar;
@@ -223,47 +168,14 @@ namespace RW{
                 m_diMode = pParams->eDeinterlace;
             }
 
-            if (pParams->nThreadsNum) {
-                threadsPar.NumThread = pParams->nThreadsNum;
-                needInitExtPar = true;
-            }
-            if (pParams->SchedulingType) {
-                threadsPar.SchedulingType = pParams->SchedulingType;
-                needInitExtPar = true;
-            }
-            if (pParams->Priority) {
-                threadsPar.Priority = pParams->Priority;
-                needInitExtPar = true;
-            }
             if (needInitExtPar) {
                 extBufs[0] = (mfxExtBuffer*)&threadsPar;
                 initPar.ExtParam = extBufs;
                 initPar.NumExtParam = 1;
             }
 
-            // Init session
-            if (pParams->bUseHWLib) {
-                // try searching on all display adapters
-                initPar.Implementation = MFX_IMPL_HARDWARE_ANY;
-
-                // if d3d11 surfaces are used ask the library to run acceleration through D3D11
-                // feature may be unsupported due to OS or MSDK API version
-
-                if (D3D11_MEMORY == pParams->memType)
-                    initPar.Implementation |= MFX_IMPL_VIA_D3D11;
-
-                sts = m_mfxSession.InitEx(initPar);
-
-                // MSDK API version may not support multiple adapters - then try initialize on the default
-                if (MFX_ERR_NONE != sts) {
-                    initPar.Implementation = (initPar.Implementation & !MFX_IMPL_HARDWARE_ANY) | MFX_IMPL_HARDWARE;
-                    sts = m_mfxSession.InitEx(initPar);
-                }
-            }
-            else {
-                initPar.Implementation = MFX_IMPL_SOFTWARE;
-                sts = m_mfxSession.InitEx(initPar);
-            }
+            initPar.Implementation = MFX_IMPL_SOFTWARE;
+            sts = m_mfxSession.InitEx(initPar);
 
             MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
 
@@ -273,12 +185,6 @@ namespace RW{
             sts = m_mfxSession.QueryIMPL(&m_impl); // get actual library implementation
             MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
 
-            if (pParams->bIsMVC && !CheckVersion(&version, MSDK_FEATURE_MVC)) {
-                m_Logger->error("CDecodingPipeline::Init: MVC is not supported in the API version ")
-                    << version.Major << "." << version.Minor;
-                return MFX_ERR_UNSUPPORTED;
-
-            }
             if ((pParams->videoType == MFX_CODEC_JPEG) && !CheckVersion(&version, MSDK_FEATURE_JPEG_DECODE)) {
                 m_Logger->error("CDecodingPipeline::Init: Jpeg is not supported in the API version ")
                     << version.Major << "." << version.Minor;
@@ -298,28 +204,12 @@ namespace RW{
                 return MFX_ERR_UNSUPPORTED;
             }
 
-            if (pParams->bRenderWin) {
-                m_bRenderWin = pParams->bRenderWin;
-                // note: currently position is unsupported for Wayland
-#if !defined(LIBVA_WAYLAND_SUPPORT)
-                m_nRenderWinX = pParams->nRenderWinX;
-                m_nRenderWinY = pParams->nRenderWinY;
-#endif
-            }
-
             // create decoder
             m_pmfxDEC = new MFXVideoDECODE(m_mfxSession);
             MSDK_CHECK_POINTER(m_pmfxDEC, MFX_ERR_MEMORY_ALLOC);
 
             // set video type in parameters
             m_mfxVideoParams.mfx.CodecId = pParams->videoType;
-
-            // prepare bit stream
-            if (MFX_CODEC_CAPTURE != pParams->videoType)
-            {
-                sts = InitMfxBitstream(&m_mfxBS, pParams->uBitstreamBufferSize);
-                MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
-            }
 
             if (CheckVersion(&version, MSDK_FEATURE_PLUGIN_API)) {
                 /* Here we actually define the following codec initialization scheme:
@@ -342,7 +232,7 @@ namespace RW{
                 {
                     if (AreGuidsEqual(pParams->pluginParams.pluginGuid, MSDK_PLUGINGUID_NULL))
                     {
-                        mfxIMPL impl = pParams->bUseHWLib ? MFX_IMPL_HARDWARE : MFX_IMPL_SOFTWARE;
+                        mfxIMPL impl = MFX_IMPL_SOFTWARE;
                         pParams->pluginParams.pluginGuid = msdkGetPluginUID(impl, MSDK_VDECODE, pParams->videoType);
                     }
                     if (!AreGuidsEqual(pParams->pluginParams.pluginGuid, MSDK_PLUGINGUID_NULL))
@@ -364,14 +254,18 @@ namespace RW{
         {
             mfxStatus sts = MFX_ERR_NONE;
 
+            // prepare bit stream
+            if (MFX_CODEC_CAPTURE != m_pInputParams->videoType)
+            {
+                sts = InitMfxBitstream(&m_mfxBS, m_mfxBS.MaxLength);
+                MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
+            }
+
             // Populate parameters. Involves DecodeHeader call
             sts = InitMfxParams(m_pInputParams);
             MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
 
-            if (m_bVppIsUsed)
-                m_bDecOutSysmem = m_pInputParams->bUseHWLib ? false : true;
-            else
-                m_bDecOutSysmem = m_pInputParams->memType == SYSTEM_MEMORY;
+            m_bDecOutSysmem = true;
 
             if (m_bVppIsUsed)
             {
@@ -379,23 +273,9 @@ namespace RW{
                 if (!m_pmfxVPP) return MFX_ERR_MEMORY_ALLOC;
             }
 
-            m_eWorkMode = m_pInputParams->mode;
-            if (m_eWorkMode == MODE_FILE_DUMP) {
-                // prepare YUV file writer
-                sts = m_FileWriter.Init(m_pInputParams->strDstFile, m_pInputParams->numViews);
-            }
-            else if ((m_eWorkMode != MODE_PERFORMANCE) && (m_eWorkMode != MODE_RENDERING) && (m_eWorkMode != MODE_DATA_DUMP)) {
-                m_Logger->error("CDecodingPipeline::InitForFirstFrame: unsupported work mode");
-                sts = MFX_ERR_UNSUPPORTED;
-            }
             MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
 
-            m_monitorType = m_pInputParams->monitorType;
             // create device and allocator
-#if defined(LIBVA_SUPPORT)
-            m_libvaBackend = pParams->libvaBackend;
-#endif // defined(MFX_LIBVA_SUPPORT)
-
             sts = CreateAllocator();
             MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
 
@@ -427,12 +307,6 @@ namespace RW{
 
             sts = m_pmfxDEC->GetVideoParam(&m_mfxVideoParams);
             MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
-
-            if (m_eWorkMode == MODE_RENDERING)
-            {
-                sts = CreateRenderingWindow(m_pInputParams, m_bIsMVC && (m_memType == D3D9_MEMORY));
-                MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
-            }
 
             return sts;
         }
@@ -466,13 +340,6 @@ namespace RW{
 
         void CDecodingPipeline::Close()
         {
-#if D3D_SURFACES_SUPPORT
-            if (NULL != m_pS3DControl)
-            {
-                m_pS3DControl->SwitchTo2D(NULL);
-                MSDK_SAFE_DELETE(m_pS3DControl);
-            }
-#endif
             WipeMfxBitstream(&m_mfxBS);
             MSDK_SAFE_DELETE(m_pmfxDEC);
             MSDK_SAFE_DELETE(m_pmfxVPP);
@@ -487,12 +354,6 @@ namespace RW{
 
             m_pPlugin.reset();
             m_mfxSession.Close();
-            if (m_pInputParams->mode == MODE_FILE_DUMP)
-            {
-                m_FileWriter.Close();
-                if (m_FileReader.get())
-                    m_FileReader->Close();
-            }
             MSDK_SAFE_DELETE(m_pInputParams);
             MSDK_SAFE_DELETE_ARRAY(m_VppDoNotUse.AlgList);
 
@@ -502,97 +363,11 @@ namespace RW{
             return;
         }
 
-#if D3D_SURFACES_SUPPORT
-        bool operator < (const IGFX_DISPLAY_MODE &l, const IGFX_DISPLAY_MODE& r)
-        {
-            if (r.ulResWidth >= 0xFFFF || r.ulResHeight >= 0xFFFF || r.ulRefreshRate >= 0xFFFF)
-                return false;
-
-            if (l.ulResWidth < r.ulResWidth) return true;
-            else if (l.ulResHeight < r.ulResHeight) return true;
-            else if (l.ulRefreshRate < r.ulRefreshRate) return true;
-
-            return false;
-        }
-#endif
-        mfxStatus CDecodingPipeline::CreateRenderingWindow(tstInputParams *pParams, bool try_s3d)
-        {
-            mfxStatus sts = MFX_ERR_NONE;
-#if D3D_SURFACES_SUPPORT
-            if (try_s3d) {
-
-                m_pS3DControl = CreateIGFXS3DControl();
-                MSDK_CHECK_POINTER(m_pS3DControl, MFX_ERR_DEVICE_FAILED);
-
-                // check if s3d supported and get a list of supported display modes
-                IGFX_S3DCAPS caps;
-                MSDK_ZERO_MEMORY(caps);
-                HRESULT hr = m_pS3DControl->GetS3DCaps(&caps);
-                if (FAILED(hr) || 0 >= caps.ulNumEntries) {
-                    MSDK_SAFE_DELETE(m_pS3DControl);
-                    return MFX_ERR_DEVICE_FAILED;
-                }
-
-                // switch to 3D mode
-                ULONG max = 0;
-                MSDK_CHECK_POINTER(caps.S3DSupportedModes, MFX_ERR_NOT_INITIALIZED);
-                for (ULONG i = 0; i < caps.ulNumEntries; i++) {
-                    if (caps.S3DSupportedModes[max] < caps.S3DSupportedModes[i])
-                        max = i;
-                }
-
-                if (0 == pParams->nWallCell)
-                {
-                    hr = m_pS3DControl->SwitchTo3D(&caps.S3DSupportedModes[max]);
-                    if (FAILED(hr)) {
-                        MSDK_SAFE_DELETE(m_pS3DControl);
-                        return MFX_ERR_DEVICE_FAILED;
-                    }
-                }
-            }
-            sWindowParams windowParams;
-
-            windowParams.lpWindowName = pParams->bWallNoTitle ? NULL : MSDK_STRING("sample_decode");
-            windowParams.nx = pParams->nWallW;
-            windowParams.ny = pParams->nWallH;
-            if (m_bVppIsUsed)
-            {
-                windowParams.nWidth = m_mfxVppVideoParams.vpp.Out.Width;
-                windowParams.nHeight = m_mfxVppVideoParams.vpp.Out.Height;
-            }
-            else
-            {
-                windowParams.nWidth = m_mfxVideoParams.mfx.FrameInfo.Width;
-                windowParams.nHeight = m_mfxVideoParams.mfx.FrameInfo.Height;
-            }
-
-            windowParams.ncell = pParams->nWallCell;
-            windowParams.nAdapter = pParams->nWallMonitor;
-
-            windowParams.lpClassName = MSDK_STRING("Render Window Class");
-            windowParams.dwStyle = WS_OVERLAPPEDWINDOW;
-            windowParams.hWndParent = NULL;
-            windowParams.hMenu = NULL;
-            windowParams.hInstance = GetModuleHandle(NULL);
-            windowParams.lpParam = NULL;
-            windowParams.bFullScreen = FALSE;
-
-            sts = m_d3dRender.Init(windowParams);
-            MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
-
-            //setting videowall flag
-            m_bIsVideoWall = 0 != windowParams.nx;
-            //setting timeout value
-            if (m_bIsVideoWall && (pParams->nWallTimeout>0)) m_nTimeout = pParams->nWallTimeout;
-#endif
-            return sts;
-        }
-
         mfxStatus CDecodingPipeline::InitMfxParams(tstInputParams *pParams)
         {
             MSDK_CHECK_POINTER(m_pmfxDEC, MFX_ERR_NULL_PTR);
             mfxStatus sts = MFX_ERR_NONE;
-            mfxU32 &numViews = pParams->numViews;
+            mfxU32 numViews = 1;
 
             // try to find a sequence header in the stream
             // if header is not found this function exits with error (e.g. if device was lost and there's no header in the remaining stream)
@@ -645,83 +420,12 @@ namespace RW{
                 }
                 if (MFX_ERR_MORE_DATA == sts)
                 {
-                    if (m_pInputParams->mode == MODE_FILE_DUMP){
-                        if (m_mfxBS.MaxLength == m_mfxBS.DataLength)
-                        {
-                            sts = ExtendMfxBitstream(&m_mfxBS, m_mfxBS.MaxLength * 2);
-                            MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
-                        }
-                        // read a portion of data
-                        sts = m_FileReader->ReadNextFrame(&m_mfxBS);
-                        if (MFX_ERR_MORE_DATA == sts &&
-                            !(m_mfxBS.DataFlag & MFX_BITSTREAM_EOS))
-                        {
-                            m_mfxBS.DataFlag |= MFX_BITSTREAM_EOS;
-                            sts = MFX_ERR_NONE;
-                        }
-                        MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
-                    }
-                    else
-                    {
                         m_mfxBS.DataFlag |= MFX_BITSTREAM_EOS;
                         sts = MFX_ERR_NONE;
-                    }
                     continue;
                 }
                 else
                 {
-                    // Enter MVC mode
-                    if (m_bIsMVC)
-                    {
-                        // Check for attached external parameters - if we have them already,
-                        // we don't need to attach them again
-                        if (NULL != m_mfxVideoParams.ExtParam)
-                            break;
-
-                        // allocate and attach external parameters for MVC decoder
-                        sts = AllocateExtBuffer<mfxExtMVCSeqDesc>();
-                        MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
-
-                        AttachExtParam();
-                        sts = m_pmfxDEC->DecodeHeader(&m_mfxBS, &m_mfxVideoParams);
-
-                        if (MFX_ERR_NOT_ENOUGH_BUFFER == sts)
-                        {
-                            sts = AllocateExtMVCBuffers();
-                            SetExtBuffersFlag();
-
-                            MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
-                            MSDK_CHECK_POINTER(m_mfxVideoParams.ExtParam, MFX_ERR_MEMORY_ALLOC);
-                            continue;
-                        }
-                    }
-
-                    // if input is interlaced JPEG stream
-                    if (m_mfxBS.PicStruct == MFX_PICSTRUCT_FIELD_TFF || m_mfxBS.PicStruct == MFX_PICSTRUCT_FIELD_BFF)
-                    {
-                        m_mfxVideoParams.mfx.FrameInfo.CropH *= 2;
-                        m_mfxVideoParams.mfx.FrameInfo.Height = MSDK_ALIGN16(m_mfxVideoParams.mfx.FrameInfo.CropH);
-                        m_mfxVideoParams.mfx.FrameInfo.PicStruct = m_mfxBS.PicStruct;
-                    }
-
-                    switch (pParams->nRotation)
-                    {
-                    case 0:
-                        m_mfxVideoParams.mfx.Rotation = MFX_ROTATION_0;
-                        break;
-                    case 90:
-                        m_mfxVideoParams.mfx.Rotation = MFX_ROTATION_90;
-                        break;
-                    case 180:
-                        m_mfxVideoParams.mfx.Rotation = MFX_ROTATION_180;
-                        break;
-                    case 270:
-                        m_mfxVideoParams.mfx.Rotation = MFX_ROTATION_270;
-                        break;
-                    default:
-                        return MFX_ERR_UNSUPPORTED;
-                    }
-
                     break;
                 }
             }
@@ -752,36 +456,8 @@ namespace RW{
                 m_mfxVideoParams.mfx.FrameInfo.ChromaFormat = MFX_CHROMAFORMAT_YUV444;
             }
 
-            // If MVC mode we need to detect number of views in stream
-            if (m_bIsMVC)
-            {
-                mfxExtMVCSeqDesc* pSequenceBuffer;
-                pSequenceBuffer = (mfxExtMVCSeqDesc*)GetExtBuffer(m_mfxVideoParams.ExtParam, m_mfxVideoParams.NumExtParam, MFX_EXTBUFF_MVC_SEQ_DESC);
-                MSDK_CHECK_POINTER(pSequenceBuffer, MFX_ERR_INVALID_VIDEO_PARAM);
-
-                mfxU32 i = 0;
-                numViews = 0;
-                for (i = 0; i < pSequenceBuffer->NumView; ++i)
-                {
-                    /* Some MVC streams can contain different information about
-                       number of views and view IDs, e.x. numVews = 2
-                       and ViewId[0, 1] = 0, 2 instead of ViewId[0, 1] = 0, 1.
-                       numViews should be equal (max(ViewId[i]) + 1)
-                       to prevent crashes during output files writing */
-                    if (pSequenceBuffer->View[i].ViewId >= numViews)
-                        numViews = pSequenceBuffer->View[i].ViewId + 1;
-                }
-            }
-            else
-            {
-                numViews = 1;
-            }
-
             // specify memory type
-            if (!m_bVppIsUsed)
-                m_mfxVideoParams.IOPattern = (mfxU16)(m_memType != SYSTEM_MEMORY ? MFX_IOPATTERN_OUT_VIDEO_MEMORY : MFX_IOPATTERN_OUT_SYSTEM_MEMORY);
-            else
-                m_mfxVideoParams.IOPattern = (mfxU16)(pParams->bUseHWLib ? MFX_IOPATTERN_OUT_VIDEO_MEMORY : MFX_IOPATTERN_OUT_SYSTEM_MEMORY);
+            m_mfxVideoParams.IOPattern = (mfxU16)MFX_IOPATTERN_OUT_SYSTEM_MEMORY;
 
             m_mfxVideoParams.AsyncDepth = pParams->nAsyncDepth;
 
@@ -814,9 +490,7 @@ namespace RW{
                 MFX_IOPATTERN_IN_SYSTEM_MEMORY
                 : MFX_IOPATTERN_IN_VIDEO_MEMORY);
 
-            m_mfxVppVideoParams.IOPattern |= (m_memType != SYSTEM_MEMORY) ?
-                MFX_IOPATTERN_OUT_VIDEO_MEMORY
-                : MFX_IOPATTERN_OUT_SYSTEM_MEMORY;
+            m_mfxVppVideoParams.IOPattern |= (mfxU16)MFX_IOPATTERN_OUT_SYSTEM_MEMORY;
 
             MSDK_MEMCPY_VAR(m_mfxVppVideoParams.vpp.In, &m_mfxVideoParams.mfx.FrameInfo, sizeof(mfxFrameInfo));
             MSDK_MEMCPY_VAR(m_mfxVppVideoParams.vpp.Out, &m_mfxVppVideoParams.vpp.In, sizeof(mfxFrameInfo));
@@ -849,73 +523,6 @@ namespace RW{
             m_mfxVppVideoParams.ExtParam = &m_VppExtParams[0];
             m_mfxVppVideoParams.NumExtParam = (mfxU16)m_VppExtParams.size();
             return MFX_ERR_NONE;
-        }
-
-        mfxStatus CDecodingPipeline::CreateHWDevice()
-        {
-#if D3D_SURFACES_SUPPORT
-            mfxStatus sts = MFX_ERR_NONE;
-
-            HWND window = NULL;
-            bool render = (m_eWorkMode == MODE_RENDERING);
-
-            if (render) {
-                window = (D3D11_MEMORY == m_memType) ? NULL : m_d3dRender.GetWindowHandle();
-            }
-
-#if MFX_D3D11_SUPPORT
-            if (D3D11_MEMORY == m_memType)
-                m_hwdev = new CD3D11Device();
-            else
-#endif // #if MFX_D3D11_SUPPORT
-                m_hwdev = new CD3D9Device();
-
-            if (NULL == m_hwdev)
-                return MFX_ERR_MEMORY_ALLOC;
-
-            if (render && m_bIsMVC && m_memType == D3D9_MEMORY) {
-                sts = m_hwdev->SetHandle((mfxHandleType)MFX_HANDLE_GFXS3DCONTROL, m_pS3DControl);
-                MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
-            }
-            sts = m_hwdev->Init(
-                window,
-                render ? (m_bIsMVC ? 2 : 1) : 0,
-                MSDKAdapter::GetNumber(m_mfxSession));
-            MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
-
-            if (render)
-                m_d3dRender.SetHWDevice(m_hwdev);
-#elif LIBVA_SUPPORT
-            mfxStatus sts = MFX_ERR_NONE;
-            m_hwdev = CreateVAAPIDevice(m_libvaBackend);
-
-            if (NULL == m_hwdev) {
-                return MFX_ERR_MEMORY_ALLOC;
-            }
-
-            sts = m_hwdev->Init(&m_monitorType, (m_eWorkMode == MODE_RENDERING) ? 1 : 0, MSDKAdapter::GetNumber(m_mfxSession));
-            MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
-
-#if defined(LIBVA_WAYLAND_SUPPORT)
-            if (m_eWorkMode == MODE_RENDERING) {
-                mfxHDL hdl = NULL;
-                mfxHandleType hdlw_t = (mfxHandleType)HANDLE_WAYLAND_DRIVER;
-                Wayland *wld;
-                sts = m_hwdev->GetHandle(hdlw_t, &hdl);
-                MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
-                wld = (Wayland*)hdl;
-                wld->SetRenderWinPos(m_nRenderWinX, m_nRenderWinY);
-                wld->SetPerfMode(m_bPerfMode);
-            }
-#endif //LIBVA_WAYLAND_SUPPORT
-
-#endif
-            return MFX_ERR_NONE;
-        }
-
-        mfxStatus CDecodingPipeline::ResetDevice()
-        {
-            return m_hwdev->Reset();
         }
 
         mfxStatus CDecodingPipeline::AllocFrames()
@@ -1080,116 +687,6 @@ namespace RW{
             mfxStatus sts = MFX_ERR_NONE;
 
             m_pGeneralAllocator = new GeneralAllocator();
-            if (m_memType != SYSTEM_MEMORY)// || !m_bDecOutSysmem)
-            {
-#if D3D_SURFACES_SUPPORT
-                sts = CreateHWDevice();
-                MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
-
-                // provide device manager to MediaSDK
-                mfxHDL hdl = NULL;
-                mfxHandleType hdl_t =
-#if MFX_D3D11_SUPPORT
-                    D3D11_MEMORY == m_memType ? MFX_HANDLE_D3D11_DEVICE :
-#endif // #if MFX_D3D11_SUPPORT
-                    MFX_HANDLE_D3D9_DEVICE_MANAGER;
-
-                sts = m_hwdev->GetHandle(hdl_t, &hdl);
-                MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
-                sts = m_mfxSession.SetHandle(hdl_t, hdl);
-                MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
-
-                // create D3D allocator
-#if MFX_D3D11_SUPPORT
-                if (D3D11_MEMORY == m_memType)
-                {
-                    D3D11AllocatorParams *pd3dAllocParams = new D3D11AllocatorParams;
-                    MSDK_CHECK_POINTER(pd3dAllocParams, MFX_ERR_MEMORY_ALLOC);
-                    pd3dAllocParams->pDevice = reinterpret_cast<ID3D11Device *>(hdl);
-
-                    m_pmfxAllocatorParams = pd3dAllocParams;
-                }
-                else
-#endif // #if MFX_D3D11_SUPPORT
-                {
-                    D3DAllocatorParams *pd3dAllocParams = new D3DAllocatorParams;
-                    MSDK_CHECK_POINTER(pd3dAllocParams, MFX_ERR_MEMORY_ALLOC);
-                    pd3dAllocParams->pManager = reinterpret_cast<IDirect3DDeviceManager9 *>(hdl);
-
-                    m_pmfxAllocatorParams = pd3dAllocParams;
-                }
-
-                /* In case of video memory we must provide MediaSDK with external allocator
-                thus we demonstrate "external allocator" usage model.
-                Call SetAllocator to pass allocator to mediasdk */
-                sts = m_mfxSession.SetFrameAllocator(m_pGeneralAllocator);
-                MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
-
-                m_bExternalAlloc = true;
-#elif LIBVA_SUPPORT
-                sts = CreateHWDevice();
-                MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
-                /* It's possible to skip failed result here and switch to SW implementation,
-                   but we don't process this way */
-
-                // provide device manager to MediaSDK
-                VADisplay va_dpy = NULL;
-                sts = m_hwdev->GetHandle(MFX_HANDLE_VA_DISPLAY, (mfxHDL *)&va_dpy);
-                MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
-                sts = m_mfxSession.SetHandle(MFX_HANDLE_VA_DISPLAY, va_dpy);
-                MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
-
-                vaapiAllocatorParams *p_vaapiAllocParams = new vaapiAllocatorParams;
-                MSDK_CHECK_POINTER(p_vaapiAllocParams, MFX_ERR_MEMORY_ALLOC);
-
-                p_vaapiAllocParams->m_dpy = va_dpy;
-                if (m_eWorkMode == MODE_RENDERING) {
-                    if (m_libvaBackend == MFX_LIBVA_DRM_MODESET) {
-                        CVAAPIDeviceDRM* drmdev = dynamic_cast<CVAAPIDeviceDRM*>(m_hwdev);
-                        p_vaapiAllocParams->m_export_mode = vaapiAllocatorParams::CUSTOM_FLINK;
-                        p_vaapiAllocParams->m_exporter = dynamic_cast<vaapiAllocatorParams::Exporter*>(drmdev->getRenderer());
-                    } else if (m_libvaBackend == MFX_LIBVA_WAYLAND) {
-                        p_vaapiAllocParams->m_export_mode = vaapiAllocatorParams::PRIME;
-                    }
-                }
-                m_export_mode = p_vaapiAllocParams->m_export_mode;
-                m_pmfxAllocatorParams = p_vaapiAllocParams;
-
-                /* In case of video memory we must provide MediaSDK with external allocator
-                thus we demonstrate "external allocator" usage model.
-                Call SetAllocator to pass allocator to mediasdk */
-                sts = m_mfxSession.SetFrameAllocator(m_pGeneralAllocator);
-                MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
-
-                m_bExternalAlloc = true;
-#endif
-            }
-            else
-            {
-#ifdef LIBVA_SUPPORT
-                //in case of system memory allocator we also have to pass MFX_HANDLE_VA_DISPLAY to HW library
-
-                if(MFX_IMPL_HARDWARE == MFX_IMPL_BASETYPE(m_impl))
-                {
-                    sts = CreateHWDevice();
-                    MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
-
-                    // provide device manager to MediaSDK
-                    VADisplay va_dpy = NULL;
-                    sts = m_hwdev->GetHandle(MFX_HANDLE_VA_DISPLAY, (mfxHDL *)&va_dpy);
-                    MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
-                    sts = m_mfxSession.SetHandle(MFX_HANDLE_VA_DISPLAY, va_dpy);
-                    MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
-                }
-#endif
-                // create system memory allocator
-                //m_pGeneralAllocator = new SysMemFrameAllocator;
-                //MSDK_CHECK_POINTER(m_pGeneralAllocator, MFX_ERR_MEMORY_ALLOC);
-
-                /* In case of system memory we demonstrate "no external allocator" usage model.
-                We don't call SetAllocator, MediaSDK uses internal allocator.
-                We use system memory allocator simply as a memory manager for application*/
-            }
 
             // initialize memory allocator
             sts = m_pGeneralAllocator->Init(m_pmfxAllocatorParams);
@@ -1221,16 +718,6 @@ namespace RW{
             // delete allocator
             MSDK_SAFE_DELETE(m_pGeneralAllocator);
             MSDK_SAFE_DELETE(m_pmfxAllocatorParams);
-            MSDK_SAFE_DELETE(m_hwdev);
-        }
-
-        void CDecodingPipeline::SetMultiView()
-        {
-            if (m_pInputParams->mode == MODE_FILE_DUMP)
-            {
-                m_FileWriter.SetMultiView();
-            }
-            m_bIsMVC = true;
         }
 
         // function for allocating a specific external buffer
@@ -1488,86 +975,20 @@ namespace RW{
             }
 
             if (m_bExternalAlloc) {
-                if (m_eWorkMode == MODE_FILE_DUMP) {
-                    res = m_pGeneralAllocator->Lock(m_pGeneralAllocator->pthis, frame->Data.MemId, &(frame->Data));
-                    if (MFX_ERR_NONE == res) {
-                        res = m_FileWriter.WriteNextFrame(frame);
-                        sts = m_pGeneralAllocator->Unlock(m_pGeneralAllocator->pthis, frame->Data.MemId, &(frame->Data));
-                    }
-                    if ((MFX_ERR_NONE == res) && (MFX_ERR_NONE != sts)) {
-                        res = sts;
-                    }
+                res = m_pGeneralAllocator->Lock(m_pGeneralAllocator->pthis, frame->Data.MemId, &(frame->Data));
+                if (MFX_ERR_NONE == res) {
+                    res = WriteNextFrameToBuffer(frame);
+                    sts = m_pGeneralAllocator->Unlock(m_pGeneralAllocator->pthis, frame->Data.MemId, &(frame->Data));
                 }
-                else if (m_eWorkMode == MODE_DATA_DUMP)
-                {
-                    res = m_pGeneralAllocator->Lock(m_pGeneralAllocator->pthis, frame->Data.MemId, &(frame->Data));
-                    if (MFX_ERR_NONE == res) {
-                        res = WriteNextFrameToBuffer(frame); 
-                        sts = m_pGeneralAllocator->Unlock(m_pGeneralAllocator->pthis, frame->Data.MemId, &(frame->Data));
-                    }
-                    if ((MFX_ERR_NONE == res) && (MFX_ERR_NONE != sts)) {
-                        res = sts;
-                    }
-                }
-                else if (m_eWorkMode == MODE_RENDERING) {
-#if D3D_SURFACES_SUPPORT
-                        res = m_d3dRender.RenderFrame(frame, m_pGeneralAllocator);
-#elif LIBVA_SUPPORT
-                        res = m_hwdev->RenderFrame(frame, m_pGeneralAllocator);
-#endif
+                if ((MFX_ERR_NONE == res) && (MFX_ERR_NONE != sts)) {
+                    res = sts;
                 }
             }
             else {
-                if (m_eWorkMode == MODE_FILE_DUMP)
-                {
-                    res = m_FileWriter.WriteNextFrame(frame);
-                }
-                else if (m_eWorkMode == MODE_DATA_DUMP)
-                {
-                    res = WriteNextFrameToBuffer(frame);
-                }
+                res = WriteNextFrameToBuffer(frame);
             }
 
             return res;
-        }
-
-        mfxStatus CDecodingPipeline::DeliverLoop(void)
-        {
-            mfxStatus res = MFX_ERR_NONE;
-
-            while (!m_bStopDeliverLoop) {
-                m_pDeliverOutputSemaphore->Wait();
-                if (m_bStopDeliverLoop) {
-                    continue;
-                }
-                if (MFX_ERR_NONE != m_error) {
-                    continue;
-                }
-                msdkOutputSurface* pCurrentDeliveredSurface = m_DeliveredSurfacesPool.GetSurface();
-                if (!pCurrentDeliveredSurface) {
-                    m_error = MFX_ERR_NULL_PTR;
-                    continue;
-                }
-                mfxFrameSurface1* frame = &(pCurrentDeliveredSurface->surface->frame);
-
-                m_error = DeliverOutput(frame);
-                ReturnSurfaceToBuffers(pCurrentDeliveredSurface);
-
-                pCurrentDeliveredSurface = NULL;
-                ++m_output_count;
-                m_pDeliveredEvent->Signal();
-            }
-            return res;
-        }
-
-        unsigned int MFX_STDCALL CDecodingPipeline::DeliverThreadFunc(void* ctx)
-        {
-            CDecodingPipeline* pipeline = (CDecodingPipeline*)ctx;
-
-            mfxStatus sts;
-            sts = pipeline->DeliverLoop();
-
-            return 0;
         }
 
         void CDecodingPipeline::PrintPerFrameStat(bool force)
@@ -1620,33 +1041,12 @@ namespace RW{
                 else {
                     PrintPerFrameStat();
                 }
-                if (m_eWorkMode == MODE_FILE_DUMP || m_eWorkMode == MODE_DATA_DUMP) {
-                    m_output_count = m_synced_count;
-                    sts = DeliverOutput(&(m_pCurrentOutputSurface->surface->frame));
-                    if (MFX_ERR_NONE != sts) {
-                        sts = MFX_ERR_UNKNOWN;
-                    }
-                    ReturnSurfaceToBuffers(m_pCurrentOutputSurface);
+                m_output_count = m_synced_count;
+                sts = DeliverOutput(&(m_pCurrentOutputSurface->surface->frame));
+                if (MFX_ERR_NONE != sts) {
+                    sts = MFX_ERR_UNKNOWN;
                 }
-                else if (m_eWorkMode == MODE_PERFORMANCE) {
-                    m_output_count = m_synced_count;
-                    ReturnSurfaceToBuffers(m_pCurrentOutputSurface);
-                }
-                else if (m_eWorkMode == MODE_RENDERING) {
-                    if (m_nMaxFps)
-                    {
-                        //calculation of a time to sleep in order not to exceed a given fps
-                        mfxF64 currentTime = (m_output_count) ? CTimer::ConvertToSeconds(m_tick_overall) : 0.0;
-                        int time_to_sleep = (int)(1000 * ((double)m_output_count / m_nMaxFps - currentTime));
-                        if (time_to_sleep > 0)
-                        {
-                            MSDK_SLEEP(time_to_sleep);
-                        }
-                    }
-                    m_DeliveredSurfacesPool.AddSurface(m_pCurrentOutputSurface);
-                    m_pDeliveredEvent->Reset();
-                    m_pDeliverOutputSemaphore->Post();
-                }
+                ReturnSurfaceToBuffers(m_pCurrentOutputSurface);
                 m_pCurrentOutputSurface = NULL;
             }
 
@@ -1659,29 +1059,21 @@ namespace RW{
 
         mfxStatus CDecodingPipeline::RunDecoding(tstBitStream *pPayload)
         {
+            mfxStatus           sts = MFX_ERR_NONE;
             if (!m_bFirstFrameInitialized)
             {
-                InitForFirstFrame();
+                sts = InitForFirstFrame();
+                if (sts != MFX_ERR_NONE)
+                {
+                    m_Logger->error("RunDecoding: InitForFirstFrame failed!!!");
+                    return sts;
+                }
             }
             mfxFrameSurface1*   pOutSurface = NULL;
             mfxBitstream*       pBitstream = &m_mfxBS;
-            mfxStatus           sts = MFX_ERR_NONE;
             bool                bErrIncompatibleVideoParams = false;
             CTimeInterval<>     decodeTimer(m_bIsCompleteFrame);
             time_t start_time = time(0);
-            MSDKThread * pDeliverThread = NULL;
-
-            if (m_eWorkMode == MODE_RENDERING) {
-                m_pDeliverOutputSemaphore = new MSDKSemaphore(sts);
-                m_pDeliveredEvent = new MSDKEvent(sts, false, false);
-                pDeliverThread = new MSDKThread(sts, DeliverThreadFunc, this);
-                if (!pDeliverThread || !m_pDeliverOutputSemaphore || !m_pDeliveredEvent) {
-                    MSDK_SAFE_DELETE(pDeliverThread);
-                    MSDK_SAFE_DELETE(m_pDeliverOutputSemaphore);
-                    MSDK_SAFE_DELETE(m_pDeliveredEvent);
-                    return MFX_ERR_MEMORY_ALLOC;
-                }
-            }
 
             if (MFX_CODEC_CAPTURE == this->m_mfxVideoParams.mfx.CodecId)
             {
@@ -1694,52 +1086,14 @@ namespace RW{
             dec_payload.BufSize = pPayload->u32Size;
             dec_payload.Type = 5;
 
-            while (((sts == MFX_ERR_NONE) || (MFX_ERR_MORE_DATA == sts) || (MFX_ERR_MORE_SURFACE == sts)) && (m_nFrames > m_output_count)){
-                if (MFX_ERR_NONE != m_error) {
-                    m_Logger->error("CDecodingPipeline::RunDecoding: DeliverOutput return error = ")<< m_error;
-                    break;
-                }
-                if (pBitstream && ((MFX_ERR_MORE_DATA == sts) || m_bIsCompleteFrame)) {
-                    if (m_pInputParams->mode == MODE_FILE_DUMP){
-                        CAutoTimer timer_fread(m_tick_fread);
-                        sts = m_FileReader->ReadNextFrame(pBitstream); // read more data to input bit stream
+            int count = 0;
 
-                        if (MFX_ERR_MORE_DATA == sts) {
-                            if (!m_bIsVideoWall) {
-                                // we almost reached end of stream, need to pull buffered data now
-                                pBitstream = NULL;
-                                sts = MFX_ERR_NONE;
-                            }
-                            else {
-                                // videowall mode: decoding in a loop
-                                m_FileReader->Reset();
-                                sts = MFX_ERR_NONE;
-                                continue;
-                            }
-                        }
-                        else if (MFX_ERR_NONE != sts) {
-                            break;
-                        }
-                    }
-                    else if (m_eWorkMode == MODE_DATA_DUMP && sts == MFX_ERR_MORE_DATA)
-                    {
-                        // we almost reached end of stream, need to pull buffered data now
-                        pBitstream = NULL;
-                        m_mfxBS.DataFlag |= MFX_BITSTREAM_EOS;
-                        sts = MFX_ERR_NONE;
-                    }
-                }
-                if ((MFX_ERR_NONE == sts) || (MFX_ERR_MORE_DATA == sts) || (MFX_ERR_MORE_SURFACE == sts)) {
-                    // here we check whether output is ready, though we do not wait...
-#ifndef __SYNC_WA
-                    mfxStatus _sts = SyncOutputSurface(0);
-                    if (MFX_ERR_UNKNOWN == _sts) {
-                        sts = _sts;
-                        break;
-                    } else if (MFX_ERR_NONE == _sts) {
-                        continue;
-                    }
-#endif
+            while (((sts == MFX_ERR_NONE) || (MFX_ERR_MORE_DATA == sts) || (MFX_ERR_MORE_SURFACE == sts)) && (m_nFrames > m_output_count)){
+                if (pBitstream && (MFX_ERR_MORE_DATA == sts)) {
+                    // we almost reached end of stream, need to pull buffered data now
+                    pBitstream = NULL;
+                    m_mfxBS.DataFlag |= MFX_BITSTREAM_EOS;
+                    sts = MFX_ERR_NONE;
                 }
                 if ((MFX_ERR_NONE == sts) || (MFX_ERR_MORE_DATA == sts) || (MFX_ERR_MORE_SURFACE == sts)) {
                     SyncFrameSurfaces();
@@ -1758,21 +1112,9 @@ namespace RW{
                         // we stuck with no free surface available, now we will sync...
                         sts = SyncOutputSurface(MSDK_DEC_WAIT_INTERVAL);
                         if (MFX_ERR_MORE_DATA == sts) {
-                            if ((m_eWorkMode == MODE_PERFORMANCE) || (m_eWorkMode == MODE_FILE_DUMP) || (m_eWorkMode == MODE_DATA_DUMP)) {
-                                sts = MFX_ERR_NOT_FOUND;
-                            }
-                            else if (m_eWorkMode == MODE_RENDERING) {
-                                if (m_synced_count != m_output_count) {
-                                    sts = m_pDeliveredEvent->TimedWait(MSDK_DEC_WAIT_INTERVAL);
-                                }
-                                else {
-                                    sts = MFX_ERR_NOT_FOUND;
-                                }
-                            }
-                            if (MFX_ERR_NOT_FOUND == sts) {
-                                m_Logger->critical("CDecodingPipeline::RunDecoding: failed to find output surface, that's a bug!");
-                                break;
-                            }
+                            sts = MFX_ERR_NOT_FOUND;
+                            m_Logger->critical("CDecodingPipeline::RunDecoding: failed to find output surface, that's a bug!");
+                            break;
                         }
                         // note: MFX_WRN_IN_EXECUTION will also be treated as an error at this point
                         continue;
@@ -1787,12 +1129,6 @@ namespace RW{
                     }
                 }
 
-                // exit by timeout
-                if ((MFX_ERR_NONE == sts) && m_bIsVideoWall && (time(0) - start_time) >= m_nTimeout) {
-                    sts = MFX_ERR_NONE;
-                    break;
-                }
-
                 if ((MFX_ERR_NONE == sts) || (MFX_ERR_MORE_DATA == sts) || (MFX_ERR_MORE_SURFACE == sts)) {
                     if (m_bIsCompleteFrame) {
                         m_pCurrentFreeSurface->submit = m_timer_overall.Sync();
@@ -1800,6 +1136,7 @@ namespace RW{
                     pOutSurface = NULL;
                     do {
                         sts = m_pmfxDEC->DecodeFrameAsync(pBitstream, &(m_pCurrentFreeSurface->frame), &pOutSurface, &(m_pCurrentFreeOutputSurface->syncp));
+                        count++;
                         if (pBitstream && MFX_ERR_MORE_DATA == sts && pBitstream->MaxLength == pBitstream->DataLength)
                         {
                             mfxStatus status = ExtendMfxBitstream(pBitstream, pBitstream->MaxLength * 2);
@@ -1852,10 +1189,6 @@ namespace RW{
                         do {
                             sts = SyncOutputSurface(MSDK_DEC_WAIT_INTERVAL);
                         } while (MFX_ERR_NONE == sts);
-
-                        while (m_synced_count != m_output_count) {
-                            m_pDeliveredEvent->Wait();
-                        }
 
                         if (MFX_ERR_MORE_DATA == sts) {
                             sts = MFX_ERR_NONE;
@@ -1976,17 +1309,6 @@ namespace RW{
                     << " MIN: " << (CTimer::ConvertToSeconds(*std::min_element(m_vLatency.begin(), m_vLatency.end())) * 1000);
             }
 
-            if (m_eWorkMode == MODE_RENDERING) {
-                m_bStopDeliverLoop = true;
-                m_pDeliverOutputSemaphore->Post();
-                if (pDeliverThread)
-                    pDeliverThread->Wait();
-            }
-
-            MSDK_SAFE_DELETE(m_pDeliverOutputSemaphore);
-            MSDK_SAFE_DELETE(m_pDeliveredEvent);
-            MSDK_SAFE_DELETE(pDeliverThread);
-
             // exit in case of other errors
             MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
 
@@ -2002,8 +1324,7 @@ namespace RW{
         {
             mfxFrameInfo Info = m_mfxVideoParams.mfx.FrameInfo;
             mfxF64 dFrameRate = CalculateFrameRate(Info.FrameRateExtN, Info.FrameRateExtD);
-            const char* sMemType = m_memType == D3D9_MEMORY ? "d3d"
-                : (m_memType == D3D11_MEMORY ? "d3d11" : "system");
+            const char* sMemType = "system";
 
             mfxIMPL impl;
             m_mfxSession.QueryIMPL(&impl);
@@ -2011,8 +1332,7 @@ namespace RW{
             mfxVersion ver;
             m_mfxSession.QueryVersion(&ver);
 
-            const char* sImpl = (MFX_IMPL_VIA_D3D11 == MFX_IMPL_VIA_MASK(impl)) ? "hw_d3d11"
-                : (MFX_IMPL_HARDWARE & impl) ? "hw" : "sw";
+            const char* sImpl =  "sw";
 
             m_Logger->debug("CDecodingPipeline::PrintInfo ") \
                 << "\n Input video CodecID  = " << m_mfxVideoParams.mfx.CodecId \

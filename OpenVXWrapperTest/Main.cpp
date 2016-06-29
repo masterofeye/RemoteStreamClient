@@ -284,12 +284,7 @@ int pipeline(tstPipelineParams params)
                     videoGrabberInitialiseControlStruct.nFrameWidth;
                 decodeInitCtrl.inputParams->nMaxFPS = //30;
                     videoGrabberInitialiseControlStruct.nFPS;
-                decodeInitCtrl.inputParams->bUseHWLib = false;
                 decodeInitCtrl.inputParams->fourcc = MFX_FOURCC_RGB4;
-                decodeInitCtrl.inputParams->uBitstreamBufferSize = 
-                    encodeInitialiseControlStruct.pstEncodeConfig->uBitstreamBufferSize;
-                decodeInitCtrl.inputParams->memType = RW::DEC::D3D9_MEMORY;
-                decodeInitCtrl.inputParams->mode = RW::DEC::MODE_DATA_DUMP;
             }
             RW::DEC::tstMyControlStruct decodeCtrl;
             {
