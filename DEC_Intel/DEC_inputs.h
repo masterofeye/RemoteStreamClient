@@ -11,29 +11,21 @@ namespace RW{
 
         typedef struct stInputParams
         {
-            mfxU32   videoType;       // MFX_CODEC_AVC for h264, MFX_CODEC_HEVC for h265
-            bool     bLowLat;         // low latency mode
-            bool     bCalLat;         // latency calculation
-            mfxU32   nMaxFPS;         //rendering limited by certain fps
+            mfxU32   videoType;       // Default: MFX_CODEC_AVC. (MFX_CODEC_AVC for h264, MFX_CODEC_HEVC for h265)
+            bool     bLowLat;         // Default: true. Low latency mode
+            bool     bCalLat;         // Default: true. Latency calculation
 
-            mfxU16  nAsyncDepth;      // depth of asynchronous pipeline. default value is 4. must be between 1 and 20
-            mfxU16  gpuCopy;          // GPU Copy mode (three-state option): MFX_GPUCOPY_DEFAULT or MFX_GPUCOPY_ON or MFX_GPUCOPY_OFF
+            mfxU16  nAsyncDepth;      // Default: 4. Depth of asynchronous pipeline. Value must be between 1 and 20
+            mfxU16  gpuCopy;          // Default: MFX_GPUCOPY_DEFAULT. GPU Copy mode (MFX_GPUCOPY_DEFAULT or MFX_GPUCOPY_ON or MFX_GPUCOPY_OFF)
 
-            mfxU16  Width;            //output width
-            mfxU16  Height;           //output height
+            mfxU16  Width;            // NEEDS TO BE SET: output width
+            mfxU16  Height;           // NEEDS TO BE SET: output height
 
-            mfxU32  fourcc;           //Output format parameters: MFX_FOURCC_NV12 or MFX_FOURCC_RGB4 or MFX_FOURCC_P010 or MFX_FOURCC_A2RGB10
-            mfxU32  nFrames;          //
-            mfxU16  eDeinterlace;     //Deinterlace modus
-
-            mfxU16  scrWidth;         //DON'T USE: Screen Width
-            mfxU16  scrHeight;        //DON'T USE: Screen Height
-
+            mfxU32  fourcc;           // Default: MFX_FOURCC_RGB4. Output format parameters (MFX_FOURCC_NV12 or MFX_FOURCC_RGB4 or MFX_FOURCC_P010 or MFX_FOURCC_A2RGB10)
+            mfxU32  nFrames;          // Default: 1. Number of Frames
             sPluginParams pluginParams;
 
             stInputParams() : videoType(MFX_CODEC_AVC), bLowLat(true), bCalLat(true),
-                eDeinterlace(0), 
-                nMaxFPS(30), 
                 nAsyncDepth(4), gpuCopy(MFX_GPUCOPY_DEFAULT), nFrames(1), Width(0), Height(0), fourcc(MFX_FOURCC_RGB4)
             {}
             ~stInputParams(){}

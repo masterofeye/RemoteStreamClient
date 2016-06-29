@@ -282,8 +282,6 @@ int pipeline(tstPipelineParams params)
                     videoGrabberInitialiseControlStruct.nFrameHeight;
                 decodeInitCtrl.inputParams->Width = //176;
                     videoGrabberInitialiseControlStruct.nFrameWidth;
-                decodeInitCtrl.inputParams->nMaxFPS = //30;
-                    videoGrabberInitialiseControlStruct.nFPS;
                 decodeInitCtrl.inputParams->fourcc = MFX_FOURCC_RGB4;
             }
             RW::DEC::tstMyControlStruct decodeCtrl;

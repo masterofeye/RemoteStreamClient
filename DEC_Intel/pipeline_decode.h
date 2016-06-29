@@ -19,12 +19,6 @@ or https://software.intel.com/en-us/media-client-solutions-support.
 
 #pragma once
 
-#if D3D_SURFACES_SUPPORT
-#pragma warning(disable : 4201)
-#include <d3d9.h>
-#include <dxva2api.h>
-#endif
-
 #include "mfx_buffering.h"
 #include "mfxmvc.h"
 #include "AbstractModule.hpp"
@@ -32,7 +26,6 @@ or https://software.intel.com/en-us/media-client-solutions-support.
 #include "general_allocator.h"
 #include "mfxplugin++.h"
 #include "plugin_loader.h"
-#include "hw_device.h"
 #include "decode_render.h"
 
 template<>struct mfx_ext_buffer_id<mfxExtMVCSeqDesc>{
@@ -82,20 +75,8 @@ namespace RW{
             CDecodingPipeline(std::shared_ptr<spdlog::logger> Logger);
             virtual ~CDecodingPipeline();
 
-            void SetEncodedData(tstBitStream *pstEncodedStream)
-            {
-                m_mfxBS.DataLength = pstEncodedStream->u32Size;
-                memmove(m_mfxBS.Data, m_mfxBS.Data + m_mfxBS.DataOffset, m_mfxBS.DataLength);
-                m_mfxBS.DataOffset = 0;
-                m_mfxBS.Data = (mfxU8*)pstEncodedStream->pBuffer;
-                m_mfxBS.MaxLength = pstEncodedStream->u32Size;
-                m_mfxBS.DataFlag = MFX_BITSTREAM_COMPLETE_FRAME;//MFX_BITSTREAM_EOS;
-            }
-            tstBitStream *GetOutput(){ return m_pOutput; }
-            void SetOutput(tstBitStream *pOutput){ m_pOutput = pOutput; }
-
             virtual mfxStatus Init(tstInputParams *pParams);
-            virtual mfxStatus RunDecoding(tstBitStream *pPayload);
+            virtual mfxStatus RunDecoding(tstBitStream *pPayload, tstBitStream *EncodedData, tstBitStream *OutputData);
             virtual void Close();
             virtual mfxStatus ResetDecoder();
 
@@ -103,6 +84,7 @@ namespace RW{
             virtual void PrintInfo();
 
         protected: // functions
+            mfxStatus SetEncodedData(tstBitStream *pstEncodedStream);
             virtual mfxStatus InitMfxParams(tstInputParams *pParams);
 
             // function for allocating a specific external buffer
@@ -176,16 +158,12 @@ namespace RW{
 
             bool                    m_bFirstFrameInitialized;
             
-            mfxU32                  m_nTimeout; // enables timeout for video playback, measured in seconds
-            mfxU32                  m_nMaxFps; // limit of fps, if isn't specified equal 0.
             mfxU32                  m_nFrames; //limit number of output frames
 
-            mfxU16                  m_diMode;
             bool                    m_bVppIsUsed;
             std::vector<msdk_tick>  m_vLatency;
 
             mfxExtVPPDoNotUse       m_VppDoNotUse;      // for disabling VPP algorithms
-            mfxExtVPPDeinterlacing  m_VppDeinterlacing;
             std::vector<mfxExtBuffer*> m_VppExtParams;
 
         private:

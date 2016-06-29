@@ -61,7 +61,7 @@ namespace RW{
 
             if (data == NULL)
             {
-                m_Logger->error("Initialise: Data of tstMyInitialiseControlStruct is empty!");
+                m_Logger->error("DEC_Intel::Initialise: Data of tstMyInitialiseControlStruct is empty!");
                 return tenStatus::nenError;
             }
 
@@ -69,7 +69,7 @@ namespace RW{
 
             if (!IsDecodeCodecSupported(data->inputParams->videoType))
             {
-                m_Logger->error("Unsupported codec");
+                m_Logger->error("DEC_Intel::Initialise: Unsupported codec");
                 sts = MFX_ERR_UNSUPPORTED;
             }
 
@@ -85,7 +85,7 @@ namespace RW{
 
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
-            m_Logger->trace() << "Time to Initialise for nenDecoder_INTEL module: " << (RW::CORE::HighResClock::diffMilli(t1, t2).count()) << "ms.";
+            m_Logger->trace() << "DEC_Intel::Initialise: Time to Initialise for nenDecoder_INTEL module: " << (RW::CORE::HighResClock::diffMilli(t1, t2).count()) << "ms.";
 #endif
             return enStatus;
         }
@@ -101,22 +101,18 @@ namespace RW{
             stMyControlStruct* data = static_cast<stMyControlStruct*>(ControlStruct);
             if (!data)
             {
-                m_Logger->error("DoRender: Data of stMyControlStruct is empty!");
+                m_Logger->error("DEC_Intel::DoRender: Data of stMyControlStruct is empty!");
                 return tenStatus::nenError;
             }
             if (!data->pOutput)
             {
-                m_Logger->error("DoRender: pOutput of stMyControlStruct is empty!");
+                m_Logger->error("DEC_Intel::DoRender: pOutput of stMyControlStruct is empty!");
                 return tenStatus::nenError;
             }
 
             mfxStatus sts = MFX_ERR_NONE; // return value check
 
-            m_pPipeline->SetEncodedData(data->pstEncodedStream);
-            m_pPipeline->SetOutput(data->pOutput);
-
-            sts = m_pPipeline->RunDecoding(data->pPayload);
-            data->pOutput = m_pPipeline->GetOutput();
+            sts = m_pPipeline->RunDecoding(data->pPayload, data->pstEncodedStream, data->pOutput);
             if (sts != MFX_ERR_NONE)
             {
                 enStatus = tenStatus::nenError;
@@ -126,28 +122,33 @@ namespace RW{
             {
                 if (MFX_ERR_INCOMPATIBLE_VIDEO_PARAM == sts)
                 {
-                    m_Logger->error("DoRender: Incompatible video parameters detected. Recovering...");
+                    m_Logger->error("DEC_Intel::DoRender: Incompatible video parameters detected.");
+                }
+                else if (data->pOutput == nullptr)
+                {
+                    m_Logger->error("DEC_Intel::DoRender: Output data is NULL!");
                 }
                 else
                 {
-                    m_Logger->error("DoRender: Hardware device was lost or returned unexpected error. Recovering...");
+                    m_Logger->error("DEC_Intel::DoRender: Hardware device was lost or returned unexpected error. Recovering...");
                 }
-
-                sts = m_pPipeline->ResetDecoder();
-            }
-            if (sts != MFX_ERR_NONE)
-            {
                 enStatus = tenStatus::nenError;
             }
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
-            m_Logger->trace() << "Time to DoRender for nenDecoder_INTEL module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+            m_Logger->trace() << "DEC_Intel::DoRender: Time to DoRender for nenDecoder_INTEL module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
             return enStatus;
         }
 
         tenStatus DEC_Intel::Deinitialise(CORE::tstDeinitialiseControlStruct *DeinitialiseControlStruct)
         {
+            mfxStatus sts = m_pPipeline->ResetDecoder();
+            if (sts != MFX_ERR_NONE)
+            {
+                tenStatus enStatus = tenStatus::nenError;
+            }
+
             m_Logger->debug("Deinitialise nenDecoder_INTEL");
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
@@ -155,7 +156,7 @@ namespace RW{
 
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
-            m_Logger->trace() << "Time to Deinitialise for nenDecoder_INTEL module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+            m_Logger->trace() << "DEC_Intel::Deinitialise: Time to Deinitialise for nenDecoder_INTEL module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
             return tenStatus::nenSuccess;
         }
