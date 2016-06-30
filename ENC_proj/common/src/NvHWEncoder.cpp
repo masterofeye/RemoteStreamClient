@@ -268,7 +268,7 @@ namespace RW{
             }
 
             m_Logger->debug("CNvHWEncoder::ValidateEncodeGUID: encodeGUIDArraySize <= encodeGUIDCount ? ") \
-            << (encodeGUIDArraySize <= encodeGUIDCount);
+                << (encodeGUIDArraySize <= encodeGUIDCount);
 
             codecFound = 0;
             for (i = 0; i < encodeGUIDArraySize; i++)
@@ -318,7 +318,7 @@ namespace RW{
                 return nvStatus;
             }
 
-			m_Logger->debug("CNvHWEncoder::ValidatePresetGUID: presetGUIDArraySize <= presetGUIDCount :") << (presetGUIDArraySize <= presetGUIDCount);
+            m_Logger->debug("CNvHWEncoder::ValidatePresetGUID: presetGUIDArraySize <= presetGUIDCount :") << (presetGUIDArraySize <= presetGUIDCount);
 
             presetFound = 0;
             for (i = 0; i < presetGUIDArraySize; i++)
@@ -368,7 +368,7 @@ namespace RW{
                 return NV_ENC_ERR_INVALID_PARAM;
             }
 
-			GUID inputCodecGUID = pEncCfg->codec == NV_ENC_H264 ? NV_ENC_CODEC_H264_GUID : NV_ENC_CODEC_HEVC_GUID;
+            GUID inputCodecGUID = pEncCfg->codec == NV_ENC_H264 ? NV_ENC_CODEC_H264_GUID : NV_ENC_CODEC_HEVC_GUID;
             nvStatus = ValidateEncodeGUID(inputCodecGUID);
             if (nvStatus != NV_ENC_SUCCESS)
             {
@@ -595,6 +595,7 @@ namespace RW{
 
             if (pEncodeBuffer->stOutputBfr.hBitstreamBuffer == nullptr && pEncodeBuffer->stOutputBfr.bEOSFlag == FALSE)
             {
+                m_Logger->error("CNvHWEncoder::ProcessOutput: Invalid Parameters!");
                 return NV_ENC_ERR_INVALID_PARAM;
             }
 
@@ -602,6 +603,7 @@ namespace RW{
             {
                 if (!pEncodeBuffer->stOutputBfr.hOutputEvent)
                 {
+                    m_Logger->error("CNvHWEncoder::ProcessOutput: Invalid Parameters!");
                     return NV_ENC_ERR_INVALID_PARAM;
                 }
 #if defined(NV_WINDOWS)
@@ -620,11 +622,19 @@ namespace RW{
             lockBitstreamData.doNotWait = false;
 
             nvStatus = m_pEncodeAPI->nvEncLockBitstream(m_hEncoder, &lockBitstreamData);
+
             if (nvStatus == NV_ENC_SUCCESS)
             {
                 *pstBitstreamData = lockBitstreamData;
                 //fwrite(lockBitstreamData.bitstreamBufferPtr, 1, lockBitstreamData.bitstreamSizeInBytes, m_fOutput);
                 nvStatus = m_pEncodeAPI->nvEncUnlockBitstream(m_hEncoder, pEncodeBuffer->stOutputBfr.hBitstreamBuffer);
+
+                FILE *pFile;
+                pFile = fopen("C:\\dummy\\bitstream.264", "wb");
+                size_t sSize = sizeof(lockBitstreamData.outputBitstream);
+                fwrite(lockBitstreamData.bitstreamBufferPtr, 1, lockBitstreamData.bitstreamSizeInBytes, pFile);
+                fclose(pFile);
+
             }
             else
             {

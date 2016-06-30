@@ -908,6 +908,13 @@ namespace RW{
             }
             else {
                 res = WriteNextFrameToBuffer(frame);
+                
+                CSmplYUVWriter          m_FileWriter;
+                TCHAR filename[MSDK_MAX_FILENAME_LEN] = TEXT("c:\\dummy\\HeavyHand.raw");
+                sts = m_FileWriter.Init(filename, 1);
+                res = m_FileWriter.WriteNextFrame(frame);
+                m_FileWriter.Close();
+
             }
 
             return res;

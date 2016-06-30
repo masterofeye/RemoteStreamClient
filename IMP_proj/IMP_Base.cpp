@@ -65,9 +65,34 @@ namespace RW{
                 }
                 
                 IMP_CopyTo420(pgMat->data, arrayYUV420, iWidth, iHeight, pitchY);
+                err = cudaGetLastError();
+                if (err != cudaSuccess)
+                {
+                    printf("IMP_CopyTo420: kernel() failed to launch error = %d\n", err);
+                    return tenStatus::nenError;
+                }
+                err = cudaDeviceSynchronize();
+                if (err != cudaSuccess)
+                {
+                    printf("IMP_CopyTo420: Device synchronize failed! Error = %d\n", err);
+                    return tenStatus::nenError;
+                }
+
+                uint8_t *data = new uint8_t[iHeight * iWidth * 3/2];
+                err = cudaMemcpy2D(data, iWidth, arrayYUV420, pitchY, iWidth, iHeight * 3 / 2, cudaMemcpyDeviceToHost);
+                if (err != cudaSuccess)
+                {
+                    printf("IMP_Base::tensProcessOutput: cudaMemcpy returns error = %d\n", err);
+                    return tenStatus::nenError;
+                }
+                cv::Mat mat(iHeight * 3 / 2, iWidth, CV_8UC1, data);
 
 				cudaFree(arrayY);
-
+                if (data)
+                {
+                    delete data;
+                    data = nullptr;
+                }
 				pOutput->_pcuYUV420 = (CUdeviceptr)arrayYUV420;
 			}
 			else

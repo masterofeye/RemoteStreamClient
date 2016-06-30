@@ -13,14 +13,6 @@ namespace RW{
 
 #define MAX_ENCODE_QUEUE 32
 
-		typedef struct _EncodeFrameConfig
-		{
-			CUarray  pcuYUVArray;
-			uint32_t stride[3];
-			uint32_t width;
-			uint32_t height;
-		}EncodeFrameConfig;
-
 		typedef struct stMyInitialiseControlStruct : public CORE::tstInitialiseControlStruct
 		{
 			EncodeConfig *pstEncodeConfig;
@@ -28,7 +20,7 @@ namespace RW{
 
         typedef struct REMOTE_API stMyControlStruct : public CORE::tstControlStruct
 		{
-			CUdeviceptr pcuYUVArray;
+            CUdeviceptr pcuYUVArray;
             tstBitStream *pstBitStream;
             tstBitStream *pPayload;
 			void UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType);
@@ -58,6 +50,9 @@ namespace RW{
 			uint32_t                                            m_uEncodeBufferCount;
 			CUcontext                                           m_cuContext;
 			CUmodule                                            m_cuModule;
+    CUfunction                                           m_cuInterleaveUVFunction;
+    CUdeviceptr                                          m_ChromaDevPtr[2];
+    EncodeConfig                                         m_stEncoderInput;
 			EncodeBuffer                                        m_stEncodeBuffer[MAX_ENCODE_QUEUE];
 			ENC_Queue<EncodeBuffer>                             m_EncodeBufferQueue;
 			EncodeOutputBuffer                                  m_stEOSOutputBfr;
@@ -69,6 +64,7 @@ namespace RW{
 			NVENCSTATUS                                         AllocateIOBuffers(uint32_t uInputWidth, uint32_t uInputHeight);
 			NVENCSTATUS                                         ReleaseIOBuffers();
 			NVENCSTATUS                                         FlushEncoder();
+            NVENCSTATUS                                          ConvertYUVToNV12(EncodeBuffer *pEncodeBuffer, CUdeviceptr cuDevPtr, int width, int height);
 
 		};
 	}

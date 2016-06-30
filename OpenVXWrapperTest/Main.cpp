@@ -244,32 +244,32 @@ int pipeline(tstPipelineParams params)
                          RW::CORE::tenSubModule::nenEncode_NVIDIA) != RW::tenStatus::nenSuccess)
                          file_logger->error("nenEncode_NVIDIA couldn't build correct");
 
-            //FILE *pFile;
-            //pFile = fopen("C:\\tool\\RemotePkg\\IntelSWTools\\Intel(R)_Media_SDK_2016.0.1\\samples\\_bin\\content\\test_stream.264", "rb");
-            //if (!pFile)
-            //{
-            //    file_logger->error("File did not load!");
-            //    return -1;
-            //}
-            //// obtain file size:
-            //fseek(pFile, 0, SEEK_END);
-            //long lSize = ftell(pFile);
-            //rewind(pFile);
+            FILE *pFile;
+            pFile = fopen("C:\\dummy\\HeavyHand.264", "rb");
+            if (!pFile)
+            {
+                file_logger->error("File did not load!");
+                return -1;
+            }
+            // obtain file size:
+            fseek(pFile, 0, SEEK_END);
+            long lSize = ftell(pFile);
+            rewind(pFile);
 
-            //// allocate memory to contain the whole file:
-            //uint8_t *buffer = (uint8_t*)malloc(sizeof(uint8_t)*lSize);
-            //// copy the file into the buffer:
-            //size_t result = fread(buffer, sizeof(uint8_t), lSize, pFile);
-            //if (!buffer)
-            //{ 
-            //    file_logger->error("Empty buffer!");
-            //    return -1;
-            //}
-            //fclose(pFile);
+            // allocate memory to contain the whole file:
+            uint8_t *buffer = (uint8_t*)malloc(sizeof(uint8_t)*lSize);
+            // copy the file into the buffer:
+            size_t result = fread(buffer, sizeof(uint8_t), lSize, pFile);
+            if (!buffer)
+            { 
+                file_logger->error("Empty buffer!");
+                return -1;
+            }
+            fclose(pFile);
 
-            //RW::tstBitStream *pBitStream = new RW::tstBitStream();
-            //pBitStream->pBuffer = buffer;
-            //pBitStream->u32Size = lSize;
+            RW::tstBitStream *pBitStream = new RW::tstBitStream();
+            pBitStream->pBuffer = buffer;
+            pBitStream->u32Size = lSize;
 
             //RW::tstBitStream *pPayload = new RW::tstBitStream();
             //pPayload->pBuffer = nullptr;
@@ -278,20 +278,20 @@ int pipeline(tstPipelineParams params)
             RW::DEC::tstMyInitialiseControlStruct decodeInitCtrl;
             { 
 				decodeInitCtrl.inputParams = new RW::DEC::tstInputParams();
-                decodeInitCtrl.inputParams->Height = //96;
-                    videoGrabberInitialiseControlStruct.nFrameHeight;
-                decodeInitCtrl.inputParams->Width = //176;
-                    videoGrabberInitialiseControlStruct.nFrameWidth;
+                decodeInitCtrl.inputParams->Height = 1080;
+                    //videoGrabberInitialiseControlStruct.nFrameHeight;
+                decodeInitCtrl.inputParams->Width = 1920;
+                    //videoGrabberInitialiseControlStruct.nFrameWidth;
                 decodeInitCtrl.inputParams->fourcc = MFX_FOURCC_RGB4;
             }
             RW::DEC::tstMyControlStruct decodeCtrl;
             {
-                decodeCtrl.pstEncodedStream = //pBitStream;
-                    encodeControlStruct.pstBitStream;
+                decodeCtrl.pstEncodedStream = pBitStream;
+                    //encodeControlStruct.pstBitStream;
                 decodeCtrl.pPayload = //pPayload;
                     encodeControlStruct.pPayload;
                 decodeCtrl.pOutput = new RW::tstBitStream();
-                uint32_t size = videoGrabberInitialiseControlStruct.nFrameWidth * videoGrabberInitialiseControlStruct.nFrameHeight * sizeof(uint8_t) * 4;
+                uint32_t size = 1080 * 1920 * 4;//videoGrabberInitialiseControlStruct.nFrameWidth * videoGrabberInitialiseControlStruct.nFrameHeight * sizeof(uint8_t) * 4;
                 decodeCtrl.pOutput->pBuffer = new uint8_t[size];
                 decodeCtrl.pOutput->u32Size = 0;
             }
