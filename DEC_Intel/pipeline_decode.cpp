@@ -52,7 +52,6 @@ namespace RW{
 
             m_pGeneralAllocator = NULL;
             m_pmfxAllocatorParams = NULL;
-            m_bExternalAlloc = false;
             m_bDecOutSysmem = false;
             MSDK_ZERO_MEMORY(m_mfxResponse);
             MSDK_ZERO_MEMORY(m_mfxVppResponse);
@@ -62,7 +61,6 @@ namespace RW{
             m_pCurrentFreeOutputSurface = NULL;
             m_pCurrentOutputSurface = NULL;
 
-            m_bIsExtBuffers = false;
             m_bIsCompleteFrame = false;
             m_bPrintLatency = false;
             m_fourcc = 0;
@@ -293,12 +291,6 @@ namespace RW{
             MSDK_SAFE_DELETE(m_pmfxVPP);
 
             DeleteFrames();
-
-            if (m_bIsExtBuffers)
-            {
-                DeallocateExtMVCBuffers();
-                DeleteExtBuffers();
-            }
 
             m_pPlugin.reset();
             m_mfxSession.Close();
@@ -577,28 +569,18 @@ namespace RW{
             {
                 // initating each frame:
                 MSDK_MEMCPY_VAR(m_pSurfaces[i].frame.Info, &(Request.Info), sizeof(mfxFrameInfo));
-                if (m_bExternalAlloc)
-                {
-                    m_pSurfaces[i].frame.Data.MemId = m_mfxResponse.mids[i];
-                }
-                else
-                {
-                    sts = m_pGeneralAllocator->Lock(m_pGeneralAllocator->pthis, m_mfxResponse.mids[i], &(m_pSurfaces[i].frame.Data));
-                    MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
-                }
+
+                sts = m_pGeneralAllocator->Lock(m_pGeneralAllocator->pthis, m_mfxResponse.mids[i], &(m_pSurfaces[i].frame.Data));
+                MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
             }
 
             // prepare mfxFrameSurface1 array for VPP
             for (int i = 0; i < nVppSurfNum; i++) {
                 MSDK_MEMCPY_VAR(m_pVppSurfaces[i].frame.Info, &(VppRequest[1].Info), sizeof(mfxFrameInfo));
-                if (m_bExternalAlloc) {
-                    m_pVppSurfaces[i].frame.Data.MemId = m_mfxVppResponse.mids[i];
-                }
-                else {
-                    sts = m_pGeneralAllocator->Lock(m_pGeneralAllocator->pthis, m_mfxVppResponse.mids[i], &(m_pVppSurfaces[i].frame.Data));
-                    if (MFX_ERR_NONE != sts) {
-                        return sts;
-                    }
+
+                sts = m_pGeneralAllocator->Lock(m_pGeneralAllocator->pthis, m_mfxVppResponse.mids[i], &(m_pVppSurfaces[i].frame.Data));
+                if (MFX_ERR_NONE != sts) {
+                    return sts;
                 }
             }
             return MFX_ERR_NONE;
@@ -640,83 +622,6 @@ namespace RW{
             // delete allocator
             MSDK_SAFE_DELETE(m_pGeneralAllocator);
             MSDK_SAFE_DELETE(m_pmfxAllocatorParams);
-        }
-
-        // function for allocating a specific external buffer
-        template <typename Buffer>
-        mfxStatus CDecodingPipeline::AllocateExtBuffer()
-        {
-            std::auto_ptr<Buffer> pExtBuffer(new Buffer());
-            if (!pExtBuffer.get())
-                return MFX_ERR_MEMORY_ALLOC;
-
-            init_ext_buffer(*pExtBuffer);
-
-            m_ExtBuffers.push_back(reinterpret_cast<mfxExtBuffer*>(pExtBuffer.release()));
-
-            return MFX_ERR_NONE;
-        }
-
-        void CDecodingPipeline::AttachExtParam()
-        {
-            m_mfxVideoParams.ExtParam = reinterpret_cast<mfxExtBuffer**>(&m_ExtBuffers[0]);
-            m_mfxVideoParams.NumExtParam = static_cast<mfxU16>(m_ExtBuffers.size());
-        }
-
-        void CDecodingPipeline::DeleteExtBuffers()
-        {
-            for (std::vector<mfxExtBuffer *>::iterator it = m_ExtBuffers.begin(); it != m_ExtBuffers.end(); ++it)
-                delete *it;
-            m_ExtBuffers.clear();
-        }
-
-        mfxStatus CDecodingPipeline::AllocateExtMVCBuffers()
-        {
-            mfxU32 i;
-
-            mfxExtMVCSeqDesc* pExtMVCBuffer = (mfxExtMVCSeqDesc*)m_mfxVideoParams.ExtParam[0];
-            MSDK_CHECK_POINTER(pExtMVCBuffer, MFX_ERR_MEMORY_ALLOC);
-
-            pExtMVCBuffer->View = new mfxMVCViewDependency[pExtMVCBuffer->NumView];
-            MSDK_CHECK_POINTER(pExtMVCBuffer->View, MFX_ERR_MEMORY_ALLOC);
-            for (i = 0; i < pExtMVCBuffer->NumView; ++i)
-            {
-                MSDK_ZERO_MEMORY(pExtMVCBuffer->View[i]);
-            }
-            pExtMVCBuffer->NumViewAlloc = pExtMVCBuffer->NumView;
-
-            pExtMVCBuffer->ViewId = new mfxU16[pExtMVCBuffer->NumViewId];
-            MSDK_CHECK_POINTER(pExtMVCBuffer->ViewId, MFX_ERR_MEMORY_ALLOC);
-            for (i = 0; i < pExtMVCBuffer->NumViewId; ++i)
-            {
-                MSDK_ZERO_MEMORY(pExtMVCBuffer->ViewId[i]);
-            }
-            pExtMVCBuffer->NumViewIdAlloc = pExtMVCBuffer->NumViewId;
-
-            pExtMVCBuffer->OP = new mfxMVCOperationPoint[pExtMVCBuffer->NumOP];
-            MSDK_CHECK_POINTER(pExtMVCBuffer->OP, MFX_ERR_MEMORY_ALLOC);
-            for (i = 0; i < pExtMVCBuffer->NumOP; ++i)
-            {
-                MSDK_ZERO_MEMORY(pExtMVCBuffer->OP[i]);
-            }
-            pExtMVCBuffer->NumOPAlloc = pExtMVCBuffer->NumOP;
-
-            return MFX_ERR_NONE;
-        }
-
-        void CDecodingPipeline::DeallocateExtMVCBuffers()
-        {
-            mfxExtMVCSeqDesc* pExtMVCBuffer = (mfxExtMVCSeqDesc*)m_mfxVideoParams.ExtParam[0];
-            if (pExtMVCBuffer != NULL)
-            {
-                MSDK_SAFE_DELETE_ARRAY(pExtMVCBuffer->View);
-                MSDK_SAFE_DELETE_ARRAY(pExtMVCBuffer->ViewId);
-                MSDK_SAFE_DELETE_ARRAY(pExtMVCBuffer->OP);
-            }
-
-            MSDK_SAFE_DELETE(m_mfxVideoParams.ExtParam[0]);
-
-            m_bIsExtBuffers = false;
         }
 
         mfxStatus CDecodingPipeline::ResetDecoder()
@@ -896,26 +801,13 @@ namespace RW{
                 return MFX_ERR_NULL_PTR;
             }
 
-            if (m_bExternalAlloc) {
-                res = m_pGeneralAllocator->Lock(m_pGeneralAllocator->pthis, frame->Data.MemId, &(frame->Data));
-                if (MFX_ERR_NONE == res) {
-                    res = WriteNextFrameToBuffer(frame);
-                    sts = m_pGeneralAllocator->Unlock(m_pGeneralAllocator->pthis, frame->Data.MemId, &(frame->Data));
-                }
-                if ((MFX_ERR_NONE == res) && (MFX_ERR_NONE != sts)) {
-                    res = sts;
-                }
-            }
-            else {
-                res = WriteNextFrameToBuffer(frame);
-                
-                CSmplYUVWriter          m_FileWriter;
-                TCHAR filename[MSDK_MAX_FILENAME_LEN] = TEXT("c:\\dummy\\HeavyHand.raw");
-                sts = m_FileWriter.Init(filename, 1);
-                res = m_FileWriter.WriteNextFrame(frame);
-                m_FileWriter.Close();
+            res = WriteNextFrameToBuffer(frame);
 
-            }
+            //CSmplYUVWriter          m_FileWriter;
+            //TCHAR filename[MSDK_MAX_FILENAME_LEN] = TEXT("c:\\dummy\\decOutput.raw");
+            //sts = m_FileWriter.Init(filename, 1);
+            //res = m_FileWriter.WriteNextFrame(frame);
+            //m_FileWriter.Close();
 
             return res;
         }

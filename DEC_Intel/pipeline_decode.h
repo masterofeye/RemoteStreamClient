@@ -80,22 +80,11 @@ namespace RW{
             virtual void Close();
             virtual mfxStatus ResetDecoder();
 
-            void SetExtBuffersFlag()       { m_bIsExtBuffers = true; }
             virtual void PrintInfo();
 
         protected: // functions
             mfxStatus SetEncodedData(tstBitStream *pstEncodedStream);
             virtual mfxStatus InitMfxParams(tstInputParams *pParams);
-
-            // function for allocating a specific external buffer
-            template <typename Buffer>
-            mfxStatus AllocateExtBuffer();
-            virtual void DeleteExtBuffers();
-
-            virtual mfxStatus AllocateExtMVCBuffers();
-            virtual void    DeallocateExtMVCBuffers();
-
-            virtual void AttachExtParam();
 
             virtual mfxStatus InitVppParams();
             virtual mfxStatus AllocAndInitVppFilters();
@@ -134,11 +123,9 @@ namespace RW{
             mfxVideoParam           m_mfxVppVideoParams;
             std::auto_ptr<MFXVideoUSER>  m_pUserModule;
             std::auto_ptr<MFXPlugin> m_pPlugin;
-            std::vector<mfxExtBuffer *> m_ExtBuffers;
 
             GeneralAllocator       *m_pGeneralAllocator;
             mfxAllocatorParams     *m_pmfxAllocatorParams;
-            bool                    m_bExternalAlloc; // use memory allocator as external for Media SDK
             bool                    m_bDecOutSysmem; // use system memory between Decoder and VPP, if false - video memory
             mfxFrameAllocResponse   m_mfxResponse; // memory allocation response for decoder
             mfxFrameAllocResponse   m_mfxVppResponse;   // memory allocation response for vpp
@@ -148,7 +135,6 @@ namespace RW{
             msdkOutputSurface      *m_pCurrentFreeOutputSurface; // surface detached from free output surfaces array
             msdkOutputSurface      *m_pCurrentOutputSurface; // surface detached from output surfaces array
 
-            bool                    m_bIsExtBuffers; // indicates if external buffers were allocated
             bool                    m_bIsCompleteFrame;
             mfxU32                  m_fourcc; // color format of vpp out, i420 by default
             bool                    m_bPrintLatency;

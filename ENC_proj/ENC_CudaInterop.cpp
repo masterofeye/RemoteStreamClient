@@ -221,13 +221,14 @@ namespace RW{
             ENC_CudaAutoLock cuLock(m_cuContext);
 
             CUresult err;
-            err = cuMemAlloc(&m_ChromaDevPtr[0], uInputWidth*uInputHeight / 4);
+            size_t pitch;
+            err = cuMemAllocPitch(&m_ChromaDevPtr[0], &pitch, uInputWidth, uInputHeight / 4, 8);
             if (err != CUDA_SUCCESS)
             {
                 m_Logger->error("ENC_CudaInterop::AllocateIOBuffers: cuMemAllocPitch(...)") << " has returned CUDA error " << err;
                 return NV_ENC_ERR_GENERIC;
             }
-            err = cuMemAlloc(&m_ChromaDevPtr[1], uInputWidth*uInputHeight / 4);
+            err = cuMemAllocPitch(&m_ChromaDevPtr[1], &pitch, uInputWidth, uInputHeight / 4, 8);
             if (err != CUDA_SUCCESS)
             {
                 m_Logger->error("ENC_CudaInterop::AllocateIOBuffers: cuMemAllocPitch(...)") << " has returned CUDA error " << err;
@@ -411,12 +412,10 @@ namespace RW{
                 copyParamY.dstMemoryType = CU_MEMORYTYPE_DEVICE;
                 copyParamY.dstDevice = pEncodeBuffer->stInputBfr.pNV12devPtr;
                 copyParamY.dstPitch = pEncodeBuffer->stInputBfr.uNV12Stride;
-                //copyParamY.srcY = 0;
-                //copyParamY.srcXInBytes = 0;
                 copyParamY.srcMemoryType = CU_MEMORYTYPE_DEVICE;
                 copyParamY.srcDevice = cuDevPtr;
                 copyParamY.srcPitch = pEncodeBuffer->stInputBfr.uNV12Stride;
-                copyParamY.WidthInBytes = width;
+                copyParamY.WidthInBytes = pEncodeBuffer->stInputBfr.uNV12Stride;
                 copyParamY.Height = height;
                 err = cuMemcpy2D(&copyParamY);
                 if (err != CUDA_SUCCESS)
@@ -425,24 +424,19 @@ namespace RW{
                     return NV_ENC_ERR_GENERIC;
                 }
             }
-
-            CUdeviceptr dummy;
-            size_t pitch;
-            err = cuMemAllocPitch(&dummy, (size_t *)&pitch, m_encodeConfig.width / 2, 1, 8);
             {
                 // copy chroma
                 CUDA_MEMCPY2D copyParamU;
                 memset(&copyParamU, 0, sizeof(copyParamU));
                 copyParamU.dstMemoryType = CU_MEMORYTYPE_DEVICE;
                 copyParamU.dstDevice = m_ChromaDevPtr[0];
-                copyParamU.dstPitch = pitch;
+                copyParamU.dstPitch = pEncodeBuffer->stInputBfr.uNV12Stride;
                 copyParamU.srcMemoryType = CU_MEMORYTYPE_DEVICE;
                 copyParamU.srcY = height;
-                copyParamU.srcXInBytes = 0;
                 copyParamU.srcDevice = cuDevPtr;
-                copyParamU.srcPitch = pitch;
-                copyParamU.WidthInBytes = width / 2;
-                copyParamU.Height = height / 2;
+                copyParamU.srcPitch = pEncodeBuffer->stInputBfr.uNV12Stride;
+                copyParamU.WidthInBytes = pEncodeBuffer->stInputBfr.uNV12Stride;
+                copyParamU.Height = height / 4;
                 err = cuMemcpy2D(&copyParamU);
                 if (err != CUDA_SUCCESS)
                 {
@@ -456,14 +450,13 @@ namespace RW{
                 memset(&copyParamV, 0, sizeof(copyParamV));
                 copyParamV.dstMemoryType = CU_MEMORYTYPE_DEVICE;
                 copyParamV.dstDevice = m_ChromaDevPtr[1];
-                copyParamV.dstPitch = pitch;
+                copyParamV.dstPitch = pEncodeBuffer->stInputBfr.uNV12Stride;
                 copyParamV.srcMemoryType = CU_MEMORYTYPE_DEVICE;
-                copyParamV.srcY = height;
-                copyParamV.srcXInBytes = width / 2;
+                copyParamV.srcY = (height * 5 / 4);
                 copyParamV.srcDevice = cuDevPtr;
-                copyParamV.srcPitch = pitch;
-                copyParamV.WidthInBytes = width / 2;
-                copyParamV.Height = height / 2;
+                copyParamV.srcPitch = pEncodeBuffer->stInputBfr.uNV12Stride;
+                copyParamV.WidthInBytes = pEncodeBuffer->stInputBfr.uNV12Stride;
+                copyParamV.Height = height / 4;
                 err = cuMemcpy2D(&copyParamV);
                 if (err != CUDA_SUCCESS)
                 {
@@ -471,12 +464,11 @@ namespace RW{
                     return NV_ENC_ERR_GENERIC;
                 }
             }
-            cuMemFree(dummy);
 
         #define BLOCK_X 32
         #define BLOCK_Y 16
             int chromaHeight = height / 2;
-            int chromaWidth = width / 2;
+            int chromaWidth = pEncodeBuffer->stInputBfr.uNV12Stride / 2;
             dim3 block(BLOCK_X, BLOCK_Y, 1);
             dim3 grid((chromaWidth + BLOCK_X - 1) / BLOCK_X, (chromaHeight + BLOCK_Y - 1) / BLOCK_Y, 1);
         #undef BLOCK_Y

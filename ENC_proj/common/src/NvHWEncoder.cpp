@@ -629,11 +629,11 @@ namespace RW{
                 //fwrite(lockBitstreamData.bitstreamBufferPtr, 1, lockBitstreamData.bitstreamSizeInBytes, m_fOutput);
                 nvStatus = m_pEncodeAPI->nvEncUnlockBitstream(m_hEncoder, pEncodeBuffer->stOutputBfr.hBitstreamBuffer);
 
-                FILE *pFile;
-                pFile = fopen("C:\\dummy\\bitstream.264", "wb");
-                size_t sSize = sizeof(lockBitstreamData.outputBitstream);
-                fwrite(lockBitstreamData.bitstreamBufferPtr, 1, lockBitstreamData.bitstreamSizeInBytes, pFile);
-                fclose(pFile);
+                //FILE *pFile;
+                //pFile = fopen("C:\\dummy\\bitstream.264", "wb");
+                //size_t sSize = sizeof(lockBitstreamData.outputBitstream);
+                //fwrite(lockBitstreamData.bitstreamBufferPtr, 1, lockBitstreamData.bitstreamSizeInBytes, pFile);
+                //fclose(pFile);
 
             }
             else

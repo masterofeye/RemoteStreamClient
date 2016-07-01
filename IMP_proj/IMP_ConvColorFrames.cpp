@@ -33,9 +33,6 @@ namespace RW{
 					RW::ENC::tstMyControlStruct *data = static_cast<RW::ENC::tstMyControlStruct*>(*Data);
 
 					data->pcuYUVArray = this->pOutput->_pcuYUV420;
-					//data->pcuYUVArray[0] = this->pOutput->_cuArrayY;
-					//data->pcuYUVArray[1] = this->pOutput->_cuArrayUV[0];
-					//data->pcuYUVArray[2] = this->pOutput->_cuArrayUV[1];
 					break;
 				}
 				default:
