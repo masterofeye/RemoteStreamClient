@@ -2,9 +2,9 @@
 
 #include <opencv2\videoio.hpp>
 #include "opencv2/opencv.hpp"
-#include "..\IMP_proj\IMP_ConvColorFrames.hpp"
-#include "..\IMP_proj\IMP_CropFrames.hpp"
-#include "..\IMP_proj\IMP_MergeFrames.hpp"
+#include "..\IMP_openCV\IMP_ConvColorFrames.hpp"
+#include "..\IMP_openCV\IMP_CropFrames.hpp"
+#include "..\IMP_openCV\IMP_MergeFrames.hpp"
 #include "cuda_runtime_api.h"
 #include "opencv2/cudev/common.hpp"
 #include "HighResolution\HighResClock.h"

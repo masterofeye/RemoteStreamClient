@@ -2,7 +2,7 @@
 
 #include "DEC_Intel.hpp"
 #include "pipeline_decode.h"
-#include "..\VideoPlayer\VideoPlayer.hpp"
+#include "..\VPL_QT\VPL_FrameProcessor.hpp"
 
 namespace RW{
     namespace DEC{

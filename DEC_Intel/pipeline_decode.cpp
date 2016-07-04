@@ -629,10 +629,13 @@ namespace RW{
             tstInputParams *pParams = m_pInputParams;
             mfxStatus sts = MFX_ERR_NONE;
 
-            // close decoder
-            sts = m_pmfxDEC->Close();
-            MSDK_IGNORE_MFX_STS(sts, MFX_ERR_NOT_INITIALIZED);
-            MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
+            if (m_pmfxDEC)
+            {
+                // close decoder
+                sts = m_pmfxDEC->Close();
+                MSDK_IGNORE_MFX_STS(sts, MFX_ERR_NOT_INITIALIZED);
+                MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
+            }
 
             // close VPP
             if (m_pmfxVPP)
@@ -645,33 +648,33 @@ namespace RW{
             // free allocated frames
             DeleteFrames();
 
-            // initialize parameters with values from parsed header
-            sts = InitMfxParams(pParams);
-            MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
+            //// initialize parameters with values from parsed header
+            //sts = InitMfxParams(pParams);
+            //MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
 
-            // in case of HW accelerated decode frames must be allocated prior to decoder initialization
-            sts = AllocFrames();
-            MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
+            //// in case of HW accelerated decode frames must be allocated prior to decoder initialization
+            //sts = AllocFrames();
+            //MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
 
-            // init decoder
-            sts = m_pmfxDEC->Init(&m_mfxVideoParams);
-            if (MFX_WRN_PARTIAL_ACCELERATION == sts)
-            {
-                m_Logger->warn("CDecodingPipeline::ResetDecoder: partial acceleration");
-                MSDK_IGNORE_MFX_STS(sts, MFX_WRN_PARTIAL_ACCELERATION);
-            }
-            MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
+            //// init decoder
+            //sts = m_pmfxDEC->Init(&m_mfxVideoParams);
+            //if (MFX_WRN_PARTIAL_ACCELERATION == sts)
+            //{
+            //    m_Logger->warn("CDecodingPipeline::ResetDecoder: partial acceleration");
+            //    MSDK_IGNORE_MFX_STS(sts, MFX_WRN_PARTIAL_ACCELERATION);
+            //}
+            //MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
 
-            if (m_pmfxVPP)
-            {
-                sts = m_pmfxVPP->Init(&m_mfxVppVideoParams);
-                if (MFX_WRN_PARTIAL_ACCELERATION == sts)
-                {
-                    m_Logger->warn("CDecodingPipeline::ResetDecoder: partial acceleration");
-                    MSDK_IGNORE_MFX_STS(sts, MFX_WRN_PARTIAL_ACCELERATION);
-                }
-                MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
-            }
+            //if (m_pmfxVPP)
+            //{
+            //    sts = m_pmfxVPP->Init(&m_mfxVppVideoParams);
+            //    if (MFX_WRN_PARTIAL_ACCELERATION == sts)
+            //    {
+            //        m_Logger->warn("CDecodingPipeline::ResetDecoder: partial acceleration");
+            //        MSDK_IGNORE_MFX_STS(sts, MFX_WRN_PARTIAL_ACCELERATION);
+            //    }
+            //    MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
+            //}
 
             return MFX_ERR_NONE;
         }

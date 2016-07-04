@@ -59,7 +59,7 @@
       <AdditionalIncludeDirectories>..\RWPluginInterface;..\Plugin1;C:\Projekte\RemoteStreamClient\IMP_proj;C:\Tool\RemotePkg\CUDA\CUDAToolkit\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>openvx.lib;HighResolution.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:/tool/RemotePkg/OpenVX/build/Win/x64/sample/framework/Debug/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>

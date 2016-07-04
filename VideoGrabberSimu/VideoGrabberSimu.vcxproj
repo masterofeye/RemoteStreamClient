@@ -66,7 +66,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\Projekte\RemoteUtil\thirdparty;C:\TOOL\RemotePkg\OpenCV\build\lib\Debug\;C:\tool\RemotePkg\Qt\5.6\msvc2013_64\lib;..\x64\Debug;C:\tool\RemotePkg\CUDA\CUDAToolkit\lib\x64;C:\tool\RemotePkg\CUDA\CUDAToolkit\lib\x64\$(Configuration)</AdditionalLibraryDirectories>
       <AdditionalDependencies>Qt5Cored.lib;Qt5Widgetsd.lib;Qt5Guid.lib;RWPluginInterface.lib;opencv_calib3d310d.lib;opencv_core310d.lib;opencv_features2d310d.lib;opencv_flann310d.lib;opencv_highgui310d.lib;opencv_imgcodecs310d.lib;opencv_imgproc310d.lib;opencv_ml310d.lib;opencv_objdetect310d.lib;opencv_photo310d.lib;opencv_shape310d.lib;opencv_stitching310d.lib;opencv_superres310d.lib;opencv_ts310d.lib;opencv_video310d.lib;opencv_videoio310d.lib;opencv_videostab310d.lib;HighResolution.lib;cudart.lib;nppc.lib;nppi.lib;npps.lib;cublas.lib;cufft.lib;-LC:/tool/RemotePkg/CUDA/CUDAToolkit/lib/x64</AdditionalDependencies>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
     </Link>
     <PostBuildEvent>
       <Command>

@@ -1,0 +1,2 @@
+LIBRARY
+__declspec(dllexport)
