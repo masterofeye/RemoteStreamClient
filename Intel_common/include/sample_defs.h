@@ -128,11 +128,11 @@ enum LibVABackend
 #define MSDK_CHECK_POINTER_SAFE(P, ERR, ADD)     {if (!(P)) {ADD; return ERR;}}
 #define MSDK_BREAK_ON_ERROR(P)                   {if (MFX_ERR_NONE != (P)) break;}
 #define MSDK_SAFE_DELETE_ARRAY(P)                {if (P) {delete[] P; P = NULL;}}
-#define MSDK_SAFE_RELEASE(X)                     {if (X) { X->Release(); X = NULL; }}
-#define MSDK_SAFE_FREE(X)                        {if (X) { free(X); X = NULL; }}
+#define MSDK_SAFE_RELEASE(X)                     {if (X) { X->Release(); X = nullptr; }}
+#define MSDK_SAFE_FREE(X)                        {if (X) { free(X); X = nullptr; }}
 
 #ifndef MSDK_SAFE_DELETE
-#define MSDK_SAFE_DELETE(P)                      {if (P) {delete P; P = NULL;}}
+#define MSDK_SAFE_DELETE(P)                      {if (P) {delete P; P = nullptr;}}
 #endif // MSDK_SAFE_DELETE
 
 #define MSDK_ZERO_MEMORY(VAR)                    {memset(&VAR, 0, sizeof(VAR));}

@@ -1,17 +1,16 @@
 #pragma once
 
-#include <qmediaplayer.h>
 #include "AbstractModule.hpp"
-#include <QtWidgets/QWidget>
+
 
 QT_BEGIN_NAMESPACE
-class QAbstractButton;
-class QSlider;
-class QLabel;
+class QBuffer;
 QT_END_NAMESPACE
 
 namespace RW{
     namespace VPL{
+
+        class VPL_Viewer;
 
         typedef struct stMyInitialiseControlStruct : public CORE::tstInitialiseControlStruct
         {
@@ -32,6 +31,16 @@ namespace RW{
         {
             Q_OBJECT
 
+        public slots:
+            QBuffer *GetNewFrameBuffer(void){ return m_pqFrameBuffer; }
+
+        signals:
+            void FrameBufferChanged(QBuffer* pBuffer);
+
+        private:
+            QBuffer     *m_pqFrameBuffer;
+            VPL_Viewer  *m_pqViewer;
+
         public:
             explicit VPL_FrameProcessor(std::shared_ptr<spdlog::logger> Logger);
             ~VPL_FrameProcessor();
@@ -41,7 +50,8 @@ namespace RW{
             virtual tenStatus DoRender(CORE::tstControlStruct * ControlStruct) Q_DECL_OVERRIDE;
             virtual tenStatus Deinitialise(CORE::tstDeinitialiseControlStruct *DeinitialiseControlStruct) Q_DECL_OVERRIDE;
 
-        private:
+            VPL_FrameProcessor *GetObject(){ return this; }
+
         };
     }
 }

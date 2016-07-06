@@ -1,6 +1,7 @@
 
 
 #include "DEC_Intel.hpp"
+//#include "mfx_pipeline_decvpp.h"
 #include "pipeline_decode.h"
 #include "..\VPL_QT\VPL_FrameProcessor.hpp"
 
@@ -26,7 +27,7 @@ namespace RW{
         DEC_Intel::DEC_Intel(std::shared_ptr<spdlog::logger> Logger) :
             RW::CORE::AbstractModule(Logger)
         {
-                m_pPipeline = new CDecodingPipeline(m_Logger);
+                m_pPipeline = new CDecodingPipeline(Logger);
             }
 
         DEC_Intel::~DEC_Intel()
@@ -59,7 +60,7 @@ namespace RW{
 
             stMyInitialiseControlStruct* data = static_cast<stMyInitialiseControlStruct*>(InitialiseControlStruct);
 
-            if (data == NULL)
+            if (!data)
             {
                 m_Logger->error("DEC_Intel::Initialise: Data of tstMyInitialiseControlStruct is empty!");
                 return tenStatus::nenError;
@@ -112,27 +113,41 @@ namespace RW{
 
             mfxStatus sts = MFX_ERR_NONE; // return value check
 
-            sts = m_pPipeline->RunDecoding(data->pPayload, data->pstEncodedStream, data->pOutput);
-            if (sts != MFX_ERR_NONE)
+            for (;;)
             {
-                enStatus = tenStatus::nenError;
-            }
-
-            if (MFX_ERR_INCOMPATIBLE_VIDEO_PARAM == sts || MFX_ERR_DEVICE_LOST == sts || MFX_ERR_DEVICE_FAILED == sts || data->pOutput == nullptr)
-            {
-                if (MFX_ERR_INCOMPATIBLE_VIDEO_PARAM == sts)
+                sts = m_pPipeline->RunDecoding(data->pPayload, data->pstEncodedStream, data->pOutput);
+                if (sts != MFX_ERR_NONE)
                 {
-                    m_Logger->error("DEC_Intel::DoRender: Incompatible video parameters detected.");
+                    enStatus = tenStatus::nenError;
                 }
-                else if (data->pOutput == nullptr)
+
+                if (MFX_ERR_INCOMPATIBLE_VIDEO_PARAM == sts || MFX_ERR_DEVICE_LOST == sts || MFX_ERR_DEVICE_FAILED == sts || data->pOutput == nullptr)
                 {
-                    m_Logger->error("DEC_Intel::DoRender: Output data is NULL!");
+                    if (MFX_ERR_INCOMPATIBLE_VIDEO_PARAM == sts)
+                    {
+                        m_Logger->error("DEC_Intel::DoRender: Incompatible video parameters detected.");
+                    }
+                    else if (data->pOutput == nullptr)
+                    {
+                        m_Logger->error("DEC_Intel::DoRender: Output data is NULL!");
+                    }
+                    else
+                    {
+                        m_Logger->error("DEC_Intel::DoRender: Hardware device was lost or returned unexpected error. Recovering ...");
+                        sts = m_pPipeline->ResetDevice();
+                    }
+                    sts = m_pPipeline->ResetDecoder();
+                    continue;
                 }
                 else
                 {
-                    m_Logger->error("DEC_Intel::DoRender: Hardware device was lost or returned unexpected error. Recovering...");
+                    break;
                 }
-                enStatus = tenStatus::nenError;
+            }
+
+            if (sts != MFX_ERR_NONE)
+            {
+                tenStatus enStatus = tenStatus::nenError;
             }
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
@@ -143,12 +158,6 @@ namespace RW{
 
         tenStatus DEC_Intel::Deinitialise(CORE::tstDeinitialiseControlStruct *DeinitialiseControlStruct)
         {
-            mfxStatus sts = m_pPipeline->ResetDecoder();
-            if (sts != MFX_ERR_NONE)
-            {
-                tenStatus enStatus = tenStatus::nenError;
-            }
-
             m_Logger->debug("Deinitialise nenDecoder_INTEL");
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();

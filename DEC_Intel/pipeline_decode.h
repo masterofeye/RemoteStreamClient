@@ -19,6 +19,13 @@ or https://software.intel.com/en-us/media-client-solutions-support.
 
 #pragma once
 
+#if D3D_SURFACES_SUPPORT
+#pragma warning(disable : 4201)
+#include <d3d9.h>
+#include <dxva2api.h>
+#endif
+
+#include "hw_device.h"
 #include "mfx_buffering.h"
 #include "mfxmvc.h"
 #include "AbstractModule.hpp"
@@ -79,6 +86,7 @@ namespace RW{
             virtual mfxStatus RunDecoding(tstBitStream *pPayload, tstBitStream *EncodedData, tstBitStream *OutputData);
             virtual void Close();
             virtual mfxStatus ResetDecoder();
+            virtual mfxStatus ResetDevice();
 
             virtual void PrintInfo();
 
@@ -91,11 +99,11 @@ namespace RW{
             virtual bool IsVppRequired(tstInputParams *pParams);
 
             virtual mfxStatus CreateAllocator();
+            virtual mfxStatus CreateHWDevice();
             virtual mfxStatus AllocFrames();
             virtual void DeleteFrames();
             virtual void DeleteAllocator();
 
-            mfxStatus InitForFirstFrame();
             mfxStatus WriteNextFrameToBuffer(mfxFrameSurface1* frame);
 
             /** \brief Performs SyncOperation on the current output surface with the specified timeout.
@@ -126,6 +134,8 @@ namespace RW{
 
             GeneralAllocator       *m_pGeneralAllocator;
             mfxAllocatorParams     *m_pmfxAllocatorParams;
+            MemType                 m_memType;      // memory type of surfaces to use
+            bool                    m_bExternalAlloc; // use memory allocator as external for Media SDK
             bool                    m_bDecOutSysmem; // use system memory between Decoder and VPP, if false - video memory
             mfxFrameAllocResponse   m_mfxResponse; // memory allocation response for decoder
             mfxFrameAllocResponse   m_mfxVppResponse;   // memory allocation response for vpp
@@ -144,13 +154,14 @@ namespace RW{
 
             bool                    m_bFirstFrameInitialized;
             
-            mfxU32                  m_nFrames; //limit number of output frames
-
             bool                    m_bVppIsUsed;
             std::vector<msdk_tick>  m_vLatency;
 
             mfxExtVPPDoNotUse       m_VppDoNotUse;      // for disabling VPP algorithms
+            //mfxExtVPPDeinterlacing  m_VppDeinterlacing;
             std::vector<mfxExtBuffer*> m_VppExtParams;
+ 
+            CHWDevice               *m_hwdev;
 
         private:
             CDecodingPipeline(const CDecodingPipeline&);

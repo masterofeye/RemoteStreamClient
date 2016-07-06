@@ -224,11 +224,6 @@ namespace RW{
                 delete m_pEncodeAPI;
                 m_pEncodeAPI = nullptr;
             }
-            if (m_hEncoder)
-            {
-                delete m_hEncoder;
-                m_hEncoder = nullptr;
-            }
 
             if (m_hinstLib)
             {
@@ -237,9 +232,8 @@ namespace RW{
 #else
                 dlclose(m_hinstLib);
 #endif
-
-                m_hinstLib = nullptr;
             }
+            m_hinstLib = nullptr;
         }
 
         NVENCSTATUS CNvHWEncoder::ValidateEncodeGUID(GUID inputCodecGuid)

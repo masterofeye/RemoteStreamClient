@@ -1,4 +1,5 @@
 #include "VPL_Viewer.h"
+#include "VPL_FrameProcessor.hpp"
 #include <QtWidgets>
 #include <QVideoSurfaceFormat>
 #include <QGraphicsVideoItem>
@@ -8,12 +9,14 @@ namespace RW
 {
     namespace VPL
     {
-        VPL_Viewer::VPL_Viewer(QWidget *parent)
-            : QWidget(parent)
+        VPL_Viewer::VPL_Viewer(VPL_FrameProcessor *pFrameProc)
+            : QWidget(0)
+            , frameProc(pFrameProc)
             , mediaPlayer(0, QMediaPlayer::VideoSurface)
             , videoItem(0)
             , playButton(0)
             , positionSlider(0)
+            , errorLabel(0)
         {
             videoItem = new QGraphicsVideoItem;
             videoItem->setSize(QSizeF(640, 480));
@@ -22,9 +25,6 @@ namespace RW
             QGraphicsView *graphicsView = new QGraphicsView(scene);
 
             scene->addItem(videoItem);
-
-            QAbstractButton *openButton = new QPushButton(tr("Connect..."));
-            connect(openButton, SIGNAL(clicked()), this, SLOT(openFile()));
 
             playButton = new QPushButton;
             playButton->setEnabled(false);
@@ -39,15 +39,18 @@ namespace RW
             connect(positionSlider, SIGNAL(sliderMoved(int)),
                 this, SLOT(setPosition(int)));
 
+            errorLabel = new QLabel;
+            errorLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
+
             QBoxLayout *controlLayout = new QHBoxLayout;
             controlLayout->setMargin(0);
-            controlLayout->addWidget(openButton);
             controlLayout->addWidget(playButton);
             controlLayout->addWidget(positionSlider);
 
             QBoxLayout *layout = new QVBoxLayout;
             layout->addWidget(graphicsView);
             layout->addLayout(controlLayout);
+            layout->addWidget(errorLabel);
 
             setLayout(layout);
 
@@ -56,7 +59,21 @@ namespace RW
                 this, SLOT(mediaStateChanged(QMediaPlayer::State)));
             connect(&mediaPlayer, SIGNAL(positionChanged(qint64)), this, SLOT(positionChanged(qint64)));
             connect(&mediaPlayer, SIGNAL(durationChanged(qint64)), this, SLOT(durationChanged(qint64)));
+            connect(&mediaPlayer, SIGNAL(error(QMediaPlayer::Error)), this, SLOT(handleError()));
 
+            connect(frameProc, SIGNAL(FrameBufferChanged(QBuffer*)), this, SLOT(setVideoData(QBuffer*)));
+        }
+
+        VPL_Viewer::~VPL_Viewer()
+        {
+            delete videoItem;
+            videoItem = nullptr;
+            delete playButton;
+            playButton = nullptr;
+            delete positionSlider;
+            positionSlider = nullptr;
+            delete errorLabel;
+            errorLabel = nullptr;
         }
 
         void VPL_Viewer::setVideoData(QBuffer *qBuffer)
@@ -102,6 +119,11 @@ namespace RW
         void VPL_Viewer::setPosition(int position)
         {
             mediaPlayer.setPosition(position);
+        }
+        void VPL_Viewer::handleError()
+        {
+            playButton->setEnabled(false);
+            errorLabel->setText("Error: " + mediaPlayer.errorString());
         }
 
     }

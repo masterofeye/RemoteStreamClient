@@ -2,16 +2,6 @@
 #include "VPL_FrameProcessor.hpp"
 #include "VPL_Viewer.h"
 #include "qbuffer.h"
-#include "qboxlayout.h"
-#include "qpushbutton.h"
-
-#include <qvideowidget.h>
-#include <qvideosurfaceformat.h>
-#include "qobject.h"
-#include "qslider.h"
-#include "qlabel.h"
-#include "qwidget.h"
-#include "qstyle.h"
 
 namespace RW
 {
@@ -24,6 +14,7 @@ namespace RW
         VPL_FrameProcessor::VPL_FrameProcessor(std::shared_ptr<spdlog::logger> Logger)
             : RW::CORE::AbstractModule(Logger)
         {
+            
         }
 
         VPL_FrameProcessor::~VPL_FrameProcessor()
@@ -48,8 +39,8 @@ namespace RW
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
 #endif
-
-
+            m_pqViewer = new VPL_Viewer(this);
+            m_pqViewer->show();
 
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
@@ -75,15 +66,26 @@ namespace RW
             }
             QByteArray *pqbArray = new QByteArray();
             pqbArray->setRawData((char*)data->pstBitStream->pBuffer, data->pstBitStream->u32Size);
-            QBuffer qBuffer(pqbArray);
 
-            static RW::VPL::VPL_Viewer viewer;
-            connect(this, SIGNAL(viewer.setVideoData(&qBuffer)), &viewer, SLOT(viewer.setVideoData(qBuffer)));
+            m_pqFrameBuffer = new QBuffer(pqbArray);
+            emit FrameBufferChanged(m_pqFrameBuffer);
 
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
             file_logger->trace() << "Time to DoRender for nenPlayback_Simple module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
+
+            if (pqbArray)
+            {
+                delete pqbArray;
+                pqbArray = nullptr;
+            }
+            if (m_pqFrameBuffer)
+            {
+                delete m_pqFrameBuffer;
+                m_pqFrameBuffer = nullptr;
+            }
+
             return enStatus;
         }
 
@@ -93,6 +95,12 @@ namespace RW
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
 #endif
+
+            if (m_pqViewer)
+            {
+                delete m_pqViewer;
+                m_pqViewer = nullptr;
+            }
 
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();

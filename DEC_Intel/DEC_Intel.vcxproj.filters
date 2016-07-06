@@ -9,9 +9,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="pipeline_decode.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ModuleFactory.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -21,11 +18,11 @@
     <ClInclude Include="DEC_inputs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="pipeline_decode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="pipeline_decode.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ModuleFactory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -36,6 +33,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="moc_DEC_Intel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pipeline_decode.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

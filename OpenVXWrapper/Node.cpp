@@ -345,8 +345,13 @@ namespace RW
                 }
                 else
                 {
+                    //TODo
+                    vxCommitArrayRange(csArrayCurrentNode, 0, 1, controlStruct);
+                    vxCommitArrayRange(kArrayCurrentNode, 0, 1, kernelOfCurrentNode);
                     return VX_FAILURE;
-                }
+                }            
+                vxCommitArrayRange(csArrayCurrentNode, 0, 1, controlStruct);
+                vxCommitArrayRange(kArrayCurrentNode, 0, 1, kernelOfCurrentNode );
             }
             else
             {
