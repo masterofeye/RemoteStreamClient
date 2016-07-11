@@ -88,8 +88,6 @@ namespace RW{
             virtual mfxStatus ResetDecoder();
             virtual mfxStatus ResetDevice();
 
-            virtual void PrintInfo();
-
         protected: // functions
             mfxStatus SetEncodedData(tstBitStream *pstEncodedStream);
             virtual mfxStatus InitMfxParams(tstInputParams *pParams);
@@ -104,6 +102,7 @@ namespace RW{
             virtual void DeleteFrames();
             virtual void DeleteAllocator();
 
+            virtual void PrintInfo();
             mfxStatus WriteNextFrameToBuffer(mfxFrameSurface1* frame);
 
             /** \brief Performs SyncOperation on the current output surface with the specified timeout.

@@ -1,7 +1,6 @@
 
 
 #include "DEC_Intel.hpp"
-//#include "mfx_pipeline_decvpp.h"
 #include "pipeline_decode.h"
 #include "..\VPL_QT\VPL_FrameProcessor.hpp"
 
@@ -76,9 +75,6 @@ namespace RW{
 
 			sts = m_pPipeline->Init(data->inputParams);
 
-            // print stream info
-            m_pPipeline->PrintInfo();
-
             if (sts != MFX_ERR_NONE)
             {
                 enStatus = tenStatus::nenError;
@@ -147,7 +143,7 @@ namespace RW{
 
             if (sts != MFX_ERR_NONE)
             {
-                tenStatus enStatus = tenStatus::nenError;
+                //tenStatus enStatus = tenStatus::nenError;
             }
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();

@@ -380,6 +380,8 @@ namespace RW{
 
             m_mfxVideoParams.AsyncDepth = pParams->nAsyncDepth;
 
+            PrintInfo();
+
             return MFX_ERR_NONE;
         }
 

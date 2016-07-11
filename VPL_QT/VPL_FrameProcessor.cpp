@@ -1,7 +1,6 @@
 
 #include "VPL_FrameProcessor.hpp"
-#include "VPL_Viewer.h"
-#include "qbuffer.h"
+#include "VPL_Viewer.hpp"
 
 namespace RW
 {
@@ -39,8 +38,24 @@ namespace RW
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
 #endif
-            m_pqViewer = new VPL_Viewer(this);
-            m_pqViewer->show();
+            stMyInitialiseControlStruct* data = static_cast<stMyInitialiseControlStruct*>(InitialiseControlStruct);
+            if (data == nullptr)
+            {
+                m_Logger->error("Initialise: Data of stMyInitialiseControlStruct is empty!");
+                enStatus = tenStatus::nenError;
+                return enStatus;
+            }
+            if (data->pViewer == nullptr)
+            {
+                m_Logger->error("Initialise: data->pVPL_Viewer of stMyInitialiseControlStruct is empty!");
+                enStatus = tenStatus::nenError;
+                return enStatus;
+            }
+
+            //VPL_Viewer viewer;
+            //viewer.show();
+            //viewer.connectToViewer(this);
+            data->pViewer->connectToViewer(this);
 
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
@@ -64,28 +79,15 @@ namespace RW
                 enStatus = tenStatus::nenError;
                 return enStatus;
             }
-            QByteArray *pqbArray = new QByteArray();
-            pqbArray->setRawData((char*)data->pstBitStream->pBuffer, data->pstBitStream->u32Size);
+            QByteArray *qbArray = new QByteArray;
+            qbArray->setRawData((char*)data->pstBitStream->pBuffer, data->pstBitStream->u32Size);
 
-            m_pqFrameBuffer = new QBuffer(pqbArray);
-            emit FrameBufferChanged(m_pqFrameBuffer);
+            emit FrameBufferChanged(qbArray);
 
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
             file_logger->trace() << "Time to DoRender for nenPlayback_Simple module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
-
-            if (pqbArray)
-            {
-                delete pqbArray;
-                pqbArray = nullptr;
-            }
-            if (m_pqFrameBuffer)
-            {
-                delete m_pqFrameBuffer;
-                m_pqFrameBuffer = nullptr;
-            }
-
             return enStatus;
         }
 
@@ -95,12 +97,6 @@ namespace RW
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
 #endif
-
-            if (m_pqViewer)
-            {
-                delete m_pqViewer;
-                m_pqViewer = nullptr;
-            }
 
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();

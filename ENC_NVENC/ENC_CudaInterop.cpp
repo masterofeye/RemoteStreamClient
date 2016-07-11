@@ -671,7 +671,7 @@ namespace RW{
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
             m_Logger->trace() << "Time of Module ENC DoRender: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
-            m_Logger->trace() << "Number of encoded files: " << m_u32NumFramesEncoded;
+            m_Logger->trace() << "Number of encoded frames: " << m_u32NumFramesEncoded;
 #endif
             return enStatus;
         }
