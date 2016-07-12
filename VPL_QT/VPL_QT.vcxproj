@@ -108,7 +108,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtMultimediaWidgets;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtMultimedia;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtWidgets;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtGui;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtANGLE;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtNetwork;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtCore;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\mkspecs\win32-msvc2013;C:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\mkspecs\win32-msvc2013;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtMultimediaWidgets;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtMultimedia;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtWidgets;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtGui;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtANGLE;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtNetwork;C:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtOpenGL;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtCore;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\mkspecs\win32-msvc2013;C:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\mkspecs\win32-msvc2013;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>-w34100 -w34189 -w44996 %(AdditionalOptions)</AdditionalOptions>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BrowseInformation>false</BrowseInformation>
@@ -116,7 +116,7 @@
       <ExceptionHandling>Sync</ExceptionHandling>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_WINDOWS;UNICODE;WIN32;WIN64;QT_GUI_LIB;QT_CORE_LIB;QT_PLUGIN;QT_NETWORK_LIB;QT_MULTIMEDIAWIDGETS_LIB;QT_MULTIMEDIA_LIB;QT_WIDGETS_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WINDOWS;UNICODE;WIN32;WIN64;QT_GUI_LIB;QT_CORE_LIB;QT_PLUGIN;QT_NETWORK_LIB;QT_MULTIMEDIAWIDGETS_LIB;QT_MULTIMEDIA_LIB;QT_WIDGETS_LIB;REMOTE_EXPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessToFile>false</PreprocessToFile>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
@@ -162,7 +162,7 @@
   <ItemGroup>
     <ClInclude Include="ModuleFactory.hpp" />
     <ClInclude Include="VPL_FrameProcessor.hpp" />
-    <ClInclude Include="VPL_Viewer.h" />
+    <ClInclude Include="VPL_Viewer.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="VPL.json" />

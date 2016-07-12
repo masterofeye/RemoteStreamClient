@@ -57,6 +57,7 @@ namespace RW
 			/*
 			*@brief Set a reference of the following node in the graph execution
 			*/
+            inline void SetNextVXNode(vx_node FollowingNode){ m_NextNode = FollowingNode; }
             inline void SetNextNode(Node *FollowingNode){ m_NextNode = (*FollowingNode)(); }
             inline vx_node NexttNode(){ return m_NextNode; }
 

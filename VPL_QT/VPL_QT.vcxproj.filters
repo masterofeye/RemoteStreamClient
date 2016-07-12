@@ -29,16 +29,16 @@
     <ClCompile Include="VPL_FrameProcessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="VPL_Viewer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="moc_ModuleFactory.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
-    <ClCompile Include="moc_VPL_FrameProcessor.cpp">
-      <Filter>Generated Files</Filter>
+    <ClCompile Include="VPL_Viewer.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="moc_VPL_Viewer.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="moc_VPL_FrameProcessor.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -49,7 +49,7 @@
     <ClInclude Include="VPL_FrameProcessor.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VPL_Viewer.h">
+    <ClInclude Include="VPL_Viewer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

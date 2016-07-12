@@ -17,12 +17,12 @@ namespace RW
 			std::string sFileName;
         }tstVideoGrabberInitialiseControlStruct;
 
-        typedef struct REMOTE_API stVideoGrabberControlStruct : public CORE::tstControlStruct
+        typedef struct  stVideoGrabberControlStruct : public CORE::tstControlStruct
 		{
 			cv::cuda::GpuMat *Output;
 			int nCurrentFrameNumber;
 			int nCurrentPositionMSec;
-            void UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType);
+            REMOTE_API void UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType);
         }tstVideoGrabberControlStruct;
 
         typedef struct stVideoGrabberDeinitialiseControlStruct : public CORE::tstDeinitialiseControlStruct

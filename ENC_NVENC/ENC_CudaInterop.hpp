@@ -3,10 +3,7 @@
 #include "common/inc/NvHWEncoder.h"
 #include "ENC_Queue.h"
 #include "ENC_CudaAutoLock.h"
-#include <QtCore>
-#include <QtPlugin>
 #include "AbstractModule.hpp"
-#include "Utils.h"
 
 namespace RW{
     namespace ENC{
@@ -18,12 +15,12 @@ namespace RW{
 			EncodeConfig *pstEncodeConfig;
 		}tstMyInitialiseControlStruct;
 
-        typedef struct REMOTE_API stMyControlStruct : public CORE::tstControlStruct
+        typedef struct stMyControlStruct : public CORE::tstControlStruct
 		{
             CUdeviceptr pcuYUVArray;
             tstBitStream *pstBitStream;
             tstBitStream *pPayload;
-			void UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType);
+            REMOTE_API void UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType);
 		}tstMyControlStruct;
 
 		typedef struct stMyDeinitialiseControlStruct : public CORE::tstDeinitialiseControlStruct

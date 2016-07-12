@@ -13,11 +13,11 @@ namespace RW
 				std::vector<cv::Rect> vFrameRect;
 			}tstMyInitialiseControlStruct;
 
-			typedef struct REMOTE_API stMyControlStruct : public CORE::tstControlStruct
+			typedef struct stMyControlStruct : public CORE::tstControlStruct
 			{
 				cInputBase *pInput;
 				cOutputBase *pOutput;
-				void UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType);
+                REMOTE_API void UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType);
 
 			}tstMyControlStruct;
 

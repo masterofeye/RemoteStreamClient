@@ -1,11 +1,7 @@
 #pragma once
 
 #include "AbstractModule.hpp"
-
-
-QT_BEGIN_NAMESPACE
-class QBuffer;
-QT_END_NAMESPACE
+#include "qbuffer.h"
 
 namespace RW{
     namespace VPL{
@@ -14,6 +10,7 @@ namespace RW{
 
         typedef struct stMyInitialiseControlStruct : public CORE::tstInitialiseControlStruct
         {
+            VPL_Viewer *pViewer;
         }tstMyInitialiseControlStruct;
 
         typedef struct REMOTE_API stMyControlStruct : public CORE::tstControlStruct
@@ -31,16 +28,6 @@ namespace RW{
         {
             Q_OBJECT
 
-        public slots:
-            QBuffer *GetNewFrameBuffer(void){ return m_pqFrameBuffer; }
-
-        signals:
-            void FrameBufferChanged(QBuffer* pBuffer);
-
-        private:
-            QBuffer     *m_pqFrameBuffer;
-            VPL_Viewer  *m_pqViewer;
-
         public:
             explicit VPL_FrameProcessor(std::shared_ptr<spdlog::logger> Logger);
             ~VPL_FrameProcessor();
@@ -50,7 +37,8 @@ namespace RW{
             virtual tenStatus DoRender(CORE::tstControlStruct * ControlStruct) Q_DECL_OVERRIDE;
             virtual tenStatus Deinitialise(CORE::tstDeinitialiseControlStruct *DeinitialiseControlStruct) Q_DECL_OVERRIDE;
 
-            VPL_FrameProcessor *GetObject(){ return this; }
+        signals:
+            void FrameBufferChanged(QByteArray *pBuffer);
 
         };
     }

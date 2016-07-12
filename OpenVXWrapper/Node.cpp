@@ -306,52 +306,62 @@ namespace RW
 
                 //Get the folling Node that will be processed
                 vx_node nextNode = kernelOfCurrentNode->Node()->NexttNode();
-                    
-                //Extract the parameter from this node now 
-                vx_parameter paramNext[] = { vxGetParameterByIndex(nextNode, NODE_PARAM_KERNEL_INDEX), vxGetParameterByIndex(nextNode, NODE_PARAM_CONTROLSTRUCT_INDEX) };
-                if (paramNext[0] != nullptr && paramNext[1] != nullptr)
+                if (nextNode != nullptr)
                 {
-                    status = vxQueryParameter((vx_parameter)paramNext[0], VX_PARAMETER_ATTRIBUTE_REF, &kArrayNextNode, sizeof(kArrayNextNode));
-                    if (status != VX_SUCCESS)
+                    //Extract the parameter from this node now 
+                    vx_parameter paramNext[] = { vxGetParameterByIndex(nextNode, NODE_PARAM_KERNEL_INDEX), vxGetParameterByIndex(nextNode, NODE_PARAM_CONTROLSTRUCT_INDEX) };
+                    if (paramNext[0] != nullptr && paramNext[1] != nullptr)
                     {
-                        return VX_FAILURE;
-                    }
-                    Kernel *kernelNext = nullptr;
-                    status = vxAccessArrayRange(kArrayNextNode, 0, 1, &size, (void**)&kernelNext, VX_READ_AND_WRITE);
-                    if (status != VX_SUCCESS)
-                    {
-                        return VX_FAILURE;
-                    }
+                        status = vxQueryParameter((vx_parameter)paramNext[0], VX_PARAMETER_ATTRIBUTE_REF, &kArrayNextNode, sizeof(kArrayNextNode));
+                        if (status != VX_SUCCESS)
+                        {
+                            return VX_FAILURE;
+                        }
+                        Kernel *kernelNext = nullptr;
+                        status = vxAccessArrayRange(kArrayNextNode, 0, 1, &size, (void**)&kernelNext, VX_READ_AND_WRITE);
+                        if (status != VX_SUCCESS)
+                        {
+                            return VX_FAILURE;
+                        }
 
-                    //Second parameter, same handling as the first
-                    status = vxQueryParameter((vx_parameter)paramNext[1], VX_PARAMETER_ATTRIBUTE_REF, &csArrayNextNode, sizeof(csArrayNextNode));
-                    if (status != VX_SUCCESS)
+                        //Second parameter, same handling as the first
+                        status = vxQueryParameter((vx_parameter)paramNext[1], VX_PARAMETER_ATTRIBUTE_REF, &csArrayNextNode, sizeof(csArrayNextNode));
+                        if (status != VX_SUCCESS)
+                        {
+                            return VX_FAILURE;
+                        }
+                        RW::CORE::tstControlStruct *controlStructNext = nullptr;
+                        status = vxAccessArrayRange(csArrayNextNode, 0, 1, &size, (void**)&controlStructNext, VX_READ_AND_WRITE);
+                        if (status != VX_SUCCESS)
+                        {
+                            return VX_FAILURE;
+                        }
+
+                        //Update the data of the current controlstruct with the outputs of the current controlstruct
+                        controlStruct->UpdateData(&controlStructNext, kernelNext->SubModuleType());
+
+                        //Commit the changes back to the array
+                        vxCommitArrayRange(csArrayNextNode, 0, 1, controlStructNext);
+                        vxCommitArrayRange(kArrayNextNode, 0, 1, kernelNext);
+                    }
+                    else
                     {
+                        //TODo
+                        vxCommitArrayRange(csArrayCurrentNode, 0, 1, controlStruct);
+                        vxCommitArrayRange(kArrayCurrentNode, 0, 1, kernelOfCurrentNode);
                         return VX_FAILURE;
                     }
-                    RW::CORE::tstControlStruct *controlStructNext = nullptr;
-                    status = vxAccessArrayRange(csArrayNextNode, 0, 1, &size, (void**)&controlStructNext, VX_READ_AND_WRITE);
-                    if (status != VX_SUCCESS)
-                    {
-                        return VX_FAILURE;
-                    }
-
-                    //Update the data of the current controlstruct with the outputs of the current controlstruct
-                    controlStruct->UpdateData(&controlStructNext, kernelNext->SubModuleType());
-
-                    //Commit the changes back to the array
-                    vxCommitArrayRange(csArrayNextNode, 0, 1, controlStructNext);
-                    vxCommitArrayRange(kArrayNextNode, 0, 1, kernelNext);
+                    vxCommitArrayRange(csArrayCurrentNode, 0, 1, controlStruct);
+                    vxCommitArrayRange(kArrayCurrentNode, 0, 1, kernelOfCurrentNode);
                 }
                 else
                 {
-                    //TODo
+                    //Todo
                     vxCommitArrayRange(csArrayCurrentNode, 0, 1, controlStruct);
                     vxCommitArrayRange(kArrayCurrentNode, 0, 1, kernelOfCurrentNode);
-                    return VX_FAILURE;
-                }            
-                vxCommitArrayRange(csArrayCurrentNode, 0, 1, controlStruct);
-                vxCommitArrayRange(kArrayCurrentNode, 0, 1, kernelOfCurrentNode );
+                    return VX_SUCCESS;
+                }
+                 
             }
             else
             {

@@ -19,8 +19,8 @@
 
 QT_BEGIN_MOC_NAMESPACE
 struct qt_meta_stringdata_RW__VPL__VPL_FrameProcessor_t {
-    QByteArrayData data[6];
-    char stringdata0[83];
+    QByteArrayData data[5];
+    char stringdata0[68];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -32,14 +32,12 @@ static const qt_meta_stringdata_RW__VPL__VPL_FrameProcessor_t qt_meta_stringdata
 QT_MOC_LITERAL(0, 0, 27), // "RW::VPL::VPL_FrameProcessor"
 QT_MOC_LITERAL(1, 28, 18), // "FrameBufferChanged"
 QT_MOC_LITERAL(2, 47, 0), // ""
-QT_MOC_LITERAL(3, 48, 8), // "QBuffer*"
-QT_MOC_LITERAL(4, 57, 7), // "pBuffer"
-QT_MOC_LITERAL(5, 65, 17) // "GetNewFrameBuffer"
+QT_MOC_LITERAL(3, 48, 11), // "QByteArray*"
+QT_MOC_LITERAL(4, 60, 7) // "pBuffer"
 
     },
     "RW::VPL::VPL_FrameProcessor\0"
-    "FrameBufferChanged\0\0QBuffer*\0pBuffer\0"
-    "GetNewFrameBuffer"
+    "FrameBufferChanged\0\0QByteArray*\0pBuffer"
 };
 #undef QT_MOC_LITERAL
 
@@ -49,7 +47,7 @@ static const uint qt_meta_data_RW__VPL__VPL_FrameProcessor[] = {
        7,       // revision
        0,       // classname
        0,    0, // classinfo
-       2,   14, // methods
+       1,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -57,16 +55,10 @@ static const uint qt_meta_data_RW__VPL__VPL_FrameProcessor[] = {
        1,       // signalCount
 
  // signals: name, argc, parameters, tag, flags
-       1,    1,   24,    2, 0x06 /* Public */,
-
- // slots: name, argc, parameters, tag, flags
-       5,    0,   27,    2, 0x0a /* Public */,
+       1,    1,   19,    2, 0x06 /* Public */,
 
  // signals: parameters
     QMetaType::Void, 0x80000000 | 3,    4,
-
- // slots: parameters
-    0x80000000 | 3,
 
        0        // eod
 };
@@ -77,16 +69,14 @@ void RW::VPL::VPL_FrameProcessor::qt_static_metacall(QObject *_o, QMetaObject::C
         VPL_FrameProcessor *_t = static_cast<VPL_FrameProcessor *>(_o);
         Q_UNUSED(_t)
         switch (_id) {
-        case 0: _t->FrameBufferChanged((*reinterpret_cast< QBuffer*(*)>(_a[1]))); break;
-        case 1: { QBuffer* _r = _t->GetNewFrameBuffer();
-            if (_a[0]) *reinterpret_cast< QBuffer**>(_a[0]) = _r; }  break;
+        case 0: _t->FrameBufferChanged((*reinterpret_cast< QByteArray*(*)>(_a[1]))); break;
         default: ;
         }
     } else if (_c == QMetaObject::IndexOfMethod) {
         int *result = reinterpret_cast<int *>(_a[0]);
         void **func = reinterpret_cast<void **>(_a[1]);
         {
-            typedef void (VPL_FrameProcessor::*_t)(QBuffer * );
+            typedef void (VPL_FrameProcessor::*_t)(QByteArray * );
             if (*reinterpret_cast<_t *>(func) == static_cast<_t>(&VPL_FrameProcessor::FrameBufferChanged)) {
                 *result = 0;
                 return;
@@ -120,19 +110,19 @@ int RW::VPL::VPL_FrameProcessor::qt_metacall(QMetaObject::Call _c, int _id, void
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 2)
+        if (_id < 1)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 2;
+        _id -= 1;
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 2)
+        if (_id < 1)
             *reinterpret_cast<int*>(_a[0]) = -1;
-        _id -= 2;
+        _id -= 1;
     }
     return _id;
 }
 
 // SIGNAL 0
-void RW::VPL::VPL_FrameProcessor::FrameBufferChanged(QBuffer * _t1)
+void RW::VPL::VPL_FrameProcessor::FrameBufferChanged(QByteArray * _t1)
 {
     void *_a[] = { Q_NULLPTR, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
     QMetaObject::activate(this, &staticMetaObject, 0, _a);
