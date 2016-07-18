@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{094A7334-B9E5-4651-86EA-C18416E3BDA9}</ProjectGuid>
+    <ProjectGuid>{9D368953-A5CD-4694-9F50-D119BB904EEA}</ProjectGuid>
     <RootNamespace>DEC_NVENC</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
