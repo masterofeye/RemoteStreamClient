@@ -1,28 +1,30 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug|Win32">
+    <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
-      <Platform>Win32</Platform>
+      <Platform>x64</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|Win32">
+    <ProjectConfiguration Include="Release|x64">
       <Configuration>Release</Configuration>
-      <Platform>Win32</Platform>
+      <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9D368953-A5CD-4694-9F50-D119BB904EEA}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
     <RootNamespace>DEC_NVENC</RootNamespace>
+    <ProjectName>DEC_NVENC</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v120</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -31,39 +33,147 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="..\..\RemoteUtil\VS_Properties\Moc.props" />
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="..\..\RemoteUtil\VS_Properties\Moc.props" />
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtCore;$(QTDIR)\include;..\RWPluginInterface;..\OpenVXWrapper;$(IncludePath)</IncludePath>
+    <IgnoreImportLibrary>true</IgnoreImportLibrary>
+    <LibraryPath>$(QTDIR)\lib;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)build\$(Platform)\$(Configuration)\</OutDir>
+    <TargetExt>.plu</TargetExt>
+    <IgnoreImportLibrary>true</IgnoreImportLibrary>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>
+    </LinkIncremental>
+    <TargetExt>.plu</TargetExt>
+    <IgnoreImportLibrary>true</IgnoreImportLibrary>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>TRACE_PERFORMANCE;_WINDOWS;UNICODE;WIN32;WIN64;QT_PLUGIN;QT_GUI_LIB;QT_CORE_LIB;NV_WINDOWS;_MBCS;;INIT_CUDA_D3D9;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\tool\RemotePkg\CUDA\CUDAToolkit\include;..\Common_NVENC\inc;C:\Projekte\RemoteStreamClient\Common_NVENC\inc;..\Intel_common\include;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(INTELMEDIASDKROOT)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <AdditionalUsingDirectories>
+      </AdditionalUsingDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <FunctionLevelLinking>
+      </FunctionLevelLinking>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <AdditionalOptions>
+      </AdditionalOptions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <CompileAs>Default</CompileAs>
+      <MinimalRebuild>false</MinimalRebuild>
+      <ForcedIncludeFiles>
+      </ForcedIncludeFiles>
     </ClCompile>
     <Link>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\Projekte\RemoteUtil\thirdparty;C:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\lib;..\build\x64\Debug;C:\tool\RemotePkg\CUDA\CUDAToolkit\lib\x64;C:\tool\RemotePkg\CUDA\CUDAToolkit\lib\x64\$(Configuration);..\Common_NVENC\lib\$(PlatformName);$(DXSDK_DIR)\Lib\x86</AdditionalLibraryDirectories>
+      <AdditionalDependencies>HighResolution.lib;Qt5Cored.lib;Qt5Widgetsd.lib;Qt5Guid.lib;RWPluginInterface.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;glu32.lib;opengl32.lib;cudart.lib;nppc.lib;nppi.lib;npps.lib;cublas.lib;cufft.lib;-LC:/tool/RemotePkg/CUDA/CUDAToolkit/lib/x64;d3d9.lib;d3dx9.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
+      <ModuleDefinitionFile>
+      </ModuleDefinitionFile>
     </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
+    </ProjectReference>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;QT_PLUGIN;QT_GUI_LIB;QT_CORE_LIB;QT_NO_DEBUG;PRINTRESULTS;NV_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\tool\RemotePkg\CUDA\CUDAToolkit\include;.\common\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <AdditionalUsingDirectories>
+      </AdditionalUsingDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <AdditionalOptions> /bigobj %(AdditionalOptions)</AdditionalOptions>
+      <CompileAs>Default</CompileAs>
     </ClCompile>
     <Link>
+      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>HighResolution.lib;Qt5Core.lib;Qt5Widgets.lib;Qt5Gui.lib;RWPluginInterface.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;glu32.lib;opengl32.lib;cudart.lib;nppc.lib;nppi.lib;npps.lib;cublas.lib;cufft.lib;-LC:/tool/RemotePkg/CUDA/CUDAToolkit/lib/x64</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\lib;..\x64\Release;C:\tool\RemotePkg\CUDA\CUDAToolkit\lib\x64;C:\tool\RemotePkg\CUDA\CUDAToolkit\lib\x64\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>libc</IgnoreSpecificDefaultLibraries>
+      <ModuleDefinitionFile>
+      </ModuleDefinitionFile>
     </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\Tool\RemotePkg\NVENC\Samples\NvDecodeD3D9\VideoSource.h" />
+    <ClInclude Include="..\Common_NVENC\inc\cudaModuleMgr.h" />
+    <ClInclude Include="..\Common_NVENC\inc\dynlink_cuda.h" />
+    <ClInclude Include="..\Common_NVENC\inc\dynlink_nvcuvid.h" />
+    <ClInclude Include="cudaProcessFrame.h" />
+    <ClInclude Include="DEC_CudaInterop.hpp" />
+    <ClInclude Include="DEC_NVENC_inputs.h" />
+    <ClInclude Include="FrameQueue.h" />
+    <ClInclude Include="ImageDX.h" />
+    <ClInclude Include="ModuleFactory.hpp" />
+    <ClInclude Include="NvDecodeD3D9.h" />
+    <ClInclude Include="VideoDecoder.h" />
+    <ClInclude Include="VideoParser.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\RWPluginInterface\RWPluginInterface.vcxproj">
+      <Project>{8262a21b-a3ac-48a7-9bf5-08ddf6794938}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\Tool\RemotePkg\NVENC\Samples\NvDecodeD3D9\VideoSource.cpp" />
+    <ClCompile Include="..\Common_NVENC\src\cudaModuleMgr.cpp" />
+    <ClCompile Include="..\Common_NVENC\src\dynlink_cuda.cpp" />
+    <ClCompile Include="..\Common_NVENC\src\dynlink_nvcuvid.cpp" />
+    <ClCompile Include="cudaProcessFrame.cpp" />
+    <ClCompile Include="DEC_CudaInterop.cpp" />
+    <ClCompile Include="FrameQueue.cpp" />
+    <ClCompile Include="ImageDX.cpp" />
+    <ClCompile Include="moc_DEC_CudaInterop.cpp" />
+    <ClCompile Include="moc_ModuleFactory.cpp" />
+    <ClCompile Include="ModuleFactory.cpp" />
+    <ClCompile Include="NvDecodeD3D9.cpp" />
+    <ClCompile Include="VideoDecoder.cpp" />
+    <ClCompile Include="VideoParser.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="DEC.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
