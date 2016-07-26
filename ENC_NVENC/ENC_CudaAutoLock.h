@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common/inc/NvHWEncoder.h"
+#include "NvHWEncoder.h"
 
 namespace RW{
 	namespace ENC{

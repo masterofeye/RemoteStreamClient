@@ -3,11 +3,11 @@
 #include <string>
 #include "ENC_CudaInterop.hpp"
 #include "ENC_CudaAutoLock.h"
-#include "common/inc/nvUtils.h"
-#include "common/inc/nvFileIO.h"
-#include "common/inc/helper_string.h"
-#include "common/inc/dynlink_builtin_types.h"
-#include "..\DEC_Intel\DEC_Intel.hpp"
+#include "../Common_NVENC/inc/nvUtils.h"
+#include "../Common_NVENC/inc/nvFileIO.h"
+#include "../Common_NVENC/inc/helper_string.h"
+#include "../Common_NVENC/inc/dynlink_builtin_types.h"
+#include "../DEC_Intel/DEC_Intel.hpp"
 
 #ifdef TRACE_PERFORMANCE
 #include "HighResolution\HighResClock.h"

@@ -5,9 +5,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="common">
-      <UniqueIdentifier>{f7ab79e3-d820-4f34-a637-51db65ffb6f0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
@@ -16,14 +13,11 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
+    <Filter Include="Common_NVENC">
+      <UniqueIdentifier>{f7ab79e3-d820-4f34-a637-51db65ffb6f0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="common\src\cudaModuleMgr.cpp">
-      <Filter>common</Filter>
-    </ClCompile>
-    <ClCompile Include="common\src\dynlink_cuda.cpp">
-      <Filter>common</Filter>
-    </ClCompile>
     <ClCompile Include="ENC_CudaInterop.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -36,14 +30,17 @@
     <ClCompile Include="moc_ModuleFactory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="common\src\NvHWEncoder.cpp">
-      <Filter>common</Filter>
+    <ClCompile Include="NvHWEncoder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common_NVENC\src\cudaModuleMgr.cpp">
+      <Filter>Common_NVENC</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common_NVENC\src\dynlink_cuda.cpp">
+      <Filter>Common_NVENC</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="common\inc\cudaModuleMgr.h">
-      <Filter>common</Filter>
-    </ClInclude>
     <ClInclude Include="ENC_CudaInterop.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -56,14 +53,17 @@
     <ClInclude Include="ModuleFactory.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="common\inc\dynlink_cuda.h">
-      <Filter>common</Filter>
+    <ClInclude Include="NvHWEncoder.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="common\inc\nvEncodeAPI.h">
-      <Filter>common</Filter>
+    <ClInclude Include="..\Common_NVENC\inc\cudaModuleMgr.h">
+      <Filter>Common_NVENC</Filter>
     </ClInclude>
-    <ClInclude Include="common\inc\NvHWEncoder.h">
-      <Filter>common</Filter>
+    <ClInclude Include="..\Common_NVENC\inc\dynlink_cuda.h">
+      <Filter>Common_NVENC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common_NVENC\inc\nvEncodeAPI.h">
+      <Filter>Common_NVENC</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

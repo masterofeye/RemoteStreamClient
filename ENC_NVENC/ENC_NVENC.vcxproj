@@ -62,7 +62,7 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>TRACE_PERFORMANCE;_WINDOWS;UNICODE;WIN32;WIN64;QT_PLUGIN;QT_GUI_LIB;QT_CORE_LIB;NV_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\tool\RemotePkg\CUDA\CUDAToolkit\include;.\common\inc;..\Intel_common\include;$(INTELMEDIASDKROOT)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\tool\RemotePkg\CUDA\CUDAToolkit\include;C:\Projekte\RemoteStreamClient\Common_NVENC\inc;..\Intel_common\include;$(INTELMEDIASDKROOT)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ExceptionHandling>Sync</ExceptionHandling>
       <AdditionalUsingDirectories>
       </AdditionalUsingDirectories>
@@ -134,23 +134,23 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="common\src\cudaModuleMgr.cpp" />
-    <ClCompile Include="common\src\dynlink_cuda.cpp" />
-    <ClCompile Include="common\src\NvHWEncoder.cpp" />
+    <ClCompile Include="..\Common_NVENC\src\cudaModuleMgr.cpp" />
+    <ClCompile Include="..\Common_NVENC\src\dynlink_cuda.cpp" />
     <ClCompile Include="ENC_CudaInterop.cpp" />
     <ClCompile Include="moc_ENC_CudaInterop.cpp" />
     <ClCompile Include="moc_ModuleFactory.cpp" />
     <ClCompile Include="ModuleFactory.cpp" />
+    <ClCompile Include="NvHWEncoder.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="common\inc\cudaModuleMgr.h" />
-    <ClInclude Include="common\inc\dynlink_cuda.h" />
-    <ClInclude Include="common\inc\nvEncodeAPI.h" />
-    <ClInclude Include="common\inc\NvHWEncoder.h" />
+    <ClInclude Include="..\Common_NVENC\inc\cudaModuleMgr.h" />
+    <ClInclude Include="..\Common_NVENC\inc\dynlink_cuda.h" />
+    <ClInclude Include="..\Common_NVENC\inc\nvEncodeAPI.h" />
     <ClInclude Include="ENC_CudaAutoLock.h" />
     <ClInclude Include="ENC_CudaInterop.hpp" />
     <ClInclude Include="ENC_Queue.h" />
     <ClInclude Include="ModuleFactory.hpp" />
+    <ClInclude Include="NvHWEncoder.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\RWPluginInterface\RWPluginInterface.vcxproj">

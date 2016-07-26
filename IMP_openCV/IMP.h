@@ -8,7 +8,7 @@
 #include <QtPlugin>
 #include "AbstractModule.hpp"
 #include "Utils.h"
-#include "..\ENC_NVENC\common\inc\dynlink_cuda.h"
+#include "..\Common_NVENC\inc\dynlink_cuda.h"
 
 #ifdef TRACE_PERFORMANCE
 #include "HighResolution\HighResClock.h"

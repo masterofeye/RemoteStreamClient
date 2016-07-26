@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common/inc/NvHWEncoder.h"
+#include "NvHWEncoder.h"
 #include "ENC_Queue.h"
 #include "ENC_CudaAutoLock.h"
 #include "AbstractModule.hpp"

@@ -81,7 +81,6 @@ namespace RW
 
 		void Init(tstInputParams *pParams)
 		{
-			pArgc = &argc;
 			pArgv = argv;
 
 			sdkCreateTimer(&frame_timer);
@@ -89,16 +88,6 @@ namespace RW
 
 			sdkCreateTimer(&global_timer);
 			sdkResetTimer(&global_timer);
-
-			// parse the command line arguments
-			parseCommandLineArguments(argc, argv);
-
-			// create window (after we know the size of the input file size)
-			WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, MsgProc, 0L, 0L,
-				GetModuleHandle(NULL), NULL, NULL, NULL, NULL,
-				sAppName, NULL
-			};
-			RegisterClassEx(&wc);
 
 			// figure out the window size we must create to get a *client* area
 			// that is of the size requested by m_dimensions.
@@ -119,30 +108,13 @@ namespace RW
 				g_nWindowWidth, g_nWindowHeight);
 
 
-			{
-				dwWindowStyle = WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
-				SetRect(&adjustedWindowSize, 0, 0, g_nVideoWidth, g_nVideoHeight);
-				AdjustWindowRect(&adjustedWindowSize, dwWindowStyle, false);
-
-				g_nWindowWidth = adjustedWindowSize.right - adjustedWindowSize.left;
-				g_nWindowHeight = adjustedWindowSize.bottom - adjustedWindowSize.top;
-
-				// Create the application's window
-				hWnd = CreateWindow(wc.lpszClassName, sAppName,
-					dwWindowStyle,
-					0, 0,
-					g_nWindowWidth,
-					g_nWindowHeight,
-					NULL, NULL, wc.hInstance, NULL);
-			}
-
 			int bTCC = 0;
 
 
 			if (g_bUseInterop)
 			{
 				// Initialize Direct3D
-				if (initD3D9(hWnd, argc, argv, &bTCC) == false)
+				if (initD3D9(hWnd,&bTCC) == false)
 				{
 					g_bAutoQuit = true;
 					g_bWaived = true;

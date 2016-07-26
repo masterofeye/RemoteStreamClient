@@ -22,7 +22,7 @@
 #include "VPL_Viewer.hpp"
 
 #include "HighResolution\HighResClock.h"
-#include "common\inc\dynlink_cuda.h"
+#include "..\Common_NVENC\inc\dynlink_cuda.h"
 #include "opencv2\cudev\common.hpp"
 
 #define SAFE_DELETE(P) {if (P) {delete P; P = nullptr;}}
