@@ -83,8 +83,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Projekte\RemoteUtil\thirdparty;C:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\lib;..\build\x64\Debug;C:\tool\RemotePkg\CUDA\CUDAToolkit\lib\x64;C:\tool\RemotePkg\CUDA\CUDAToolkit\lib\x64\$(Configuration);..\Common_NVENC\lib\$(PlatformName);$(DXSDK_DIR)\Lib\x86</AdditionalLibraryDirectories>
-      <AdditionalDependencies>HighResolution.lib;Qt5Cored.lib;Qt5Widgetsd.lib;Qt5Guid.lib;RWPluginInterface.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;glu32.lib;opengl32.lib;cudart.lib;nppc.lib;nppi.lib;npps.lib;cublas.lib;cufft.lib;-LC:/tool/RemotePkg/CUDA/CUDAToolkit/lib/x64;d3d9.lib;d3dx9.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Projekte\RemoteUtil\thirdparty;C:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\lib;..\build\x64\Debug;C:\tool\RemotePkg\CUDA\CUDAToolkit\lib\x64;C:\tool\RemotePkg\CUDA\CUDAToolkit\lib\x64\$(Configuration);..\Common_NVENC\lib\$(PlatformName);$(DXSDK_DIR)\Lib\x64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>d3d9.lib;d3dx9d.lib;HighResolution.lib;Qt5Cored.lib;Qt5Widgetsd.lib;Qt5Guid.lib;RWPluginInterface.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
       <ModuleDefinitionFile>

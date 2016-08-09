@@ -60,7 +60,7 @@ namespace RW
 
 		private:
 
-#define VIDEO_SOURCE_FILE "plush1_720p_10s.m2v"
+//#define VIDEO_SOURCE_FILE "plush1_720p_10s.m2v"
 
 #ifdef _DEBUG
 #define ENABLE_DEBUG_OUT    0
@@ -68,20 +68,18 @@ namespace RW
 #define ENABLE_DEBUG_OUT    0
 #endif
 
-			StopWatchInterface *frame_timer;
-			StopWatchInterface *global_timer;
+			//StopWatchInterface *frame_timer;
+			//StopWatchInterface *global_timer;
 
 			int                 g_DeviceID;
 			bool                g_bWindowed;
 			bool                g_bDeviceLost;
-			bool                g_bDone;
-			bool                g_bRunning;
-			bool                g_bAutoQuit;
 			bool                g_bUseVsync;
 			bool                g_bFrameRepeat;
 			bool                g_bFrameStep;
 			bool                g_bQAReadback;
 			bool                g_bFirstFrame;
+            bool                g_bDone;
 			bool                g_bLoop;
 			bool                g_bUpdateCSC;
 			bool                g_bUpdateAll;
@@ -124,7 +122,7 @@ namespace RW
 			// System Memory surface we want to readback to
 			BYTE          *g_pFrameYUV[4];
 			FrameQueue    *g_pFrameQueue;
-			VideoSource   *g_pVideoSource;
+			//VideoSource   *g_pVideoSource;
 			VideoParser   *g_pVideoParser;
 			VideoDecoder  *g_pVideoDecoder;
 
@@ -149,14 +147,11 @@ namespace RW
 			HRESULT initD3D9Surface(unsigned int nWidth, unsigned int nHeight);
 			HRESULT freeDestSurface();
 
-			bool loadVideoSource(const char *video_file,
-				unsigned int &width, unsigned int &height,
-				unsigned int &dispWidth, unsigned int &dispHeight);
-			void initCudaVideo();
+			void initCudaVideo(RW::tstBitStream *encodedStream);
 
 			void freeCudaResources(bool bDestroyContext);
 
-			bool copyDecodedFrameToTexture(unsigned int &nRepeats, int bUseInterop, int *pbIsProgressive);
+			bool copyDecodedFrameToTexture(unsigned int &nRepeats, int *pbIsProgressive);
 			void cudaPostProcessFrame(CUdeviceptr *ppDecodedFrame, size_t nDecodedPitch,
 				CUdeviceptr *ppTextureData, size_t nTexturePitch,
 				CUmodule cuModNV12toARGB,
@@ -166,10 +161,7 @@ namespace RW
 			HRESULT initCudaResources(int bUseInterop, int bTCC);
 
 			void renderVideoFrame(bool bUseInterop);
-			void Init(tstInputParams *pParams);
 			void SaveFrameAsYUV(unsigned char *pdst, const unsigned char *psrc, int width, int height, int pitch);
-			HRESULT reinitCudaResources();
-			void computeFPS(HWND hWnd, bool bUseInterop);
 
             public:
 			CNvDecodeD3D9(std::shared_ptr<spdlog::logger> m_Logger);

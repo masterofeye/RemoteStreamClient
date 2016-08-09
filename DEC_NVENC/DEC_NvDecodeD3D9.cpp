@@ -44,7 +44,6 @@ namespace RW
 			g_pFrameYUV[3] = { 0 };
 
 			g_pFrameQueue = 0;
-			g_pVideoSource = 0;
 			g_pVideoParser = 0;
 			g_pVideoDecoder = 0;
 			g_pImageDX = 0;
@@ -100,7 +99,51 @@ namespace RW
             g_nVideoWidth = data->inputParams->nVideoWidth;
             g_nVideoHeight = data->inputParams->nVideoHeight;
 
-            Init(data->inputParams);
+            // Initialize the CUDA and NVCUVID
+            typedef HMODULE CUDADRIVER;
+            CUDADRIVER hHandleDriver = 0;
+            CUresult cuResult;
+            cuResult = cuInit(0, __CUDA_API_VERSION, hHandleDriver);
+            cuResult = cuvidInit(0);
+
+            // Find out the video size
+            //g_bIsProgressive = loadVideoSource(sFileName.c_str(),
+            //	g_nVideoWidth, g_nVideoHeight,
+            //	g_nWindowWidth, g_nWindowHeight);
+
+            int bTCC = 0;
+
+            if (g_bUseInterop)
+            {
+                // Initialize Direct3D
+                if (initD3D9(&bTCC) == false)
+                {
+                    g_bWaived = true;
+                    m_Logger->error("initD3D9 failed!");
+                    return tenStatus::nenError;
+                }
+            }
+
+            if (!g_bUseInterop && g_eVideoCreateFlags == cudaVideoCreate_PreferDXVA)
+            {
+                // preferDXVA will not work with -nointerop mode. Overwrite it.
+                g_eVideoCreateFlags = cudaVideoCreate_PreferCUVID;
+            }
+
+            // If we are using TCC driver, then graphics interop must be disabled
+            if (bTCC)
+            {
+                g_bUseInterop = false;
+            }
+
+            // Initialize CUDA/D3D9 context and other video memory resources
+            if (initCudaResources(g_bUseInterop, bTCC) == E_FAIL)
+            {
+                g_bException = true;
+                g_bWaived = true;
+                m_Logger->error("initCudaResources failed!");
+                return tenStatus::nenError;
+            }
 
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
@@ -129,45 +172,37 @@ namespace RW
                 return tenStatus::nenError;
             }
 
-            // the main loop
-            sdkStartTimer(&frame_timer);
-            sdkStartTimer(&global_timer);
-            sdkResetTimer(&global_timer);
+            /////////////////Change///////////////////////////
+            // Now we create the CUDA resources and the CUDA decoder context
+            initCudaVideo(data->pstEncodedStream);
 
-            if (!g_bUseInterop)
+            if (g_bUseInterop)
             {
-                // On this case we drive the display with a while loop (no openGL calls)
-                while (!g_bDone)
-                {
-                    renderVideoFrame(g_bUseInterop);
-                }
+                initD3D9Surface(g_pVideoDecoder->targetWidth(),
+                    g_pVideoDecoder->targetHeight());
             }
             else
             {
-                // Standard windows loop
-                while (!g_bDone)
-                {
-                    MSG msg;
-                    ZeroMemory(&msg, sizeof(msg));
+                checkCudaErrors(cuMemAlloc(&g_pInteropFrame[0], g_pVideoDecoder->targetWidth() * g_pVideoDecoder->targetHeight() * 2));
+                checkCudaErrors(cuMemAlloc(&g_pInteropFrame[1], g_pVideoDecoder->targetWidth() * g_pVideoDecoder->targetHeight() * 2));
+            }
 
-                    while (msg.message != WM_QUIT)
-                    {
-                        if (PeekMessage(&msg, NULL, 0U, 0U, PM_REMOVE))
-                        {
-                            TranslateMessage(&msg);
-                            DispatchMessage(&msg);
-                        }
-                        else
-                        {
-                            renderVideoFrame(g_bUseInterop);
-                        }
+            CUcontext cuCurrent = NULL;
+            CUresult result = cuCtxPopCurrent(&cuCurrent);
 
-                        if (g_bAutoQuit && g_bDone)
-                        {
-                            break;
-                        }
-                    }
-                } // while loop
+            if (result != CUDA_SUCCESS)
+            {
+                printf("cuCtxPopCurrent: %d\n", result);
+                assert(0);
+            }
+
+            /////////////////////////////////////////
+            enStatus = (g_pCudaModule && g_pVideoDecoder && (g_pImageDX || g_pInteropFrame[0])) ? tenStatus::nenSuccess : tenStatus::nenError;
+
+            // On this case we drive the display with a while loop (no openGL calls)
+            while (!g_bDone)
+            {
+                renderVideoFrame(g_bUseInterop);
             }
 
 #ifdef TRACE_PERFORMANCE
@@ -184,32 +219,8 @@ namespace RW
             RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
 #endif
 
-
-            // we only want to record this once
-            if (total_time == 0.0f)
-            {
-                total_time = sdkGetTimerValue(&global_timer);
-            }
-            sdkStopTimer(&global_timer);
-
             g_pFrameQueue->endDecode();
-            g_pVideoSource->stop();
-
-            // clean up CUDA and D3D resources
-        ExitApp:
-            // clean up CUDA and OpenGL resources
-            cleanup(g_bWaived ? false : true);
-
-            //if (!g_bQAReadback)
-            //{
-            //	// Unregister windows class
-            //	UnregisterClass(wc.lpszClassName, wc.hInstance);
-            //}
-
-            if (g_bAutoQuit)
-            {
-                PostQuitMessage(0);
-            }
+            //g_pVideoSource->stop();
 
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
@@ -217,72 +228,6 @@ namespace RW
 #endif
             return tenStatus::nenSuccess;
         }
-
-
-        void CNvDecodeD3D9::Init(tstInputParams *pParams)
-		{
-			sdkCreateTimer(&frame_timer);
-			sdkResetTimer(&frame_timer);
-
-			sdkCreateTimer(&global_timer);
-			sdkResetTimer(&global_timer);
-
-			// figure out the window size we must create to get a *client* area
-			// that is of the size requested by m_dimensions.
-			RECT adjustedWindowSize;
-			DWORD dwWindowStyle;
-
-			// Initialize the CUDA and NVCUVID
-			typedef HMODULE CUDADRIVER;
-			CUDADRIVER hHandleDriver = 0;
-			CUresult cuResult;
-			cuResult = cuInit(0, __CUDA_API_VERSION, hHandleDriver);
-			cuResult = cuvidInit(0);
-
-			// Find out the video size
-			//g_bIsProgressive = loadVideoSource(sFileName.c_str(),
-			//	g_nVideoWidth, g_nVideoHeight,
-			//	g_nWindowWidth, g_nWindowHeight);
-
-			int bTCC = 0;
-            
-			if (g_bUseInterop)
-			{
-				// Initialize Direct3D
-				if (initD3D9(&bTCC) == false)
-				{
-					g_bAutoQuit = true;
-					g_bWaived = true;
-                    m_Logger->error("initD3D9 failed!");
-                    return;
-				}
-			}
-
-			if (!g_bUseInterop && g_eVideoCreateFlags == cudaVideoCreate_PreferDXVA)
-			{
-				// preferDXVA will not work with -nointerop mode. Overwrite it.
-				g_eVideoCreateFlags = cudaVideoCreate_PreferCUVID;
-			}
-
-			// If we are using TCC driver, then graphics interop must be disabled
-			if (bTCC)
-			{
-				g_bUseInterop = false;
-			}
-
-			// Initialize CUDA/D3D9 context and other video memory resources
-			if (initCudaResources(g_bUseInterop, bTCC) == E_FAIL)
-			{
-				g_bAutoQuit = true;
-				g_bException = true;
-				g_bWaived = true;
-                m_Logger->error("initCudaResources failed!");
-                return;
-			}
-
-			g_pVideoSource->start();
-			g_bRunning = true;
-		}
 
         bool CNvDecodeD3D9::initD3D9(int *pbTCC)
 		{
@@ -458,41 +403,7 @@ namespace RW
 			return S_OK;
 		}
 
-		bool CNvDecodeD3D9::loadVideoSource(const char *video_file, unsigned int &width, unsigned int &height, unsigned int &dispWidth, unsigned int &dispHeight)
-		{
-			std::auto_ptr<FrameQueue> apFrameQueue(new FrameQueue);
-			std::auto_ptr<VideoSource> apVideoSource(new VideoSource(video_file, apFrameQueue.get()));
-
-			// retrieve the video source (width,height)
-			apVideoSource->getSourceDimensions(width, height);
-			apVideoSource->getSourceDimensions(dispWidth, dispHeight);
-
-			std::cout << apVideoSource->format() << std::endl;
-
-			if (g_bFrameRepeat)
-			{
-				if (apVideoSource->format().frame_rate.denominator > 0)
-				{
-					g_iRepeatFactor = (int)(60.0f / ceil((float)apVideoSource->format().frame_rate.numerator / (float)apVideoSource->format().frame_rate.denominator));
-				}
-			}
-
-			printf("Frame Rate Playback Speed = %d fps\n", 60 / g_iRepeatFactor);
-
-			g_pFrameQueue = apFrameQueue.release();
-			g_pVideoSource = apVideoSource.release();
-
-			if (g_pVideoSource->format().codec == cudaVideoCodec_JPEG)
-			{
-				g_eVideoCreateFlags = cudaVideoCreate_PreferCUDA;
-			}
-
-			bool IsProgressive = 0;
-			g_pVideoSource->getProgressive(IsProgressive);
-			return IsProgressive;
-		}
-
-		void CNvDecodeD3D9::initCudaVideo()
+		void CNvDecodeD3D9::initCudaVideo(RW::tstBitStream *encodedStream)
 		{
 			// bind the context lock to the CUDA context
 			CUresult result = cuvidCtxLockCreate(&g_CtxLock, g_oContext);
@@ -503,45 +414,36 @@ namespace RW
 				assert(0);
 			}
 
-            // Create CUVIDEOFORMAT oFormat manually:
-            /*********************************************
-            oFormat	{codec=cudaVideoCodec_H264 (4) frame_rate={numerator=30000 denominator=1000 } progressive_sequence=1 ...}	CUVIDEOFORMAT
-                codec	cudaVideoCodec_H264 (4)	cudaVideoCodec_enum
-                frame_rate	{numerator=30000 denominator=1000 }	CUVIDEOFORMAT::<unnamed-type-frame_rate>
-                    numerator	30000	unsigned int
-                    denominator	1000	unsigned int
-                progressive_sequence	1	int
-                coded_width	1280	unsigned int
-                coded_height	720	unsigned int
-                display_area	{left=0 top=0 right=1280 ...}	CUVIDEOFORMAT::<unnamed-type-display_area>
-                    left	0	int
-                    top	0	int
-                    right	1280	int
-                    bottom	720	int
-                chroma_format	cudaVideoChromaFormat_420 (1)	cudaVideoChromaFormat_enum
-                bitrate	0	unsigned int
-                display_aspect_ratio	{x=16 y=9 }	CUVIDEOFORMAT::<unnamed-type-display_aspect_ratio>
-                    x	16	int
-                    y	9	int
-                video_signal_description	{video_format=5 '\x5' color_primaries=2 '\x2' transfer_characteristics=2 '\x2' ...}	CUVIDEOFORMAT::<unnamed-type-video_signal_description>
-                    video_format	5 '\x5'	unsigned char
-                    color_primaries	2 '\x2'	unsigned char
-                    transfer_characteristics	2 '\x2'	unsigned char
-                    matrix_coefficients	2 '\x2'	unsigned char
-                seqhdr_data_length	0	unsigned int
+            // Create CUVIDEOFORMAT oFormat manually (needs to be filled by config inputs ...):
+            CUVIDEOFORMAT oFormat;
+            oFormat.codec = cudaVideoCodec_enum::cudaVideoCodec_H264;
+            oFormat.frame_rate.numerator = 30000;
+            oFormat.frame_rate.denominator = 1000;
+            oFormat.progressive_sequence = 1;
+            oFormat.coded_width = g_nVideoWidth;
+            oFormat.coded_height = g_nVideoHeight;
+            oFormat.display_area.left = 0;
+            oFormat.display_area.top = 0;
+            oFormat.display_area.right = g_nVideoWidth;
+            oFormat.display_area.bottom = g_nVideoHeight;
+            oFormat.chroma_format = cudaVideoChromaFormat_420;
+            oFormat.display_aspect_ratio.x = g_nWindowWidth;
+            oFormat.display_aspect_ratio.y = g_nWindowHeight;
+            oFormat.video_signal_description.video_format = 5;
+            oFormat.video_signal_description.color_primaries = 2;
+            oFormat.video_signal_description.transfer_characteristics = 2;
+            oFormat.video_signal_description.matrix_coefficients = 2;
 
-            **********************************************/
-			std::auto_ptr<VideoDecoder> apVideoDecoder(new VideoDecoder(g_pVideoSource->format(), g_oContext, g_eVideoCreateFlags, g_CtxLock));
+			std::auto_ptr<VideoDecoder> apVideoDecoder(new VideoDecoder(oFormat, g_oContext, g_eVideoCreateFlags, g_CtxLock));
 
             //instead of cuvidCreateVideoSource in loadVideoSource use cuvidParseVideoData: 
-            /***********************************************
             CUVIDSOURCEDATAPACKET packet = {};
-            packet.payload_size = size;
-            packet.payload = buf;
-            cuvidParseVideoData( pCudaParser, &packet );
-            *************************************************/
+            packet.payload_size = encodedStream->u32Size;
+            packet.payload = (unsigned char*)encodedStream->pBuffer;
+            cuvidParseVideoData(g_pVideoParser, &packet);
+
 			std::auto_ptr<VideoParser> apVideoParser(new VideoParser(apVideoDecoder.get(), g_pFrameQueue));
-            g_pVideoSource->setParser(*apVideoParser.get()); 
+            //g_pVideoSource->setParser(*apVideoParser.get()); 
 
 			g_pVideoParser = apVideoParser.release();
 			g_pVideoDecoder = apVideoDecoder.release();
@@ -567,11 +469,6 @@ namespace RW
 			if (g_pVideoDecoder)
 			{
 				delete g_pVideoDecoder;
-			}
-
-			if (g_pVideoSource)
-			{
-				delete g_pVideoSource;
 			}
 
 			if (g_pFrameQueue)
@@ -601,7 +498,7 @@ namespace RW
 			}
 		}
 
-		bool CNvDecodeD3D9::copyDecodedFrameToTexture(unsigned int &nRepeats, int bUseInterop, int *pbIsProgressive)
+		bool CNvDecodeD3D9::copyDecodedFrameToTexture(unsigned int &nRepeats, int *pbIsProgressive)
 		{
 			CUVIDPARSERDISPINFO oDisplayInfo;
 
@@ -722,7 +619,7 @@ namespace RW
 
 			// check if decoding has come to an end.
 			// if yes, signal the app to shut down.
-			if (!g_pVideoSource->isStarted() && g_pFrameQueue->isEndOfDecode() && g_pFrameQueue->isEmpty())
+			if (g_pFrameQueue->isEndOfDecode() && g_pFrameQueue->isEmpty())
 			{
 				// Let's free the Frame Data
 				if (g_ReadbackSID && g_pFrameYUV)
@@ -735,23 +632,6 @@ namespace RW
 					g_pFrameYUV[1] = NULL;
 					g_pFrameYUV[2] = NULL;
 					g_pFrameYUV[3] = NULL;
-				}
-
-				// Let's just stop, and allow the user to quit, so they can at least see the results
-				g_pVideoSource->stop();
-
-				// If we want to loop reload the video file and restart
-				if (g_bLoop && !g_bAutoQuit)
-				{
-					reinitCudaResources();
-					g_FrameCount = 0;
-					g_DecodeFrameCount = 0;
-					g_pVideoSource->start();
-				}
-
-				if (g_bAutoQuit)
-				{
-					g_bDone = true;
 				}
 			}
 
@@ -795,25 +675,6 @@ namespace RW
 			}
 
 			fwrite(pdst, 1, width*height + (width*height) / 2, fpWriteYUV);
-		}
-
-		HRESULT CNvDecodeD3D9::reinitCudaResources()
-		{
-			// Free resources
-			cleanup(false);
-
-			// Reinit VideoSource and Frame Queue
-			//g_bIsProgressive = loadVideoSource(sFileName.c_str(),
-			//	g_nVideoWidth, g_nVideoHeight,
-			//	g_nWindowWidth, g_nWindowHeight);
-
-			/////////////////Change///////////////////////////
-			initCudaVideo();
-			initD3D9Surface(g_pVideoDecoder->targetWidth(),
-				g_pVideoDecoder->targetHeight());
-			/////////////////////////////////////////
-
-			return S_OK;
 		}
 
 		HRESULT CNvDecodeD3D9::cleanup(bool bDestroyContext)
@@ -966,7 +827,6 @@ namespace RW
 
 					// We check for DeviceLost, if that happens we want to release resources
 					g_pFrameQueue->endDecode();
-					g_pVideoSource->stop();
 
 					freeCudaResources(false);
 				}
@@ -990,119 +850,15 @@ namespace RW
 			if (0 != g_pFrameQueue)
 			{
 				// if not running, we simply don't copy new frames from the decoder
-				if (!g_bDeviceLost && g_bRunning)
+				if (!g_bDeviceLost)
 				{
-					bFramesDecoded = copyDecodedFrameToTexture(nRepeatFrame, true, &bIsProgressive);
+					bFramesDecoded = copyDecodedFrameToTexture(nRepeatFrame, &bIsProgressive);
 				}
 			}
 			else
 			{
 				return;
 			}
-
-			if (bFramesDecoded && g_bFrameStep)
-			{
-				if (g_bRunning)
-				{
-					g_bRunning = false;
-				}
-			}
-		}
-
-		void CNvDecodeD3D9::computeFPS(HWND hWnd, bool bUseInterop)
-		{
-            const char *sAppName = "NVCUVID/D3D9 Video Decoder";
-            const char *sAppFilename = "NVDecodeD3D9";
-            const char *sSDKname = "NVDecodeD3D9";
-
-			sdkStopTimer(&frame_timer);
-
-			if (g_bRunning)
-			{
-				g_fpsCount++;
-
-				if (!(g_pFrameQueue->isEndOfDecode() && g_pFrameQueue->isEmpty()))
-				{
-					g_FrameCount++;
-				}
-			}
-
-			char sFPS[256];
-			std::string sDecodeStatus;
-
-			if (g_bDeviceLost)
-			{
-				sDecodeStatus = "DeviceLost!\0";
-				sprintf(sFPS, "%s [%s] - [%s %d]",
-					sAppName, sDecodeStatus.c_str(),
-					(g_bIsProgressive ? "Frame" : "Field"),
-					g_DecodeFrameCount);
-
-				sdkResetTimer(&frame_timer);
-				g_fpsCount = 0;
-				return;
-			}
-
-			if (g_pFrameQueue->isEndOfDecode() && g_pFrameQueue->isEmpty())
-			{
-				sDecodeStatus = "STOP (End of File)\0";
-
-				// we only want to record this once
-				if (total_time == 0.0f)
-				{
-					total_time = sdkGetTimerValue(&global_timer);
-				}
-
-				sdkStopTimer(&global_timer);
-
-				if (g_bAutoQuit)
-				{
-					g_bRunning = false;
-					g_bDone = true;
-				}
-			}
-			else
-			{
-				if (!g_bRunning)
-				{
-					sDecodeStatus = "PAUSE\0";
-					sprintf(sFPS, "%s [%s] - [%s %d] - Video Display %s / Vsync %s",
-						sAppName, sDecodeStatus.c_str(),
-						(g_bIsProgressive ? "Frame" : "Field"), g_DecodeFrameCount,
-						g_bUseDisplay ? "ON" : "OFF",
-						g_bUseVsync ? "ON" : "OFF");
-				}
-				else
-				{
-					if (g_bFrameStep)
-					{
-						sDecodeStatus = "STEP\0";
-					}
-					else
-					{
-						sDecodeStatus = "PLAY\0";
-					}
-				}
-
-				if (g_fpsCount == g_fpsLimit)
-				{
-					float ifps = 1.f / (sdkGetAverageTimerValue(&frame_timer) / 1000.f);
-
-					sprintf(sFPS, "[%s] [%s] - [%3.1f fps, %s %d] - Video Display %s / Vsync %s",
-						sAppName, sDecodeStatus.c_str(), ifps,
-						(g_bIsProgressive ? "Frame" : "Field"), g_DecodeFrameCount,
-						g_bUseDisplay ? "ON" : "OFF",
-						g_bUseVsync ? "ON" : "OFF");
-
-					printf("[%s] - [%s: %04d, %04.1f fps, time: %04.2f (ms) ]\n",
-						sSDKname, (g_bIsProgressive ? "Frame" : "Field"), g_FrameCount, ifps, 1000.f / ifps);
-
-					sdkResetTimer(&frame_timer);
-					g_fpsCount = 0;
-				}
-			}
-
-			sdkStartTimer(&frame_timer);
 		}
 
 		HRESULT CNvDecodeD3D9::initCudaResources(int bUseInterop, int bTCC)
@@ -1159,32 +915,8 @@ namespace RW
 			g_pCudaModule->GetCudaFunction("NV12ToARGB_drvapi", &g_kernelNV12toARGB);
 			g_pCudaModule->GetCudaFunction("Passthru_drvapi", &g_kernelPassThru);
 
-			/////////////////Change///////////////////////////
-			// Now we create the CUDA resources and the CUDA decoder context
-			initCudaVideo();
-
-			if (bUseInterop)
-			{
-				initD3D9Surface(g_pVideoDecoder->targetWidth(),
-					g_pVideoDecoder->targetHeight());
-			}
-			else
-			{
-				checkCudaErrors(cuMemAlloc(&g_pInteropFrame[0], g_pVideoDecoder->targetWidth() * g_pVideoDecoder->targetHeight() * 2));
-				checkCudaErrors(cuMemAlloc(&g_pInteropFrame[1], g_pVideoDecoder->targetWidth() * g_pVideoDecoder->targetHeight() * 2));
-			}
-
-			CUcontext cuCurrent = NULL;
-			CUresult result = cuCtxPopCurrent(&cuCurrent);
-
-			if (result != CUDA_SUCCESS)
-			{
-				printf("cuCtxPopCurrent: %d\n", result);
-				assert(0);
-			}
-
 			/////////////////////////////////////////
-			return ((g_pCudaModule && g_pVideoDecoder && (g_pImageDX || g_pInteropFrame[0])) ? S_OK : E_FAIL);
+			return (g_pCudaModule ? S_OK : E_FAIL);
 		}
 	}
 }
