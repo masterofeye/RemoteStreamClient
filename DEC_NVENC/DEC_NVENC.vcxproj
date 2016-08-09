@@ -163,6 +163,7 @@
     <ClCompile Include="cudaProcessFrame.cpp" />
     <ClCompile Include="FrameQueue.cpp" />
     <ClCompile Include="ImageDX.cpp" />
+    <ClCompile Include="moc_DEC_NvDecodeD3D9.cpp" />
     <ClCompile Include="moc_ModuleFactory.cpp" />
     <ClCompile Include="ModuleFactory.cpp" />
     <ClCompile Include="DEC_NvDecodeD3D9.cpp" />

@@ -92,6 +92,9 @@
     <ClCompile Include="DEC_NvDecodeD3D9.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="moc_DEC_NvDecodeD3D9.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="DEC.json" />
