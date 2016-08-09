@@ -48,13 +48,10 @@
     <ClInclude Include="DEC_NVENC_inputs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="NvDecodeD3D9.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DEC_CudaInterop.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ModuleFactory.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DEC_NvDecodeD3D9.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -62,13 +59,7 @@
     <ClCompile Include="ModuleFactory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DEC_CudaInterop.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Tool\RemotePkg\NVENC\Samples\NvDecodeD3D9\VideoSource.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="NvDecodeD3D9.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="FrameQueue.cpp">
@@ -95,10 +86,10 @@
     <ClCompile Include="cudaProcessFrame.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="moc_DEC_CudaInterop.cpp">
+    <ClCompile Include="moc_ModuleFactory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="moc_ModuleFactory.cpp">
+    <ClCompile Include="DEC_NvDecodeD3D9.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

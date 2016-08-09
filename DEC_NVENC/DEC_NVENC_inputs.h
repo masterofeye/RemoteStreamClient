@@ -22,8 +22,10 @@ namespace RW
 			bool bUseDisplay;
 			bool bUseInterop;
 			unsigned int fpsLimit;
+            unsigned int nVideoWidth;
+            unsigned int nVideoHeight;
 
-			stInputParams() : eVideoCreateFlags(cudaVideoCreateFlags_enum::cudaVideoCreate_PreferCUVID), bFrameRepeat(false), bUseVsync(false), bFrameStep(false), bUseDisplay(true), bUseInterop(true) {}
+            stInputParams() : eVideoCreateFlags(cudaVideoCreateFlags_enum::cudaVideoCreate_PreferCUDA), bFrameRepeat(false), bUseVsync(false), bFrameStep(false), bUseDisplay(true), bUseInterop(true), nVideoHeight(0), nVideoWidth(0) {}
 			~stInputParams(){}
 		}tstInputParams;
 	}

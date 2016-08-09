@@ -1,20 +1,15 @@
-#include "NvDecodeD3D9.h"
+#include "DEC_NvDecodeD3D9.hpp"
+#include "..\VPL_QT\VPL_FrameProcessor.hpp"
 
 namespace RW
 {
 	namespace DEC
 	{
-		CNvDecodeD3D9::CNvDecodeD3D9(std::shared_ptr<spdlog::logger> Logger) : m_Logger(Logger)
+        CNvDecodeD3D9::CNvDecodeD3D9(std::shared_ptr<spdlog::logger> Logger) :
+            RW::CORE::AbstractModule(Logger)
 		{
-			frame_timer = NULL;
-			global_timer = NULL;
-
 			g_DeviceID = 0;
-			g_bWindowed = true;
 			g_bDeviceLost = false;
-			g_bDone = false;
-			g_bRunning = false;
-			g_bAutoQuit = false;
 			g_bUseVsync = false;
 			g_bFrameRepeat = false;
 			g_bFrameStep = false;
@@ -25,17 +20,12 @@ namespace RW
 			g_bUpdateAll = false;
 			g_bUseDisplay = true; 
 			g_bUseInterop = true;
-			g_bReadback = false; 
-			g_bWriteFile = false;
 			g_bIsProgressive = true;
 			g_bException = false;
 			g_bWaived = false;
 
 			g_iRepeatFactor = 1; 
 
-			pArgc = NULL;
-			pArgv = NULL;
-			fpWriteYUV = NULL;
 			g_CtxLock = NULL;
 			total_time = 0.0f;
 
@@ -79,10 +69,158 @@ namespace RW
 		{
 		}
 
-		void Init(tstInputParams *pParams)
-		{
-			pArgv = argv;
 
+        CORE::tstModuleVersion CNvDecodeD3D9::ModulVersion() {
+            CORE::tstModuleVersion version = { 0, 1 };
+            return version;
+        }
+
+        CORE::tenSubModule CNvDecodeD3D9::SubModulType()
+        {
+            return CORE::tenSubModule::nenDecoder_INTEL;
+        }
+
+        tenStatus CNvDecodeD3D9::Initialise(CORE::tstInitialiseControlStruct * InitialiseControlStruct)
+        {
+
+            tenStatus enStatus = tenStatus::nenSuccess;
+            m_Logger->debug("Initialise nenDecoder_NVENC");
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
+#endif
+
+            stMyInitialiseControlStruct* data = static_cast<stMyInitialiseControlStruct*>(InitialiseControlStruct);
+
+            if (!data)
+            {
+                m_Logger->error("DEC_CudaInterop::Initialise: Data of tstMyInitialiseControlStruct is empty!");
+                return tenStatus::nenError;
+            }
+
+            g_nVideoWidth = data->inputParams->nVideoWidth;
+            g_nVideoHeight = data->inputParams->nVideoHeight;
+
+            Init(data->inputParams);
+
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
+            m_Logger->trace() << "DEC_CudaInterop::Initialise: Time to Initialise for nenDecoder_INTEL module: " << (RW::CORE::HighResClock::diffMilli(t1, t2).count()) << "ms.";
+#endif
+            return enStatus;
+        }
+
+        tenStatus CNvDecodeD3D9::DoRender(CORE::tstControlStruct * ControlStruct)
+        {
+            tenStatus enStatus = tenStatus::nenSuccess;
+
+            m_Logger->debug("DoRender nenDecoder_NVENC");
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
+#endif
+            stMyControlStruct* data = static_cast<stMyControlStruct*>(ControlStruct);
+            if (!data)
+            {
+                m_Logger->error("DEC_CudaInterop::DoRender: Data of stMyControlStruct is empty!");
+                return tenStatus::nenError;
+            }
+            if (!data->pOutput)
+            {
+                m_Logger->error("DEC_CudaInterop::DoRender: pOutput of stMyControlStruct is empty!");
+                return tenStatus::nenError;
+            }
+
+            // the main loop
+            sdkStartTimer(&frame_timer);
+            sdkStartTimer(&global_timer);
+            sdkResetTimer(&global_timer);
+
+            if (!g_bUseInterop)
+            {
+                // On this case we drive the display with a while loop (no openGL calls)
+                while (!g_bDone)
+                {
+                    renderVideoFrame(g_bUseInterop);
+                }
+            }
+            else
+            {
+                // Standard windows loop
+                while (!g_bDone)
+                {
+                    MSG msg;
+                    ZeroMemory(&msg, sizeof(msg));
+
+                    while (msg.message != WM_QUIT)
+                    {
+                        if (PeekMessage(&msg, NULL, 0U, 0U, PM_REMOVE))
+                        {
+                            TranslateMessage(&msg);
+                            DispatchMessage(&msg);
+                        }
+                        else
+                        {
+                            renderVideoFrame(g_bUseInterop);
+                        }
+
+                        if (g_bAutoQuit && g_bDone)
+                        {
+                            break;
+                        }
+                    }
+                } // while loop
+            }
+
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
+            m_Logger->trace() << "DEC_CudaInterop::DoRender: Time to DoRender for nenDecoder_INTEL module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+#endif
+            return enStatus;
+        }
+
+        tenStatus CNvDecodeD3D9::Deinitialise(CORE::tstDeinitialiseControlStruct *DeinitialiseControlStruct)
+        {
+            m_Logger->debug("Deinitialise nenDecoder_NVENC");
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
+#endif
+
+
+            // we only want to record this once
+            if (total_time == 0.0f)
+            {
+                total_time = sdkGetTimerValue(&global_timer);
+            }
+            sdkStopTimer(&global_timer);
+
+            g_pFrameQueue->endDecode();
+            g_pVideoSource->stop();
+
+            // clean up CUDA and D3D resources
+        ExitApp:
+            // clean up CUDA and OpenGL resources
+            cleanup(g_bWaived ? false : true);
+
+            //if (!g_bQAReadback)
+            //{
+            //	// Unregister windows class
+            //	UnregisterClass(wc.lpszClassName, wc.hInstance);
+            //}
+
+            if (g_bAutoQuit)
+            {
+                PostQuitMessage(0);
+            }
+
+#ifdef TRACE_PERFORMANCE
+            RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
+            m_Logger->trace() << "DEC_CudaInterop::Deinitialise: Time to Deinitialise for nenDecoder_INTEL module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
+#endif
+            return tenStatus::nenSuccess;
+        }
+
+
+        void CNvDecodeD3D9::Init(tstInputParams *pParams)
+		{
 			sdkCreateTimer(&frame_timer);
 			sdkResetTimer(&frame_timer);
 
@@ -93,7 +231,6 @@ namespace RW
 			// that is of the size requested by m_dimensions.
 			RECT adjustedWindowSize;
 			DWORD dwWindowStyle;
-			HWND hWnd = NULL;
 
 			// Initialize the CUDA and NVCUVID
 			typedef HMODULE CUDADRIVER;
@@ -103,22 +240,21 @@ namespace RW
 			cuResult = cuvidInit(0);
 
 			// Find out the video size
-			g_bIsProgressive = loadVideoSource(sFileName.c_str(),
-				g_nVideoWidth, g_nVideoHeight,
-				g_nWindowWidth, g_nWindowHeight);
-
+			//g_bIsProgressive = loadVideoSource(sFileName.c_str(),
+			//	g_nVideoWidth, g_nVideoHeight,
+			//	g_nWindowWidth, g_nWindowHeight);
 
 			int bTCC = 0;
-
-
+            
 			if (g_bUseInterop)
 			{
 				// Initialize Direct3D
-				if (initD3D9(hWnd,&bTCC) == false)
+				if (initD3D9(&bTCC) == false)
 				{
 					g_bAutoQuit = true;
 					g_bWaived = true;
-					goto ExitApp;
+                    m_Logger->error("initD3D9 failed!");
+                    return;
 				}
 			}
 
@@ -135,115 +271,20 @@ namespace RW
 			}
 
 			// Initialize CUDA/D3D9 context and other video memory resources
-			if (initCudaResources(argc, argv, g_bUseInterop, bTCC) == E_FAIL)
+			if (initCudaResources(g_bUseInterop, bTCC) == E_FAIL)
 			{
 				g_bAutoQuit = true;
 				g_bException = true;
 				g_bWaived = true;
-				goto ExitApp;
+                m_Logger->error("initCudaResources failed!");
+                return;
 			}
 
 			g_pVideoSource->start();
 			g_bRunning = true;
-
-			if (!g_bQAReadback && !bTCC)
-			{
-				ShowWindow(hWnd, SW_SHOWDEFAULT);
-				UpdateWindow(hWnd);
-			}
-
-			// the main loop
-			sdkStartTimer(&frame_timer);
-			sdkStartTimer(&global_timer);
-			sdkResetTimer(&global_timer);
-
-			if (!g_bUseInterop)
-			{
-				// On this case we drive the display with a while loop (no openGL calls)
-				while (!g_bDone)
-				{
-					renderVideoFrame(hWnd, g_bUseInterop);
-				}
-			}
-			else
-			{
-				// Standard windows loop
-				while (!g_bDone)
-				{
-					MSG msg;
-					ZeroMemory(&msg, sizeof(msg));
-
-					while (msg.message != WM_QUIT)
-					{
-						if (PeekMessage(&msg, NULL, 0U, 0U, PM_REMOVE))
-						{
-							TranslateMessage(&msg);
-							DispatchMessage(&msg);
-						}
-						else
-						{
-							renderVideoFrame(hWnd, g_bUseInterop);
-						}
-
-						if (g_bAutoQuit && g_bDone)
-						{
-							break;
-						}
-					}
-				} // while loop
-			}
-
-			// we only want to record this once
-			if (total_time == 0.0f)
-			{
-				total_time = sdkGetTimerValue(&global_timer);
-			}
-			sdkStopTimer(&global_timer);
-
-			g_pFrameQueue->endDecode();
-			g_pVideoSource->stop();
-
-			if (fpWriteYUV != NULL)
-			{
-				fflush(fpWriteYUV);
-				fclose(fpWriteYUV);
-				fpWriteYUV = NULL;
-			}
-
-			printStatistics();
-
-			// clean up CUDA and D3D resources
-		ExitApp:
-			// clean up CUDA and OpenGL resources
-			cleanup(g_bWaived ? false : true);
-
-			if (!g_bQAReadback)
-			{
-				// Unregister windows class
-				UnregisterClass(wc.lpszClassName, wc.hInstance);
-			}
-
-			if (g_bAutoQuit)
-			{
-				PostQuitMessage(0);
-			}
-
-			if (hWnd)
-			{
-				DestroyWindow(hWnd);
-			}
-
-			if (g_bWaived)
-			{
-				exit(EXIT_WAIVED);
-			}
-			else
-			{
-				exit(g_bException ? EXIT_FAILURE : EXIT_SUCCESS);
-			}
 		}
 
-		bool CNvDecodeD3D9::initD3D9(HWND hWnd, int *pbTCC)
+        bool CNvDecodeD3D9::initD3D9(int *pbTCC)
 		{
 			int dev, device_count = 0;
 			bool bSpecifyDevice = false;
@@ -358,8 +399,7 @@ namespace RW
 				}
 
 				// Create the D3D Display Device
-				RECT                  rc;
-				GetClientRect(hWnd, &rc);
+
 				g_pD3D->GetAdapterDisplayMode(D3DADAPTER_DEFAULT, &g_d3ddm);
 				ZeroMemory(&g_d3dpp, sizeof(g_d3dpp));
 
@@ -367,9 +407,9 @@ namespace RW
 
 				g_d3dpp.BackBufferCount = 1;
 				g_d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
-				g_d3dpp.hDeviceWindow = hWnd;
-				g_d3dpp.BackBufferWidth = rc.right - rc.left;
-				g_d3dpp.BackBufferHeight = rc.bottom - rc.top;
+				g_d3dpp.hDeviceWindow = NULL;
+                g_d3dpp.BackBufferWidth = g_nVideoWidth;// rc.right - rc.left;
+                g_d3dpp.BackBufferHeight = g_nVideoHeight;// rc.bottom - rc.top;
 				g_d3dpp.BackBufferFormat = g_d3ddm.Format;
 				g_d3dpp.FullScreen_RefreshRateInHz = 0; // set to 60 for fullscreen, and also don't forget to set Windowed to FALSE
 				g_d3dpp.PresentationInterval = (g_bUseVsync ? D3DPRESENT_INTERVAL_ONE : D3DPRESENT_INTERVAL_IMMEDIATE);
@@ -379,13 +419,13 @@ namespace RW
 					g_d3dpp.Flags = D3DPRESENTFLAG_VIDEO;    // turn off vsync
 				}
 
-				eResult = g_pD3D->CreateDevice(0, D3DDEVTYPE_HAL, hWnd,
+				eResult = g_pD3D->CreateDevice(0, D3DDEVTYPE_HAL, NULL,
 					D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED,
 					&g_d3dpp, &g_pD3DDevice);
 			}
 			else
 			{
-				fprintf(stderr, "> %s is decoding w/o visualization\n", sSDKname);
+				fprintf(stderr, "> NVDecodeD3D9 is decoding w/o visualization\n");
 				eResult = S_OK;
 			}
 
@@ -463,9 +503,45 @@ namespace RW
 				assert(0);
 			}
 
+            // Create CUVIDEOFORMAT oFormat manually:
+            /*********************************************
+            oFormat	{codec=cudaVideoCodec_H264 (4) frame_rate={numerator=30000 denominator=1000 } progressive_sequence=1 ...}	CUVIDEOFORMAT
+                codec	cudaVideoCodec_H264 (4)	cudaVideoCodec_enum
+                frame_rate	{numerator=30000 denominator=1000 }	CUVIDEOFORMAT::<unnamed-type-frame_rate>
+                    numerator	30000	unsigned int
+                    denominator	1000	unsigned int
+                progressive_sequence	1	int
+                coded_width	1280	unsigned int
+                coded_height	720	unsigned int
+                display_area	{left=0 top=0 right=1280 ...}	CUVIDEOFORMAT::<unnamed-type-display_area>
+                    left	0	int
+                    top	0	int
+                    right	1280	int
+                    bottom	720	int
+                chroma_format	cudaVideoChromaFormat_420 (1)	cudaVideoChromaFormat_enum
+                bitrate	0	unsigned int
+                display_aspect_ratio	{x=16 y=9 }	CUVIDEOFORMAT::<unnamed-type-display_aspect_ratio>
+                    x	16	int
+                    y	9	int
+                video_signal_description	{video_format=5 '\x5' color_primaries=2 '\x2' transfer_characteristics=2 '\x2' ...}	CUVIDEOFORMAT::<unnamed-type-video_signal_description>
+                    video_format	5 '\x5'	unsigned char
+                    color_primaries	2 '\x2'	unsigned char
+                    transfer_characteristics	2 '\x2'	unsigned char
+                    matrix_coefficients	2 '\x2'	unsigned char
+                seqhdr_data_length	0	unsigned int
+
+            **********************************************/
 			std::auto_ptr<VideoDecoder> apVideoDecoder(new VideoDecoder(g_pVideoSource->format(), g_oContext, g_eVideoCreateFlags, g_CtxLock));
+
+            //instead of cuvidCreateVideoSource in loadVideoSource use cuvidParseVideoData: 
+            /***********************************************
+            CUVIDSOURCEDATAPACKET packet = {};
+            packet.payload_size = size;
+            packet.payload = buf;
+            cuvidParseVideoData( pCudaParser, &packet );
+            *************************************************/
 			std::auto_ptr<VideoParser> apVideoParser(new VideoParser(apVideoDecoder.get(), g_pFrameQueue));
-			g_pVideoSource->setParser(*apVideoParser.get());
+            g_pVideoSource->setParser(*apVideoParser.get()); 
 
 			g_pVideoParser = apVideoParser.release();
 			g_pVideoDecoder = apVideoDecoder.release();
@@ -633,12 +709,6 @@ namespace RW
 					g_pFrameQueue->releaseFrame(&oDisplayInfo);
 					g_DecodeFrameCount++;
 
-					if (g_bWriteFile)
-					{
-						SaveFrameAsYUV(g_pFrameYUV[active_field + 2],
-							g_pFrameYUV[active_field],
-							nWidth, nHeight, nDecodedPitch);
-					}
 				}
 
 				// Detach from the Current thread
@@ -690,6 +760,14 @@ namespace RW
 
 		void CNvDecodeD3D9::SaveFrameAsYUV(unsigned char *pdst, const unsigned char *psrc, int width, int height, int pitch)
 		{
+
+            FILE *fpWriteYUV = NULL;
+            fpWriteYUV = fopen("dummy.yuv", "wb");
+            if (fpWriteYUV == NULL)
+            {
+                printf("Error opening file dummy.yuv\n");
+            }
+
 			int x, y, width_2, height_2;
 			int xy_offset = width*height;
 			int uvoffs = (width / 2)*(height / 2);
@@ -725,9 +803,9 @@ namespace RW
 			cleanup(false);
 
 			// Reinit VideoSource and Frame Queue
-			g_bIsProgressive = loadVideoSource(sFileName.c_str(),
-				g_nVideoWidth, g_nVideoHeight,
-				g_nWindowWidth, g_nWindowHeight);
+			//g_bIsProgressive = loadVideoSource(sFileName.c_str(),
+			//	g_nVideoWidth, g_nVideoHeight,
+			//	g_nWindowWidth, g_nWindowHeight);
 
 			/////////////////Change///////////////////////////
 			initCudaVideo();
@@ -740,13 +818,6 @@ namespace RW
 
 		HRESULT CNvDecodeD3D9::cleanup(bool bDestroyContext)
 		{
-			if (fpWriteYUV != NULL)
-			{
-				fflush(fpWriteYUV);
-				fclose(fpWriteYUV);
-				fpWriteYUV = NULL;
-			}
-
 			if (bDestroyContext)
 			{
 				// Attach the CUDA Context (so we may properly free memroy)
@@ -861,7 +932,7 @@ namespace RW
 						{
 							fprintf(stderr, "TestCooperativeLevel = %08x RESET device SUCCESS!\n", hr);
 							// Reinit All other resources including CUDA contexts
-							initCudaResources(0, NULL, true, false);
+							initCudaResources(true, false);
 							fprintf(stderr, "TestCooperativeLevel = %08x INIT device SUCCESS!\n", hr);
 
 							// we have acquired the device
@@ -909,7 +980,7 @@ namespace RW
 		}
 
 		// Launches the CUDA kernels to fill in the texture data
-		void CNvDecodeD3D9::renderVideoFrame(HWND hWnd, bool bUseInterop)
+		void CNvDecodeD3D9::renderVideoFrame(bool bUseInterop)
 		{
 			static unsigned int nRepeatFrame = 0;
 			int repeatFactor = g_iRepeatFactor;
@@ -929,53 +1000,6 @@ namespace RW
 				return;
 			}
 
-			if (bFramesDecoded)
-			{
-				while (repeatFactor-- > 0)
-				{
-					// draw the scene using the copied textures
-					if (g_bUseDisplay && bUseInterop)
-					{
-						// We will always draw field/frame 0
-						drawScene(0);
-						if (!repeatFactor)
-						{
-							computeFPS(hWnd, bUseInterop);
-						}
-
-						// If interlaced mode, then we will need to draw field 1 separately
-						if (!bIsProgressive)
-						{
-							// nRepeatFrame  = 0/1, normal field mode, display the 2nd field
-							// nRepeatFrame >= 2  , repeat the first field
-							drawScene(nRepeatFrame > 1 ? 0 : 1);
-							if (!repeatFactor)
-							{
-								computeFPS(hWnd, bUseInterop);
-							}
-
-							// nRepeatFrame = 1, repeat the first field
-							// nRepeatFrame = 4, triple the first field
-							if (nRepeatFrame == 1 || nRepeatFrame == 4) {
-								drawScene(0);
-								if (!repeatFactor)
-								{
-									computeFPS(hWnd, bUseInterop);
-								}
-							}
-						}
-
-						bFPSComputed = 1;
-					}
-				}
-
-				// Pass the Windows handle to show Frame Rate on the window title
-				if (!bFPSComputed)
-				{
-					computeFPS(hWnd, bUseInterop);
-				}
-			}
-
 			if (bFramesDecoded && g_bFrameStep)
 			{
 				if (g_bRunning)
@@ -987,6 +1011,10 @@ namespace RW
 
 		void CNvDecodeD3D9::computeFPS(HWND hWnd, bool bUseInterop)
 		{
+            const char *sAppName = "NVCUVID/D3D9 Video Decoder";
+            const char *sAppFilename = "NVDecodeD3D9";
+            const char *sSDKname = "NVDecodeD3D9";
+
 			sdkStopTimer(&frame_timer);
 
 			if (g_bRunning)
@@ -1077,30 +1105,14 @@ namespace RW
 			sdkStartTimer(&frame_timer);
 		}
 
-		HRESULT CNvDecodeD3D9::initCudaResources(int argc, char **argv, int bUseInterop, int bTCC)
+		HRESULT CNvDecodeD3D9::initCudaResources(int bUseInterop, int bTCC)
 		{
 			HRESULT hr = S_OK;
 
 			CUdevice cuda_device;
 
-			if (checkCmdLineFlag(argc, (const char **)argv, "device"))
-			{
-				cuda_device = getCmdLineArgumentInt(argc, (const char **)argv, "device");
-				cuda_device = findCudaDeviceDRV(argc, (const char **)argv);
-
-				if (cuda_device < 0)
-				{
-					printf("No CUDA Capable devices found, exiting...\n");
-					exit(EXIT_SUCCESS);
-				}
-
-				checkCudaErrors(cuDeviceGet(&g_oDevice, cuda_device));
-			}
-			else
-			{
-				cuda_device = gpuGetMaxGflopsDeviceIdDRV();
-				checkCudaErrors(cuDeviceGet(&g_oDevice, cuda_device));
-			}
+			cuda_device = gpuGetMaxGflopsDeviceIdDRV();
+			checkCudaErrors(cuDeviceGet(&g_oDevice, cuda_device));
 
 			// get compute capabilities and the devicename
 			int major, minor;

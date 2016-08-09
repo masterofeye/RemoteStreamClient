@@ -35,15 +35,30 @@ namespace RW
 {
 	namespace DEC
 	{
-		class CNvDecodeD3D9
-		{
-		public:
+
+        typedef struct stMyInitialiseControlStruct : public CORE::tstInitialiseControlStruct
+        {
+            tstInputParams *inputParams;
+        }tstMyInitialiseControlStruct;
+
+        typedef struct stMyControlStruct : public CORE::tstControlStruct
+        {
+            tstBitStream *pOutput;
+            tstBitStream *pstEncodedStream;
+            tstBitStream *pPayload;
+            REMOTE_API void UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType);
+        }tstMyControlStruct;
+
+        typedef struct stMyDeinitialiseControlStruct : public CORE::tstDeinitialiseControlStruct
+        {
+        }tstMyDeinitialiseControlStruct;
 
 
-			// member
-			const char *sAppName = "NVCUVID/D3D9 Video Decoder";
-			const char *sAppFilename = "NVDecodeD3D9";
-			const char *sSDKname = "NVDecodeD3D9";
+        class CNvDecodeD3D9 : public RW::CORE::AbstractModule
+        {
+            Q_OBJECT
+
+		private:
 
 #define VIDEO_SOURCE_FILE "plush1_720p_10s.m2v"
 
@@ -79,11 +94,6 @@ namespace RW
 			bool                g_bWaived;
 
 			int                 g_iRepeatFactor = 1; // 1:1 assumes no frame repeats
-
-			int   *pArgc;
-			char **pArgv;
-
-			FILE *fpWriteYUV;
 
 			cudaVideoCreateFlags g_eVideoCreateFlags = cudaVideoCreate_PreferCUVID;
 			CUvideoctxlock       g_CtxLock;
@@ -121,8 +131,6 @@ namespace RW
 			ImageDX       *g_pImageDX = 0;
 			CUdeviceptr    g_pInteropFrame[2]; // if we're using CUDA malloc
 
-			std::string sFileName;
-
 			char exec_path[256];
 
 			unsigned int g_nWindowWidth;
@@ -137,7 +145,7 @@ namespace RW
 			unsigned int g_fpsLimit;     // FPS limit for sampling timer;
 
 			// Forward declarations
-			bool    initD3D9(HWND hWnd, int *pbTCC);
+			bool    initD3D9(int *pbTCC);
 			HRESULT initD3D9Surface(unsigned int nWidth, unsigned int nHeight);
 			HRESULT freeDestSurface();
 
@@ -155,16 +163,24 @@ namespace RW
 				CUfunction fpCudaKernel, CUstream streamID);
 			HRESULT drawScene(int field_num);
 			HRESULT cleanup(bool bDestroyContext);
-			HRESULT initCudaResources(int argc, char **argv, int bUseInterop, int bTCC);
+			HRESULT initCudaResources(int bUseInterop, int bTCC);
 
-			void renderVideoFrame(HWND hWnd, bool bUseInterop);
+			void renderVideoFrame(bool bUseInterop);
 			void Init(tstInputParams *pParams);
 			void SaveFrameAsYUV(unsigned char *pdst, const unsigned char *psrc, int width, int height, int pitch);
 			HRESULT reinitCudaResources();
 			void computeFPS(HWND hWnd, bool bUseInterop);
 
+            public:
 			CNvDecodeD3D9(std::shared_ptr<spdlog::logger> m_Logger);
 			virtual ~CNvDecodeD3D9();
+
+            virtual CORE::tenSubModule SubModulType() Q_DECL_OVERRIDE;
+            virtual CORE::tstModuleVersion ModulVersion() Q_DECL_OVERRIDE;
+            virtual tenStatus Initialise(CORE::tstInitialiseControlStruct * InitialiseControlStruct) Q_DECL_OVERRIDE;
+            virtual tenStatus DoRender(CORE::tstControlStruct * ControlStruct) Q_DECL_OVERRIDE;
+            virtual tenStatus Deinitialise(CORE::tstDeinitialiseControlStruct *DeinitialiseControlStruct) Q_DECL_OVERRIDE;
+
 
 			protected:
 				std::shared_ptr<spdlog::logger> m_Logger;

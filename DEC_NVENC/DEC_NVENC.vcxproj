@@ -142,12 +142,11 @@
     <ClInclude Include="..\Common_NVENC\inc\dynlink_cuda.h" />
     <ClInclude Include="..\Common_NVENC\inc\dynlink_nvcuvid.h" />
     <ClInclude Include="cudaProcessFrame.h" />
-    <ClInclude Include="DEC_CudaInterop.hpp" />
     <ClInclude Include="DEC_NVENC_inputs.h" />
     <ClInclude Include="FrameQueue.h" />
     <ClInclude Include="ImageDX.h" />
     <ClInclude Include="ModuleFactory.hpp" />
-    <ClInclude Include="NvDecodeD3D9.h" />
+    <ClInclude Include="DEC_NvDecodeD3D9.hpp" />
     <ClInclude Include="VideoDecoder.h" />
     <ClInclude Include="VideoParser.h" />
   </ItemGroup>
@@ -162,13 +161,11 @@
     <ClCompile Include="..\Common_NVENC\src\dynlink_cuda.cpp" />
     <ClCompile Include="..\Common_NVENC\src\dynlink_nvcuvid.cpp" />
     <ClCompile Include="cudaProcessFrame.cpp" />
-    <ClCompile Include="DEC_CudaInterop.cpp" />
     <ClCompile Include="FrameQueue.cpp" />
     <ClCompile Include="ImageDX.cpp" />
-    <ClCompile Include="moc_DEC_CudaInterop.cpp" />
     <ClCompile Include="moc_ModuleFactory.cpp" />
     <ClCompile Include="ModuleFactory.cpp" />
-    <ClCompile Include="NvDecodeD3D9.cpp" />
+    <ClCompile Include="DEC_NvDecodeD3D9.cpp" />
     <ClCompile Include="VideoDecoder.cpp" />
     <ClCompile Include="VideoParser.cpp" />
   </ItemGroup>
