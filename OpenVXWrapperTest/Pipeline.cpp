@@ -224,12 +224,12 @@ int CPipeline::RunPipeline()
             RW::DEC::tstMyInitialiseControlStruct decodeInitCtrl;
             {
                 decodeInitCtrl.inputParams = new RW::DEC::tstInputParams();
-                decodeInitCtrl.inputParams->Height = //1080;
+                decodeInitCtrl.inputParams->nVideoHeight = //1080;
                     videoGrabberInitialiseControlStruct.nFrameHeight;
-                decodeInitCtrl.inputParams->Width = //1920;
+                decodeInitCtrl.inputParams->nVideoWidth = //1920;
                     videoGrabberInitialiseControlStruct.nFrameWidth;
-                decodeInitCtrl.inputParams->fourcc = MFX_FOURCC_RGB4;
-                decodeInitCtrl.inputParams->memType = RW::DEC::D3D9_MEMORY;
+                //decodeInitCtrl.inputParams->fourcc = MFX_FOURCC_RGB4;
+                //decodeInitCtrl.inputParams->memType = RW::DEC::D3D9_MEMORY;
             }
             RW::DEC::tstMyControlStruct decodeCtrl;
             {
@@ -252,8 +252,8 @@ int CPipeline::RunPipeline()
                 sizeof(RW::DEC::tstMyControlStruct),
                 &decodeDeinitCtrl,
                 sizeof(RW::DEC::tstMyDeinitialiseControlStruct),
-                RW::CORE::tenSubModule::nenDecoder_INTEL) != RW::tenStatus::nenSuccess)
-                file_logger->error("nenDecoder_INTEL couldn't build correct");
+                RW::CORE::tenSubModule::nenDecoder_NVIDIA) != RW::tenStatus::nenSuccess)
+                file_logger->error("nenDecoder_NVIDIA couldn't build correct");
 
             RW::VPL::tstMyInitialiseControlStruct playerInitCtrl;
             {

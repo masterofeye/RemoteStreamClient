@@ -61,12 +61,13 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>TRACE_PERFORMANCE;_WINDOWS;UNICODE;WIN32;WIN64;QT_PLUGIN;QT_GUI_LIB;QT_CORE_LIB;NV_WINDOWS;_MBCS;;INIT_CUDA_D3D9;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\tool\RemotePkg\CUDA\CUDAToolkit\include;..\Common_NVENC\inc;C:\Projekte\RemoteStreamClient\Common_NVENC\inc;..\Intel_common\include;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(INTELMEDIASDKROOT)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>TRACE_PERFORMANCE;_WINDOWS;UNICODE;WIN32;WIN64;QT_PLUGIN;QT_GUI_LIB;QT_CORE_LIB;NV_WINDOWS;_MBCS;INIT_CUDA_D3D9;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\tool\RemotePkg\CUDA\CUDAToolkit\include;..\Common_NVENC\inc;..\Intel_common\include;$(DXSDK_DIR)\Include;$(INTELMEDIASDKROOT)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ExceptionHandling>Sync</ExceptionHandling>
       <AdditionalUsingDirectories>
       </AdditionalUsingDirectories>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MultiProcessorCompilation>
+      </MultiProcessorCompilation>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <FunctionLevelLinking>
@@ -144,7 +145,6 @@
     <ClInclude Include="cudaProcessFrame.h" />
     <ClInclude Include="DEC_NVENC_inputs.h" />
     <ClInclude Include="FrameQueue.h" />
-    <ClInclude Include="ImageDX.h" />
     <ClInclude Include="ModuleFactory.hpp" />
     <ClInclude Include="DEC_NvDecodeD3D9.hpp" />
     <ClInclude Include="VideoDecoder.h" />
@@ -162,7 +162,6 @@
     <ClCompile Include="..\Common_NVENC\src\dynlink_nvcuvid.cpp" />
     <ClCompile Include="cudaProcessFrame.cpp" />
     <ClCompile Include="FrameQueue.cpp" />
-    <ClCompile Include="ImageDX.cpp" />
     <ClCompile Include="moc_DEC_NvDecodeD3D9.cpp" />
     <ClCompile Include="moc_ModuleFactory.cpp" />
     <ClCompile Include="ModuleFactory.cpp" />

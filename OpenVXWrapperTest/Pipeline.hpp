@@ -9,15 +9,16 @@
 #include "ModuleLoader.hpp"
 
 /*Modules*/
-#include "Plugin1.hpp"
 #include "GraphBuilder.h"
 #include "ENC_CudaInterop.hpp"
 #include "VideoGrabberSimu.hpp"
 #include "IMP_CropFrames.hpp"
 #include "IMP_MergeFrames.hpp"
 #include "IMP_ConvColorFrames.hpp"
-#include "DEC_Intel.hpp"
-#include "DEC_inputs.h"
+//#include "DEC_Intel.hpp"
+//#include "DEC_inputs.h"
+#include "DEC_NvDecodeD3D9.hpp"
+#include "DEC_NVENC_inputs.h"
 #include "VPL_FrameProcessor.hpp"
 #include "VPL_Viewer.hpp"
 

@@ -90,10 +90,12 @@ namespace RW{
                                 }
                                 break;
 							case tenModule::enDecoder:
-								module = moduleFactory->Module(tenSubModule::nenDecoder_INTEL);
-								if (module == nullptr)
-									m_Logger->error("Intel Decode module coudn't load correct.");
-                                m_Logger->debug("nenDecoder_INTEL loaded");
+								module = moduleFactory->Module(tenSubModule::nenDecoder_NVIDIA);
+                                //module = moduleFactory->Module(tenSubModule::nenDecoder_INTEL);
+                                if (module == nullptr)
+									m_Logger->error("Decode module coudn't load correct.");
+                                m_Logger->debug("nenDecoder_NVIDIA loaded");
+                                //m_Logger->debug("nenDecoder_INTEL loaded");
                                 Pluginlist->append(module);
 								break;
 							case tenModule::enPlayback:

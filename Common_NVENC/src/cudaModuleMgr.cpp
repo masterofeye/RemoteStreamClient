@@ -44,20 +44,10 @@ bool modInitCTX(sCtxModule *pCtx, const char *filename, const char *exec_path, i
     pCtx->mModuleName    = filename;
 
     CUresult cuStatus;
-    string module_path;
+    string module_path = exec_path;
+    string ptxfile = pCtx->mModuleName;
+    module_path.append(ptxfile.c_str());
     string ptx_source;
-
-    char *actual_path = sdkFindFilePath(pCtx->mModuleName.c_str(), exec_path);
-
-    if (actual_path)
-    {
-        module_path = actual_path;
-    }
-    else
-    {
-        printf(">> modInitCTX() <%36s> not found!\n", pCtx->mModuleName.c_str());
-        return false;
-    }
 
     if (module_path.empty())
     {

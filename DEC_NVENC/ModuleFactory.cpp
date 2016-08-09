@@ -1,5 +1,5 @@
 #include "ModuleFactory.hpp"
-
+#include "DEC_NvDecodeD3D9.hpp"
 
 namespace RW
 {
@@ -21,7 +21,9 @@ namespace RW
 			switch (enModule)
 			{
 			case CORE::tenSubModule::nenDecoder_NVIDIA:
-				status = tenStatus::nenSuccess;
+                Module = new DEC::CNvDecodeD3D9(m_Logger);
+                if (Module != nullptr)
+                    status = tenStatus::nenSuccess;
 				break;
 			default:
 				//TODO Status can't find module

@@ -7,7 +7,8 @@
 #include "../Common_NVENC/inc/nvFileIO.h"
 #include "../Common_NVENC/inc/helper_string.h"
 #include "../Common_NVENC/inc/dynlink_builtin_types.h"
-#include "../DEC_Intel/DEC_Intel.hpp"
+//#include "../DEC_Intel/DEC_Intel.hpp"
+#include "../DEC_NVENC/DEC_NvDecodeD3D9.hpp"
 
 #ifdef TRACE_PERFORMANCE
 #include "HighResolution\HighResClock.h"

@@ -87,7 +87,7 @@ ImageDX::registerAsCudaResource(int field_num)
 void
 ImageDX::unregisterAsCudaResource(int field_num)
 {
-    CUresult result = cuCtxPushCurrent(oContext_);
+    checkCudaErrors(cuCtxPushCurrent(oContext_));
     checkCudaErrors(cuD3D9UnregisterResource(pTexture_[field_num]));
     bIsCudaResource_ = false;
     cuCtxPopCurrent(NULL);
@@ -127,7 +127,7 @@ ImageDX::map(CUdeviceptr *ppImageData, size_t *pImagePitch, int active_field)
 }
 
 void
-ImageDX::unmap(int active_field)
+ImageDX::unmap()
 {
     int nFrames = bIsProgressive_ ? 1 : 2;
 
@@ -154,7 +154,7 @@ ImageDX::clear(unsigned char nClearColor)
         assert(0 != nSize);
 
         // clear the surface to solid white
-        checkCudaErrors(cuMemsetD8(pData, nClearColor, nSize));
+        checkCudaErrors(cuMemsetD8(pData, nClearColor, (unsigned int)nSize));
     }
 
     checkCudaErrors(cuD3D9UnmapResources(nFrames, (IDirect3DResource9 **)&pTexture_));

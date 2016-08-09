@@ -74,7 +74,7 @@ class ImageDX
         map(CUdeviceptr *ppImageData, size_t *pImagePitch, int active_field = 0);
 
         void
-        unmap(int active_field = 0);
+        unmap();
 
         // Clear the image.
         // Parameters:
