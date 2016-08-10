@@ -170,10 +170,10 @@ int CPipeline::RunPipeline()
             {
                 encodeControlStruct.pcuYUVArray = impColorControlStruct.pOutput->_pcuYUV420;
                 encodeControlStruct.pPayload = new RW::tstBitStream();
-                tstPayloadMsg Msg;
+                RW::tstPayloadMsg Msg;
                 Msg.u32Timestamp = videoGrabberControlStruct.nCurrentPositionMSec;
                 Msg.u32FrameNbr = videoGrabberControlStruct.nCurrentFrameNumber;
-                encodeControlStruct.pPayload->u32Size = sizeof(stPayloadMsg);
+                encodeControlStruct.pPayload->u32Size = sizeof(RW::stPayloadMsg);
                 encodeControlStruct.pPayload->pBuffer = (uint8_t*)&Msg;
                 encodeControlStruct.pstBitStream = new RW::tstBitStream;
             }

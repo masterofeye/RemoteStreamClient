@@ -38,16 +38,6 @@ typedef struct stPipelineParams
 
 }tstPipelineParams;
 
-typedef struct stPayloadMsg
-{
-    uint32_t u32Timestamp;
-    uint32_t u32FrameNbr;
-    uint8_t  u8CANSignal1;
-    uint8_t  u8CANSignal2;
-    uint8_t  u8CANSignal3;
-}tstPayloadMsg;
-
-
 class CPipeline : public QObject
 {
     Q_OBJECT

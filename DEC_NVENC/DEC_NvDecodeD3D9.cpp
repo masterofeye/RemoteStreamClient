@@ -36,18 +36,10 @@ namespace RW
         CNvDecodeD3D9::CNvDecodeD3D9(std::shared_ptr<spdlog::logger> Logger) :
             RW::CORE::AbstractModule(Logger)
 		{
-			g_DeviceID = 0;
-			g_bDeviceLost = false;
-			g_bUseVsync = false;
-			g_bFrameRepeat = false;
-			g_bFrameStep = false;
-			g_bQAReadback = false;
 			g_bFirstFrame = true;
-			g_bLoop = false;
 			g_bUpdateCSC = true;
 			g_bUpdateAll = false;
 			g_bUseDisplay = true; 
-			g_bUseInterop = true;
 			g_bIsProgressive = true;
 			g_bException = false;
 			g_bWaived = false;
@@ -55,7 +47,6 @@ namespace RW
 			g_iRepeatFactor = 1; 
 
 			g_CtxLock = NULL;
-			total_time = 0.0f;
 
 			cuModNV12toARGB = 0;
 			g_kernelNV12toARGB = 0;
@@ -78,16 +69,10 @@ namespace RW
 			g_pInteropFrame[0] = { 0 };
 			g_pInteropFrame[1] = { 1 };
 
-			g_nWindowWidth = 0;
-			g_nWindowHeight = 0;
-
 			g_nVideoWidth = 0;
 			g_nVideoHeight = 0;
 
-			g_FrameCount = 0;
 			g_DecodeFrameCount = 0;
-			g_fpsCount = 0;      
-			g_fpsLimit = 16;   
 
 		}
 
@@ -147,7 +132,7 @@ namespace RW
             cuResult = cuInit(0, __CUDA_API_VERSION, hHandleDriver);
             cuResult = cuvidInit(0);
 
-            if (!g_bUseInterop && g_eVideoCreateFlags == cudaVideoCreate_PreferDXVA)
+            if (g_eVideoCreateFlags == cudaVideoCreate_PreferDXVA)
             {
                 // preferDXVA will not work with -nointerop mode. Overwrite it.
                 g_eVideoCreateFlags = cudaVideoCreate_PreferCUVID;
@@ -189,24 +174,24 @@ namespace RW
                 return tenStatus::nenError;
             }
 
-            /////////////////Change///////////////////////////
-            // Now we create the CUDA resources and the CUDA decoder context
-            initCudaVideo(data->pstEncodedStream);
-
-            checkCudaErrors(cuMemAlloc(&g_pInteropFrame[0], g_pVideoDecoder->targetWidth() * g_pVideoDecoder->targetHeight() * 2));
-            checkCudaErrors(cuMemAlloc(&g_pInteropFrame[1], g_pVideoDecoder->targetWidth() * g_pVideoDecoder->targetHeight() * 2));
-
-            CUcontext cuCurrent = NULL;
-            CUresult result = cuCtxPopCurrent(&cuCurrent);
-
-            if (result != CUDA_SUCCESS)
-            {
-                printf("cuCtxPopCurrent: %d\n", result);
-                assert(0);
-            }
+            // instead of cuvidCreateVideoSource in loadVideoSource use cuvidParseVideoData: 
+            CUVIDSOURCEDATAPACKET packet;
+            memset(&packet, 0, sizeof(CUVIDSOURCEDATAPACKET));
+            packet.payload_size = data->pstEncodedStream->u32Size;
+            packet.payload = (unsigned char*)data->pstEncodedStream->pBuffer;
+            RW::tstPayloadMsg *plMsg = (RW::tstPayloadMsg *)data->pPayload->pBuffer;
+            packet.flags = CUVID_PKT_TIMESTAMP;
+            packet.timestamp = plMsg->u32Timestamp;
+            checkCudaErrors(cuvidParseVideoData(g_pVideoParser, &packet));
 
             /////////////////////////////////////////
             enStatus = (g_pCudaModule && g_pVideoDecoder && g_pInteropFrame[0]) ? tenStatus::nenSuccess : tenStatus::nenError;
+
+            // On this case we drive the display with a while loop (no openGL calls)
+            while (!g_pFrameQueue->isEndOfDecode() && !g_pFrameQueue->isEmpty())
+            {
+                renderVideoFrame();
+            }
 
             CUdeviceptr dummy;
             size_t pitch;
@@ -215,12 +200,14 @@ namespace RW
             data->pOutput->u32Size = 4 * g_nVideoWidth*g_nVideoHeight * 1;
 
             cuMemFree(dummy);
-            // On this case we drive the display with a while loop (no openGL calls)
-            while (!g_bDone)
-            {
-                renderVideoFrame();
+            if (data->pstEncodedStream->pBuffer){
+                delete(data->pstEncodedStream->pBuffer);
+                data->pstEncodedStream->pBuffer = nullptr;
             }
-
+            if (plMsg){
+                delete(plMsg);
+                plMsg = nullptr;
+            }
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
             m_Logger->trace() << "DEC_CudaInterop::DoRender: Time to DoRender for nenDecoder_NVIDIA module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
@@ -238,6 +225,8 @@ namespace RW
             g_pFrameQueue->endDecode();
             //g_pVideoSource->stop();
 
+            cleanup(g_bWaived ? false : true);
+
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
             m_Logger->trace() << "DEC_CudaInterop::Deinitialise: Time to Deinitialise for nenDecoder_NVIDIA module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
@@ -245,7 +234,7 @@ namespace RW
             return tenStatus::nenSuccess;
         }
 
-		void CNvDecodeD3D9::initCudaVideo(RW::tstBitStream *encodedStream)
+		void CNvDecodeD3D9::initCudaVideo()
 		{
 			// bind the context lock to the CUDA context
 			CUresult result = cuvidCtxLockCreate(&g_CtxLock, g_oContext);
@@ -256,8 +245,12 @@ namespace RW
 				assert(0);
 			}
 
+            std::auto_ptr<FrameQueue> apFrameQueue(new FrameQueue);
+            g_pFrameQueue = apFrameQueue.release();
+
             // Create CUVIDEOFORMAT oFormat manually (needs to be filled by config inputs ...):
             CUVIDEOFORMAT oFormat;
+            memset(&oFormat, 0, sizeof(CUVIDEOFORMAT));
             oFormat.codec = cudaVideoCodec_enum::cudaVideoCodec_H264;
             oFormat.progressive_sequence = 1;
             oFormat.coded_width = g_nVideoWidth;
@@ -267,30 +260,18 @@ namespace RW
             oFormat.display_area.right = g_nVideoWidth;
             oFormat.display_area.bottom = g_nVideoHeight;
             oFormat.chroma_format = cudaVideoChromaFormat_420;
-            oFormat.display_aspect_ratio.x = g_nWindowWidth;
-            oFormat.display_aspect_ratio.y = g_nWindowHeight;
+            oFormat.display_aspect_ratio.x = g_nVideoWidth;
+            oFormat.display_aspect_ratio.y = g_nVideoHeight;
             oFormat.video_signal_description.video_format = 5;
             oFormat.video_signal_description.color_primaries = 2;
             oFormat.video_signal_description.transfer_characteristics = 2;
             oFormat.video_signal_description.matrix_coefficients = 2;
 
 			std::auto_ptr<VideoDecoder> apVideoDecoder(new VideoDecoder(oFormat, g_oContext, g_eVideoCreateFlags, g_CtxLock));
-
-            std::auto_ptr<FrameQueue> apFrameQueue(new FrameQueue);
-            g_pFrameQueue = apFrameQueue.release();
-
 			std::auto_ptr<VideoParser> apVideoParser(new VideoParser(apVideoDecoder.get(), g_pFrameQueue));
-            //g_pVideoSource->setParser(*apVideoParser.get()); 
-
+            
 			g_pVideoParser = apVideoParser.release();
 			g_pVideoDecoder = apVideoDecoder.release();
-
-            //instead of cuvidCreateVideoSource in loadVideoSource use cuvidParseVideoData: 
-            CUVIDSOURCEDATAPACKET packet = {};
-            packet.payload_size = encodedStream->u32Size;
-            packet.payload = (unsigned char*)encodedStream->pBuffer;
-            //packet.timestamp = ...
-            checkCudaErrors(cuvidParseVideoData(g_pVideoParser, &packet));
 
             // Create a Stream ID for handling Readback
 			if (g_bReadback)
@@ -535,11 +516,7 @@ namespace RW
 
 			if (0 != g_pFrameQueue)
 			{
-				// if not running, we simply don't copy new frames from the decoder
-				if (!g_bDeviceLost)
-				{
-					bFramesDecoded = copyDecodedFrameToTexture(nRepeatFrame, &bIsProgressive);
-				}
+				bFramesDecoded = copyDecodedFrameToTexture(nRepeatFrame, &bIsProgressive);
 			}
 			else
 			{
@@ -590,8 +567,24 @@ namespace RW
 			g_pCudaModule->GetCudaFunction("NV12ToARGB_drvapi", &g_kernelNV12toARGB);
 			g_pCudaModule->GetCudaFunction("Passthru_drvapi", &g_kernelPassThru);
 
-			/////////////////////////////////////////
-			return (g_pCudaModule ? S_OK : E_FAIL);
-		}
+            /////////////////Change///////////////////////////
+            // Now we create the CUDA resources and the CUDA decoder context
+            initCudaVideo();
+
+            checkCudaErrors(cuMemAlloc(&g_pInteropFrame[0], g_pVideoDecoder->targetWidth() * g_pVideoDecoder->targetHeight() * 2));
+            checkCudaErrors(cuMemAlloc(&g_pInteropFrame[1], g_pVideoDecoder->targetWidth() * g_pVideoDecoder->targetHeight() * 2));
+
+            CUcontext cuCurrent = NULL;
+            CUresult result = cuCtxPopCurrent(&cuCurrent);
+
+            if (result != CUDA_SUCCESS)
+            {
+                printf("cuCtxPopCurrent: %d\n", result);
+                assert(0);
+            }
+
+            /////////////////////////////////////////
+            return ((g_pCudaModule && g_pVideoDecoder) ? S_OK : E_FAIL);
+        }
 	}
 }

@@ -51,23 +51,10 @@ namespace RW
 #define ENABLE_DEBUG_OUT    0
 #endif
 
-			//StopWatchInterface *frame_timer;
-			//StopWatchInterface *global_timer;
-
-			int                 g_DeviceID;
-			bool                g_bWindowed;
-			bool                g_bDeviceLost;
-			bool                g_bUseVsync;
-			bool                g_bFrameRepeat;
-			bool                g_bFrameStep;
-			bool                g_bQAReadback;
 			bool                g_bFirstFrame;
-            bool                g_bDone;
-			bool                g_bLoop;
 			bool                g_bUpdateCSC;
 			bool                g_bUpdateAll;
 			bool                g_bUseDisplay; // this flag enables/disables video on the window
-			bool                g_bUseInterop;
 			bool                g_bReadback; // this flag enables/disables reading back of a video from a window
 			bool                g_bWriteFile; // this flag enables/disables writing of a file
 			bool                g_bIsProgressive; // assume it is progressive, unless otherwise noted
@@ -78,8 +65,6 @@ namespace RW
 
 			cudaVideoCreateFlags g_eVideoCreateFlags = cudaVideoCreate_PreferCUVID;
 			CUvideoctxlock       g_CtxLock;
-
-			float present_fps, decoded_fps, total_time;
 
 			// These are CUDA function pointers to the CUDA kernels
 			CUmoduleManager   *g_pCudaModule;
@@ -106,18 +91,12 @@ namespace RW
 			//ImageDX       *g_pImageDX = 0;
 			CUdeviceptr    g_pInteropFrame[2]; // if we're using CUDA malloc
 
-			unsigned int g_nWindowWidth;
-			unsigned int g_nWindowHeight;
-
 			unsigned int g_nVideoWidth;
 			unsigned int g_nVideoHeight;
 
-			unsigned int g_FrameCount;
 			unsigned int g_DecodeFrameCount;
-			unsigned int g_fpsCount;      // FPS count for averaging
-			unsigned int g_fpsLimit;     // FPS limit for sampling timer;
 
-			void initCudaVideo(RW::tstBitStream *encodedStream);
+			void initCudaVideo();
 
 			void freeCudaResources(bool bDestroyContext);
 
