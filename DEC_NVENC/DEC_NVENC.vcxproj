@@ -138,10 +138,13 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\Tool\RemotePkg\NVENC\Samples\NvDecodeD3D9\VideoSource.h" />
     <ClInclude Include="..\Common_NVENC\inc\cudaModuleMgr.h" />
     <ClInclude Include="..\Common_NVENC\inc\dynlink_cuda.h" />
+    <ClInclude Include="..\Common_NVENC\inc\dynlink_cuviddec.h" />
     <ClInclude Include="..\Common_NVENC\inc\dynlink_nvcuvid.h" />
+    <ClInclude Include="..\Common_NVENC\inc\exception.h" />
+    <ClInclude Include="..\Common_NVENC\inc\helper_cuda.h" />
+    <ClInclude Include="..\Common_NVENC\inc\helper_cuda_drvapi.h" />
     <ClInclude Include="cudaProcessFrame.h" />
     <ClInclude Include="DEC_NVENC_inputs.h" />
     <ClInclude Include="FrameQueue.h" />
@@ -156,7 +159,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\Tool\RemotePkg\NVENC\Samples\NvDecodeD3D9\VideoSource.cpp" />
     <ClCompile Include="..\Common_NVENC\src\cudaModuleMgr.cpp" />
     <ClCompile Include="..\Common_NVENC\src\dynlink_cuda.cpp" />
     <ClCompile Include="..\Common_NVENC\src\dynlink_nvcuvid.cpp" />

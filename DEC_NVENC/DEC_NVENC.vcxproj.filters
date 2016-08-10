@@ -18,9 +18,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\Tool\RemotePkg\NVENC\Samples\NvDecodeD3D9\VideoSource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="FrameQueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -51,12 +48,21 @@
     <ClInclude Include="DEC_NvDecodeD3D9.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\Common_NVENC\inc\dynlink_cuviddec.h">
+      <Filter>Common_NVENC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common_NVENC\inc\exception.h">
+      <Filter>Common_NVENC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common_NVENC\inc\helper_cuda.h">
+      <Filter>Common_NVENC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common_NVENC\inc\helper_cuda_drvapi.h">
+      <Filter>Common_NVENC</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ModuleFactory.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Tool\RemotePkg\NVENC\Samples\NvDecodeD3D9\VideoSource.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="FrameQueue.cpp">

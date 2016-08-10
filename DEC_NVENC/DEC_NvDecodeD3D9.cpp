@@ -180,15 +180,16 @@ namespace RW
             packet.payload_size = data->pstEncodedStream->u32Size;
             packet.payload = (unsigned char*)data->pstEncodedStream->pBuffer;
             RW::tstPayloadMsg *plMsg = (RW::tstPayloadMsg *)data->pPayload->pBuffer;
-            packet.flags = CUVID_PKT_TIMESTAMP;
-            packet.timestamp = plMsg->u32Timestamp;
-            checkCudaErrors(cuvidParseVideoData(g_pVideoParser, &packet));
+            packet.flags = CUVID_PKT_ENDOFSTREAM;
+            CUresult oResult = cuvidParseVideoData(g_pVideoParser->hParser_, &packet);
+            if ((packet.flags & CUVID_PKT_ENDOFSTREAM) || (oResult != CUDA_SUCCESS))
+                g_pFrameQueue->endDecode();
 
             /////////////////////////////////////////
             enStatus = (g_pCudaModule && g_pVideoDecoder && g_pInteropFrame[0]) ? tenStatus::nenSuccess : tenStatus::nenError;
 
             // On this case we drive the display with a while loop (no openGL calls)
-            while (!g_pFrameQueue->isEndOfDecode() && !g_pFrameQueue->isEmpty())
+            while (!g_pFrameQueue->isEmpty())
             {
                 renderVideoFrame();
             }
@@ -200,14 +201,16 @@ namespace RW
             data->pOutput->u32Size = 4 * g_nVideoWidth*g_nVideoHeight * 1;
 
             cuMemFree(dummy);
-            if (data->pstEncodedStream->pBuffer){
-                delete(data->pstEncodedStream->pBuffer);
-                data->pstEncodedStream->pBuffer = nullptr;
-            }
-            if (plMsg){
-                delete(plMsg);
-                plMsg = nullptr;
-            }
+
+            //FILE *pFile;
+            //pFile = fopen("C:\\dummy\\dummy.raw", "wb");
+            //fwrite(data->pOutput->pBuffer, 1, data->pOutput->u32Size, pFile);
+            //fclose(pFile);
+
+            //if (data->pstEncodedStream){
+            //    delete(data->pstEncodedStream);
+            //    data->pstEncodedStream = nullptr;
+            //}
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
             m_Logger->trace() << "DEC_CudaInterop::DoRender: Time to DoRender for nenDecoder_NVIDIA module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";

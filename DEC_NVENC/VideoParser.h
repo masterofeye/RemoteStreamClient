@@ -40,6 +40,7 @@ class VideoParser
         //      pFrameQueue - pointer to a valid FrameQueue object. The FrameQueue is used
         //          by  the parser-callbacks to store decoded frames in it.
         VideoParser(VideoDecoder *pVideoDecoder, FrameQueue *pFrameQueue);
+        CUvideoparser   hParser_;       // handle to the CUDA video-parser
 
     private:
         // Struct containing user-data to be passed by parser-callbacks.
@@ -85,7 +86,6 @@ class VideoParser
 
 
         VideoParserData oParserData_;   // instance of the user-data we have passed into the parser-callbacks.
-        CUvideoparser   hParser_;       // handle to the CUDA video-parser
 
         friend class VideoSource;
 };
