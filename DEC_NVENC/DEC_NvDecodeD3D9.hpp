@@ -55,8 +55,6 @@ namespace RW
 			bool                g_bUpdateCSC;
 			bool                g_bUpdateAll;
 			bool                g_bUseDisplay; // this flag enables/disables video on the window
-			bool                g_bReadback; // this flag enables/disables reading back of a video from a window
-			bool                g_bWriteFile; // this flag enables/disables writing of a file
 			bool                g_bIsProgressive; // assume it is progressive, unless otherwise noted
 			bool                g_bException;
 			bool                g_bWaived;
@@ -82,14 +80,14 @@ namespace RW
 			float              g_nHue;
 
 			// System Memory surface we want to readback to
-			BYTE          *g_pFrameYUV[4];
+			BYTE          *g_pFrameYUV;
 			FrameQueue    *g_pFrameQueue;
 			//VideoSource   *g_pVideoSource;
 			VideoParser   *g_pVideoParser;
 			VideoDecoder  *g_pVideoDecoder;
 
 			//ImageDX       *g_pImageDX = 0;
-			CUdeviceptr    g_pInteropFrame[2]; // if we're using CUDA malloc
+			//CUdeviceptr    g_pInteropFrame[2]; // if we're using CUDA malloc
 
 			unsigned int g_nVideoWidth;
 			unsigned int g_nVideoHeight;
