@@ -75,8 +75,8 @@ namespace RW{
             int   numB;                      //Specify number of B frame
             int   pictureStruct;             //valid parameters: NV_ENC_PIC_STRUCT_FRAME or NV_ENC_PIC_STRUCT_FIELD_TOP_BOTTOM or NV_ENC_PIC_STRUCT_FIELD_BOTTOM_TOP
             int   deviceID;                  // consecutive number, has to be <= deviceCount
-            char*encoderPreset;             // possible values: "hq" "lowLatencyHP" "lowLatencyHQ" "lossless"
-            int		enableMEOnly;              //valid parameters: 0 or 1 or 2
+            char *encoderPreset;             // possible values: "hq" "lowLatencyHP" "lowLatencyHQ" "lossless"
+            int	  enableMEOnly;              //valid parameters: 0 or 1 or 2
 
             _EncodeConfig() : width(0), height(0), maxWidth(0), maxHeight(0), 
                 uBitstreamBufferSize(2*1024*1024), fps(30), bitrate(5000000), vbvMaxBitrate(0), vbvSize(0),

@@ -88,6 +88,14 @@ namespace RW{
                                     m_Logger->debug("nenGraphic_Merge loaded");
                                     Pluginlist->append(module);
                                 }
+                                module = moduleFactory->Module(tenSubModule::nenGraphic_ColorYUV420ToRGB);
+                                if (module == nullptr)
+                                    m_Logger->error("nenGraphic_Merge module coudn't load correct.");
+                                else
+                                {
+                                    m_Logger->debug("nenGraphic_Merge loaded");
+                                    Pluginlist->append(module);
+                                }
                                 break;
 							case tenModule::enDecoder:
 								module = moduleFactory->Module(tenSubModule::nenDecoder_NVIDIA);

@@ -51,6 +51,7 @@ namespace RW
 #define ENABLE_DEBUG_OUT    0
 #endif
 
+            cudaVideoCodec      g_codec;
 			bool                g_bFirstFrame;
 			bool                g_bException;
 			bool                g_bWaived;

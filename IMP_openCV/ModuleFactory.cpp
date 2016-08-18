@@ -2,7 +2,7 @@
 #include "IMP_CropFrames.hpp"
 #include "IMP_ConvColorFrames.hpp"
 #include "IMP_MergeFrames.hpp"
-//#include "IMP.h"
+#include "IMP_ConvColorFramesYUV420ToRGB.hpp"
 
 
 namespace RW{
@@ -37,7 +37,12 @@ namespace RW{
 				if (Module != nullptr)
 					status = tenStatus::nenSuccess;
 				break;
-			default:
+            case CORE::tenSubModule::nenGraphic_ColorYUV420ToRGB:
+                Module = new IMP::COLOR_YUV420TORGB::IMP_ConvColorFramesYUV420ToRGB(m_Logger);
+                if (Module != nullptr)
+                    status = tenStatus::nenSuccess;
+                break;
+            default:
 				//TODO Status can't find module
 				status = tenStatus::nenError;
 				break;

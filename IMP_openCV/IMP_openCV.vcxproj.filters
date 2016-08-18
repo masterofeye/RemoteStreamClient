@@ -28,6 +28,12 @@
     <ClCompile Include="ModuleFactory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="IMP_ConvColorFramesYUV420ToRGB.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="moc_IMP_ConvColorFramesYUV420ToRGB.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IMP_Base.h">
@@ -48,6 +54,9 @@
     <ClInclude Include="IMP.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="IMP_ConvColorFramesYUV420ToRGB.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
@@ -61,6 +70,7 @@
     <None Include="IMP.json" />
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="IMP_CopyTo420.cu" />
+    <CudaCompile Include="IMP_420To444.cu" />
+    <CudaCompile Include="IMP_444To420.cu" />
   </ItemGroup>
 </Project>

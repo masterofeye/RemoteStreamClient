@@ -245,17 +245,20 @@ namespace RW
             }
 			catch (std::bad_alloc &e)
 			{
+                const char* dummy = e.what();
 				kernel->Logger()->critical("Bad memory allocation during some_function: ") << e.what();
 				status = VX_FAILURE;
 			}
 			catch (std::runtime_error &e)
 			{
-				kernel->Logger()->critical("Runtime error during some_function: ") << e.what();
+                const char* dummy = e.what();
+                kernel->Logger()->critical("Runtime error during some_function: ") << e.what();
 				status = VX_FAILURE;
 			}
 			catch (std::exception e)
 			{
-				kernel->Logger()->critical("Exception error during some_function: ") << e.what();
+                const char* dummy = e.what();
+                kernel->Logger()->critical("Exception error during some_function: ") << e.what();
 				status = VX_FAILURE;
 			}
 			catch (...)

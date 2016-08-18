@@ -32,8 +32,6 @@ namespace RW{
             bool    bUseHWLib;        // Default: false. Use hardware acceleration lib
 
             mfxU32  fourcc;           // Default: MFX_FOURCC_RGB4. Output format parameters (MFX_FOURCC_NV12 or MFX_FOURCC_RGB4 or MFX_FOURCC_P010 or MFX_FOURCC_A2RGB10)
-            //mfxU32  nFrames;          // Default: 1. Number of Frames
-            mfxU32  nMaxFPS;          // rendering limited by certain fps
             sPluginParams pluginParams;
 
             stInputParams() : videoType(MFX_CODEC_AVC), bLowLat(true), bCalLat(true), bUseHWLib(false), memType(SYSTEM_MEMORY),

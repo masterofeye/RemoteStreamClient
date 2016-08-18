@@ -15,17 +15,11 @@ namespace RW
 		typedef struct stInputParams
 		{
 			cudaVideoCreateFlags eVideoCreateFlags;
-			bool bUseVsync;
-			bool bFrameRepeat;
-			int  iRepeatFactor;
-			bool bFrameStep;
-			bool bUseDisplay;
-			bool bUseInterop;
-			unsigned int fpsLimit;
-            unsigned int nVideoWidth;
-            unsigned int nVideoHeight;
+            unsigned int nWidth;
+            unsigned int nHeight;
+            cudaVideoCodec codec;
 
-            stInputParams() : eVideoCreateFlags(cudaVideoCreateFlags_enum::cudaVideoCreate_PreferCUDA), bFrameRepeat(false), bUseVsync(false), bFrameStep(false), bUseDisplay(true), bUseInterop(true), nVideoHeight(0), nVideoWidth(0) {}
+            stInputParams() : eVideoCreateFlags(cudaVideoCreateFlags_enum::cudaVideoCreate_PreferCUDA), nHeight(0), nWidth(0), codec(cudaVideoCodec_enum::cudaVideoCodec_H264) {}
 			~stInputParams(){}
 		}tstInputParams;
 	}

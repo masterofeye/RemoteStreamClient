@@ -19,6 +19,7 @@
 //#include "DEC_inputs.h"
 #include "DEC_NvDecodeD3D9.hpp"
 #include "DEC_NVENC_inputs.h"
+#include "IMP_ConvColorFramesYUV420ToRGB.hpp"
 #include "VPL_FrameProcessor.hpp"
 #include "VPL_Viewer.hpp"
 

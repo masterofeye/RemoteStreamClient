@@ -1,5 +1,5 @@
 #include "DEC_NvDecodeD3D9.hpp"
-#include "..\VPL_QT\VPL_FrameProcessor.hpp"
+#include "..\..\IMP_openCV\IMP_ConvColorFramesYUV420ToRGB.hpp"
 
 #if defined(WIN32) || defined(_WIN32) || defined(WIN64) || defined(_WIN64)
 #define WINDOWS_LEAN_AND_MEAN
@@ -72,8 +72,8 @@ namespace RW
             {
             case RW::CORE::tenSubModule::nenPlayback_Simple:
             {
-                RW::VPL::tstMyControlStruct *data = static_cast<RW::VPL::tstMyControlStruct*>(*Data);
-                data->pstBitStream = this->pOutput;
+                RW::IMP::COLOR_YUV420TORGB::tstMyControlStruct *data = static_cast<RW::IMP::COLOR_YUV420TORGB::tstMyControlStruct*>(*Data);
+                data->pInput = this->pOutput;
                 break;
             }
             default:
@@ -108,8 +108,9 @@ namespace RW
                 return tenStatus::nenError;
             }
 
-            g_nVideoWidth = data->inputParams->nVideoWidth;
-            g_nVideoHeight = data->inputParams->nVideoHeight;
+            g_nVideoWidth = data->inputParams->nWidth;
+            g_nVideoHeight = data->inputParams->nHeight;
+            g_codec = data->inputParams->codec;
 
             // Initialize the CUDA and NVCUVID
             typedef HMODULE CUDADRIVER;
@@ -180,30 +181,8 @@ namespace RW
                 renderVideoFrame();
             }
 
-            //uint8_t *pLine = new uint8_t[g_nVideoWidth * g_nVideoHeight * 3 / 2];
-            //for (unsigned int iIndex = 0; iIndex < g_nVideoHeight * 3 / 2; iIndex++)
-            //{
-            //    memcpy(&(pLine[iIndex*g_nVideoWidth]), &(g_pFrameYUV[iIndex * g_nDecodedPitch]), g_nVideoWidth*1);
-            //}
-
-            //FILE *pFile;
-            //pFile = fopen("C:\\dummy\\dummyYUV0.raw", "wb");
-            //fwrite(pLine, 1, data->pOutput->u32Size, pFile);
-            //fclose(pFile);
-
             data->pOutput = g_pFrameYUV;
 
-            // check if decoding has come to an end.
-            // if yes, signal the app to shut down.
-            if (g_pFrameQueue->isEndOfDecode() && g_pFrameQueue->isEmpty())
-            {
-                // Let's free the Frame Data
-                if (g_ReadbackSID && g_pFrameYUV)
-                {
-                    cuMemFreeHost((void *)g_pFrameYUV);
-                    g_pFrameYUV = nullptr;
-                }
-            }
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
             m_Logger->trace() << "DEC_CudaInterop::DoRender: Time to DoRender for nenDecoder_NVIDIA module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
@@ -219,7 +198,6 @@ namespace RW
 #endif
 
             g_pFrameQueue->endDecode();
-            //g_pVideoSource->stop();
 
             cleanup(g_bWaived ? false : true);
 
@@ -247,7 +225,7 @@ namespace RW
             // Create CUVIDEOFORMAT oFormat manually (needs to be filled by config inputs ...):
             CUVIDEOFORMAT oFormat;
             memset(&oFormat, 0, sizeof(CUVIDEOFORMAT));
-            oFormat.codec = cudaVideoCodec_enum::cudaVideoCodec_H264;
+            oFormat.codec = g_codec;
             oFormat.progressive_sequence = 1;
             oFormat.coded_width = g_nVideoWidth;
             oFormat.coded_height = g_nVideoHeight;
@@ -274,7 +252,6 @@ namespace RW
 			//checkCudaErrors(cuStreamCreate(&g_KernelSID, 0));
 			printf("> initCudaVideo()\n");
 			printf("  CUDA Streams (%s) <g_ReadbackSID = %p>\n", ((g_ReadbackSID == 0) ? "Disabled" : "Enabled"), g_ReadbackSID);
-			//printf("  CUDA Streams (%s) <g_KernelSID   = %p>\n", ((g_KernelSID == 0) ? "Disabled" : "Enabled"), g_KernelSID);
 		}
 
 		void CNvDecodeD3D9::freeCudaResources(bool bDestroyContext)
@@ -299,11 +276,6 @@ namespace RW
 				cuStreamDestroy(g_ReadbackSID);
 			}
 
-			//if (g_KernelSID)
-			//{
-			//	cuStreamDestroy(g_KernelSID);
-			//}
-
 			if (g_CtxLock)
 			{
 				checkCudaErrors(cuvidCtxLockDestroy(g_CtxLock));
@@ -327,7 +299,6 @@ namespace RW
                 checkCudaErrors(cuCtxPushCurrent(g_oContext));
 
 				CUdeviceptr  pDecodedFrame[1] = { 0 };
-				//CUdeviceptr  pInteropFrame[2] = { 0, 0 };
 
 				*pbIsProgressive = oDisplayInfo.progressive_frame;
 
@@ -359,32 +330,6 @@ namespace RW
 					size_t nTexturePitch = 0;
 
                     g_pFrameYUV = pDecodedFrame[active_field];
-
-					// If we are Encoding and this is the 1st Frame, we make sure we allocate system memory for readbacks
-					//if (g_bFirstFrame && g_ReadbackSID)
-					//{
-					//	CUresult result = cuMemAllocHost((void **)&g_pFrameYUV, (g_nDecodedPitch * nHeight * 3 / 2));
-
-					//	g_bFirstFrame = false;
-
-					//	if (result != CUDA_SUCCESS)
-					//	{
-					//		printf("cuMemAllocHost returned %d\n", (int)result);
-					//		checkCudaErrors(result);
-					//	}
-					//}
-
-					// If streams are enabled, we can perform the readback to the host while the kernel is executing
-					//if (g_ReadbackSID)
-					//{
-     //                   CUresult result = cuMemcpyDtoHAsync(g_pFrameYUV, pDecodedFrame[active_field], (g_nDecodedPitch * nHeight * 3 / 2), g_ReadbackSID);
-
-					//	if (result != CUDA_SUCCESS)
-					//	{
-					//		printf("cuMemAllocHost returned %d\n", (int)result);
-					//		checkCudaErrors(result);
-					//	}
-					//}
 
 #if ENABLE_DEBUG_OUT
 					printf("%s = %02d, PicIndex = %02d, OutputPTS = %08d\n",

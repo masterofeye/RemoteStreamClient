@@ -7,7 +7,7 @@
 #include <stdint.h>
 
 
-__global__ void kernel(uint8_t *pArrayFull, uint8_t *pYUV420, int iHeight, int iPitch)
+__global__ void kernel444To420(uint8_t *pArrayFull, uint8_t *pYUV420, int iHeight, int iPitch)
 {
 	int iPosY = blockIdx.y * blockDim.y + threadIdx.y;
 	int iPosX = blockIdx.x * blockDim.x + threadIdx.x;
@@ -39,7 +39,9 @@ extern "C" void IMP_444To420(uint8_t *pArrayFull, uint8_t *pArrayYUV420, int iWi
 {
 	dim3 block(32, 16, 1);
 	dim3 grid(iWidth / block.x, iHeight / block.y, 1);
-    kernel << <grid, block >> >(pArrayFull, pArrayYUV420, iHeight, (int)pitchY);
+
+    //plane to plane
+    kernel444To420 << <grid, block >> >(pArrayFull, pArrayYUV420, iHeight, (int)pitchY);
 }
 
 #endif

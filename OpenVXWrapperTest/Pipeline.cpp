@@ -224,9 +224,9 @@ int CPipeline::RunPipeline()
             RW::DEC::tstMyInitialiseControlStruct decodeInitCtrl;
             {
                 decodeInitCtrl.inputParams = new RW::DEC::tstInputParams();
-                decodeInitCtrl.inputParams->nVideoHeight = //1080;
+                decodeInitCtrl.inputParams->nHeight = //1080;
                     videoGrabberInitialiseControlStruct.nFrameHeight;
-                decodeInitCtrl.inputParams->nVideoWidth = //1920;
+                decodeInitCtrl.inputParams->nWidth = //1920;
                     videoGrabberInitialiseControlStruct.nFrameWidth;
                 //decodeInitCtrl.inputParams->fourcc = MFX_FOURCC_RGB4;
                 //decodeInitCtrl.inputParams->memType = RW::DEC::D3D9_MEMORY;
@@ -237,10 +237,7 @@ int CPipeline::RunPipeline()
                     encodeControlStruct.pstBitStream;
                 decodeCtrl.pPayload = //pPayload;
                     encodeControlStruct.pPayload;
-                decodeCtrl.pOutput = new RW::tstBitStream();
-                uint32_t size = videoGrabberInitialiseControlStruct.nFrameWidth * videoGrabberInitialiseControlStruct.nFrameHeight * sizeof(uint8_t) * 4;
-                decodeCtrl.pOutput->pBuffer = new uint8_t[size];
-                decodeCtrl.pOutput->u32Size = 0;
+                decodeCtrl.pOutput = arrYUV;//new RW::tstBitStream();
             }
             RW::DEC::tstMyDeinitialiseControlStruct decodeDeinitCtrl;
 
@@ -255,13 +252,38 @@ int CPipeline::RunPipeline()
                 RW::CORE::tenSubModule::nenDecoder_NVIDIA) != RW::tenStatus::nenSuccess)
                 file_logger->error("nenDecoder_NVIDIA couldn't build correct");
 
+
+            RW::IMP::COLOR_YUV420TORGB::tstMyInitialiseControlStruct impColor420InitialiseControlStruct;
+            {
+                impColor420InitialiseControlStruct.nHeight = videoGrabberInitialiseControlStruct.nFrameHeight;
+                impColor420InitialiseControlStruct.nWidth = videoGrabberInitialiseControlStruct.nFrameWidth;
+            }
+            RW::IMP::COLOR_YUV420TORGB::tstMyControlStruct impColor420ControlStruct;
+            {
+                impColor420ControlStruct.pInput = decodeCtrl.pOutput;
+                impColor420ControlStruct.pOutput = new RW::tstBitStream;
+            }
+            RW::IMP::COLOR::tstMyDeinitialiseControlStruct impColor420DeinitialiseControlStruct;
+
+            if (builder.BuildNode(&kernelManager,
+                &impColor420InitialiseControlStruct,
+                iParentIndex++,
+                sizeof(RW::IMP::COLOR_YUV420TORGB::tstMyInitialiseControlStruct),
+                &impColor420ControlStruct,
+                sizeof(RW::IMP::COLOR_YUV420TORGB::tstMyControlStruct),
+                &impColor420DeinitialiseControlStruct,
+                sizeof(RW::IMP::COLOR_YUV420TORGB::tstMyDeinitialiseControlStruct),
+                RW::CORE::tenSubModule::nenGraphic_ColorYUV420ToRGB) != RW::tenStatus::nenSuccess)
+                file_logger->error("nenGraphic_ColorYUV420ToRGB couldn't build correct");
+
+
             RW::VPL::tstMyInitialiseControlStruct playerInitCtrl;
             {
                 playerInitCtrl.pViewer = params.pViewer;
             }
             RW::VPL::tstMyControlStruct playerCtrl;
             {
-                playerCtrl.pstBitStream = decodeCtrl.pOutput;
+                playerCtrl.pstBitStream = impColor420ControlStruct.pOutput;
                 playerCtrl.TimeStamp = //1000;
                     videoGrabberControlStruct.nCurrentPositionMSec;
             }
@@ -337,9 +359,9 @@ int CPipeline::RunPipeline()
             //SAFE_DELETE(pBitStream);
             //SAFE_DELETE(pFile);
 
-            SAFE_DELETE(decodeInitCtrl.inputParams);
-            SAFE_DELETE(decodeCtrl.pOutput->pBuffer);
-            SAFE_DELETE(decodeCtrl.pOutput);
+            //SAFE_DELETE(decodeInitCtrl.inputParams);
+            //SAFE_DELETE(decodeCtrl.pOutput->pBuffer);
+            //SAFE_DELETE(decodeCtrl.pOutput);
 
             cudaError err = cudaDeviceSynchronize();
         }

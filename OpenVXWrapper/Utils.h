@@ -134,6 +134,7 @@ namespace RW{
                     { "nenVideoGrabber_FG_USB" },
                     { "nenVideoGrabber_SIMU" },
                     { "nenGraphic_Color" },
+                    { "nenGraphic_ColorYUV420ToRGB" },
                     { "nenGraphic_Crop" },
                     { "nenGraphic_Merge" },
                     { "nenEncode_NVIDIA" },

@@ -200,9 +200,11 @@
   <ItemGroup>
     <ClCompile Include="IMP_Base.cpp" />
     <ClCompile Include="IMP_ConvColorFrames.cpp" />
+    <ClCompile Include="IMP_ConvColorFramesYUV420ToRGB.cpp" />
     <ClCompile Include="IMP_CropFrames.cpp" />
     <ClCompile Include="IMP_MergeFrames.cpp" />
     <ClCompile Include="moc_IMP_ConvColorFrames.cpp" />
+    <ClCompile Include="moc_IMP_ConvColorFramesYUV420ToRGB.cpp" />
     <ClCompile Include="moc_IMP_CropFrames.cpp" />
     <ClCompile Include="moc_IMP_MergeFrames.cpp" />
     <ClCompile Include="moc_ModuleFactory.cpp" />
@@ -212,13 +214,17 @@
     <ClInclude Include="IMP.h" />
     <ClInclude Include="IMP_Base.h" />
     <ClInclude Include="IMP_ConvColorFrames.hpp" />
+    <ClInclude Include="IMP_ConvColorFramesYUV420ToRGB.hpp" />
     <ClInclude Include="IMP_CropFrames.hpp" />
     <ClInclude Include="IMP_MergeFrames.hpp" />
     <ClInclude Include="ModuleFactory.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="IMP.json" />
-    <CudaCompile Include="IMP_CopyTo420.cu" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="IMP_420To444.cu" />
+    <CudaCompile Include="IMP_444To420.cu" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
