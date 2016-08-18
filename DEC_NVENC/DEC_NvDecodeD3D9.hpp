@@ -26,7 +26,7 @@ namespace RW
 
         typedef struct stMyControlStruct : public CORE::tstControlStruct
         {
-            tstBitStream *pOutput;
+            CUdeviceptr  pOutput;
             tstBitStream *pstEncodedStream;
             tstBitStream *pPayload;
             REMOTE_API void UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType);
@@ -52,14 +52,8 @@ namespace RW
 #endif
 
 			bool                g_bFirstFrame;
-			bool                g_bUpdateCSC;
-			bool                g_bUpdateAll;
-			bool                g_bUseDisplay; // this flag enables/disables video on the window
-			bool                g_bIsProgressive; // assume it is progressive, unless otherwise noted
 			bool                g_bException;
 			bool                g_bWaived;
-
-			int                 g_iRepeatFactor = 1; // 1:1 assumes no frame repeats
 
 			cudaVideoCreateFlags g_eVideoCreateFlags = cudaVideoCreate_PreferCUVID;
 			CUvideoctxlock       g_CtxLock;
@@ -74,23 +68,17 @@ namespace RW
 			CUcontext          g_oContext;
 			CUdevice           g_oDevice;
 
-			CUstream           g_ReadbackSID, g_KernelSID;
-
-			eColorSpace        g_eColorSpace;
-			float              g_nHue;
+            CUstream           g_ReadbackSID;
 
 			// System Memory surface we want to readback to
-			BYTE          *g_pFrameYUV;
+			CUdeviceptr        g_pFrameYUV;
 			FrameQueue    *g_pFrameQueue;
-			//VideoSource   *g_pVideoSource;
 			VideoParser   *g_pVideoParser;
 			VideoDecoder  *g_pVideoDecoder;
 
-			//ImageDX       *g_pImageDX = 0;
-			//CUdeviceptr    g_pInteropFrame[2]; // if we're using CUDA malloc
-
 			unsigned int g_nVideoWidth;
 			unsigned int g_nVideoHeight;
+            unsigned int g_nDecodedPitch = 0;
 
 			unsigned int g_DecodeFrameCount;
 
@@ -99,10 +87,6 @@ namespace RW
 			void freeCudaResources(bool bDestroyContext);
 
 			bool copyDecodedFrameToTexture(unsigned int &nRepeats, int *pbIsProgressive);
-			void cudaPostProcessFrame(CUdeviceptr *ppDecodedFrame, size_t nDecodedPitch,
-				CUdeviceptr *ppTextureData, size_t nTexturePitch,
-				CUmodule cuModNV12toARGB,
-				CUfunction fpCudaKernel, CUstream streamID);
 			HRESULT cleanup(bool bDestroyContext);
 			HRESULT initCudaResources();
 

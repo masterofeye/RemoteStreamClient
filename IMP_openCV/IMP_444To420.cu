@@ -1,5 +1,5 @@
-#ifndef IMP_COPYTO420_CU
-#define IMP_COPYTO420_CU
+#ifndef IMP_444TO420_CU
+#define IMP_444TO420_CU
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,7 +35,7 @@ __global__ void kernel(uint8_t *pArrayFull, uint8_t *pYUV420, int iHeight, int i
     }
 }
 
-extern "C" void IMP_CopyTo420(uint8_t *pArrayFull, uint8_t *pArrayYUV420, int iWidth, int iHeight, size_t pitchY)
+extern "C" void IMP_444To420(uint8_t *pArrayFull, uint8_t *pArrayYUV420, int iWidth, int iHeight, size_t pitchY)
 {
 	dim3 block(32, 16, 1);
 	dim3 grid(iWidth / block.x, iHeight / block.y, 1);

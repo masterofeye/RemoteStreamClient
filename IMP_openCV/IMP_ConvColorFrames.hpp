@@ -10,7 +10,6 @@ namespace RW
 		{
 			typedef struct stMyInitialiseControlStruct : public CORE::tstInitialiseControlStruct
 			{
-				std::vector<cv::Rect> vFrameRect;
 			}tstMyInitialiseControlStruct;
 
 			typedef struct stMyControlStruct : public CORE::tstControlStruct

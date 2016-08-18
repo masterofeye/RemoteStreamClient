@@ -28,6 +28,7 @@ namespace RW{
 				{
 					IMP::COLOR::tstMyControlStruct *data = static_cast<IMP::COLOR::tstMyControlStruct*>(*Data);
 					data->pInput->_pgMat = this->pvOutput->at(0);
+                    break;
 				}
 				default:
 					break;

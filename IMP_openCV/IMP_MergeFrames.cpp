@@ -25,6 +25,7 @@ namespace RW{
 				{
 					IMP::CROP::tstMyControlStruct *data = static_cast<IMP::CROP::tstMyControlStruct*>(*Data);
 					data->pInput->_pgMat = this->pOutput;
+                    break;
 				}
 				case CORE::tenSubModule::nenGraphic_Color:
 				{

@@ -27,6 +27,7 @@ namespace RW{
 				{
 					IMP::COLOR::tstMyControlStruct *data = static_cast<IMP::COLOR::tstMyControlStruct*>(*Data);
 					data->pInput->_pgMat = this->pOutput->_pgMat;
+                    break;
 				}
 				case CORE::tenSubModule::nenEncode_NVIDIA:
 				{

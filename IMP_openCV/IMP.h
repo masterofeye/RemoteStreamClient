@@ -14,8 +14,6 @@
 #include "HighResolution\HighResClock.h"
 #endif
 
-
-
 namespace RW
 {
     namespace IMP

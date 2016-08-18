@@ -3,7 +3,7 @@
 #include "opencv2/cudev/common.hpp"
 
 // CUDA kernel
-extern "C" void IMP_CopyTo420(uint8_t *pArrayFull, uint8_t *pArrayYUV420, int iWidth, int iHeight, size_t pitchY);
+extern "C" void IMP_444To420(uint8_t *pArrayFull, uint8_t *pArrayYUV420, int iWidth, int iHeight, size_t pitchY);
 
 namespace RW{
 	namespace IMP{
@@ -64,34 +64,20 @@ namespace RW{
                     return tenStatus::nenError;
                 }
                 
-                IMP_CopyTo420(pgMat->data, arrayYUV420, iWidth, iHeight, pitchY);
+                IMP_444To420(pgMat->data, arrayYUV420, iWidth, iHeight, pitchY);
                 err = cudaGetLastError();
                 if (err != cudaSuccess)
                 {
-                    printf("IMP_CopyTo420: kernel() failed to launch error = %d\n", err);
+                    printf("IMP_444To420: kernel() failed to launch error = %d\n", err);
                     return tenStatus::nenError;
                 }
                 err = cudaDeviceSynchronize();
                 if (err != cudaSuccess)
                 {
-                    printf("IMP_CopyTo420: Device synchronize failed! Error = %d\n", err);
+                    printf("IMP_444To420: Device synchronize failed! Error = %d\n", err);
                     return tenStatus::nenError;
                 }
 
-                //uint8_t *data = new uint8_t[iHeight * iWidth * 3/2];
-                //err = cudaMemcpy2D(data, iWidth, arrayYUV420, pitchY, iWidth, iHeight * 3 / 2, cudaMemcpyDeviceToHost);
-                //if (err != cudaSuccess)
-                //{
-                //    printf("IMP_Base::tensProcessOutput: cudaMemcpy returns error = %d\n", err);
-                //    return tenStatus::nenError;
-                //}
-                //cv::Mat mat(iHeight * 3 / 2, iWidth, CV_8UC1, data);
-
-                //if (data)
-                //{
-                //    delete data;
-                //    data = nullptr;
-                //}
                 cudaFree(arrayY);
 
                 pOutput->_pcuYUV420 = (CUdeviceptr)arrayYUV420;

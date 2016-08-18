@@ -37,14 +37,8 @@ namespace RW
             RW::CORE::AbstractModule(Logger)
 		{
 			g_bFirstFrame = true;
-			g_bUpdateCSC = true;
-			g_bUpdateAll = false;
-			g_bUseDisplay = true; 
-			g_bIsProgressive = true;
 			g_bException = false;
 			g_bWaived = false;
-
-			g_iRepeatFactor = 1; 
 
 			g_CtxLock = NULL;
 
@@ -53,21 +47,13 @@ namespace RW
 			g_kernelPassThru = 0;
 			g_oContext = 0;
 			g_oDevice = 0;
-			g_ReadbackSID = 0, g_KernelSID = 0;
-			g_eColorSpace = ITU601;
-			g_nHue = 0.0f;
+            g_ReadbackSID = 0;
 
 			g_pFrameYUV = { 0 };
-			//g_pFrameYUV[1] = { 0 };
-			//g_pFrameYUV[2] = { 0 };
-			//g_pFrameYUV[3] = { 0 };
 
 			g_pFrameQueue = 0;
 			g_pVideoParser = 0;
 			g_pVideoDecoder = 0;
-
-			//g_pInteropFrame[0] = { 0 };
-			//g_pInteropFrame[1] = { 1 };
 
 			g_nVideoWidth = 0;
 			g_nVideoHeight = 0;
@@ -194,19 +180,18 @@ namespace RW
                 renderVideoFrame();
             }
 
-            data->pOutput->u32Size = 4 * g_nVideoWidth*g_nVideoHeight * 1;
-            {
-                FILE *pFile;
-                pFile = fopen("C:\\dummy\\dummyYUV0.raw", "wb");
-                fwrite(g_pFrameYUV, 1, data->pOutput->u32Size / 4 * 3 / 2, pFile);
-                fclose(pFile);
-            }
-            data->pOutput->pBuffer = g_pFrameYUV;
-
-            //if (data->pstEncodedStream){
-            //    delete(data->pstEncodedStream);
-            //    data->pstEncodedStream = nullptr;
+            //uint8_t *pLine = new uint8_t[g_nVideoWidth * g_nVideoHeight * 3 / 2];
+            //for (unsigned int iIndex = 0; iIndex < g_nVideoHeight * 3 / 2; iIndex++)
+            //{
+            //    memcpy(&(pLine[iIndex*g_nVideoWidth]), &(g_pFrameYUV[iIndex * g_nDecodedPitch]), g_nVideoWidth*1);
             //}
+
+            //FILE *pFile;
+            //pFile = fopen("C:\\dummy\\dummyYUV0.raw", "wb");
+            //fwrite(pLine, 1, data->pOutput->u32Size, pFile);
+            //fclose(pFile);
+
+            data->pOutput = g_pFrameYUV;
 
             // check if decoding has come to an end.
             // if yes, signal the app to shut down.
@@ -216,7 +201,7 @@ namespace RW
                 if (g_ReadbackSID && g_pFrameYUV)
                 {
                     cuMemFreeHost((void *)g_pFrameYUV);
-                    g_pFrameYUV = NULL;
+                    g_pFrameYUV = nullptr;
                 }
             }
 #ifdef TRACE_PERFORMANCE
@@ -286,10 +271,10 @@ namespace RW
 
             // Create a Stream ID for handling Readback
 			checkCudaErrors(cuStreamCreate(&g_ReadbackSID, 0));
-			checkCudaErrors(cuStreamCreate(&g_KernelSID, 0));
+			//checkCudaErrors(cuStreamCreate(&g_KernelSID, 0));
 			printf("> initCudaVideo()\n");
 			printf("  CUDA Streams (%s) <g_ReadbackSID = %p>\n", ((g_ReadbackSID == 0) ? "Disabled" : "Enabled"), g_ReadbackSID);
-			printf("  CUDA Streams (%s) <g_KernelSID   = %p>\n", ((g_KernelSID == 0) ? "Disabled" : "Enabled"), g_KernelSID);
+			//printf("  CUDA Streams (%s) <g_KernelSID   = %p>\n", ((g_KernelSID == 0) ? "Disabled" : "Enabled"), g_KernelSID);
 		}
 
 		void CNvDecodeD3D9::freeCudaResources(bool bDestroyContext)
@@ -314,10 +299,10 @@ namespace RW
 				cuStreamDestroy(g_ReadbackSID);
 			}
 
-			if (g_KernelSID)
-			{
-				cuStreamDestroy(g_KernelSID);
-			}
+			//if (g_KernelSID)
+			//{
+			//	cuStreamDestroy(g_KernelSID);
+			//}
 
 			if (g_CtxLock)
 			{
@@ -341,11 +326,10 @@ namespace RW
 				// Push the current CUDA context (only if we are using CUDA decoding path)
                 checkCudaErrors(cuCtxPushCurrent(g_oContext));
 
-				CUdeviceptr  pDecodedFrame[2] = { 0, 0 };
-				CUdeviceptr  pInteropFrame[2] = { 0, 0 };
+				CUdeviceptr  pDecodedFrame[1] = { 0 };
+				//CUdeviceptr  pInteropFrame[2] = { 0, 0 };
 
 				*pbIsProgressive = oDisplayInfo.progressive_frame;
-				g_bIsProgressive = oDisplayInfo.progressive_frame ? true : false;
 
 				int distinct_fields = 1;
 				if (!oDisplayInfo.progressive_frame && oDisplayInfo.repeat_first_field <= 1) {
@@ -363,44 +347,44 @@ namespace RW
 					oVideoProcessingParameters.top_field_first = oDisplayInfo.top_field_first;
 					oVideoProcessingParameters.unpaired_field = (distinct_fields == 1);
 
-					unsigned int nDecodedPitch = 0;
 					unsigned int nWidth = 0;
 					unsigned int nHeight = 0;
 
 					// map decoded video frame to CUDA surfae
-					g_pVideoDecoder->mapFrame(oDisplayInfo.picture_index, &pDecodedFrame[active_field], &nDecodedPitch, &oVideoProcessingParameters);
+					g_pVideoDecoder->mapFrame(oDisplayInfo.picture_index, &pDecodedFrame[active_field], &g_nDecodedPitch, &oVideoProcessingParameters);
 					nWidth = g_pVideoDecoder->targetWidth();
 					nHeight = g_pVideoDecoder->targetHeight();
 
 					// map DirectX texture to CUDA surface
 					size_t nTexturePitch = 0;
 
+                    g_pFrameYUV = pDecodedFrame[active_field];
+
 					// If we are Encoding and this is the 1st Frame, we make sure we allocate system memory for readbacks
-					if (g_bFirstFrame && g_ReadbackSID)
-					{
-						CUresult result;
-                        checkCudaErrors(result = cuMemAllocHost((void **)&g_pFrameYUV, (nWidth * nHeight * 3 / 2)));
+					//if (g_bFirstFrame && g_ReadbackSID)
+					//{
+					//	CUresult result = cuMemAllocHost((void **)&g_pFrameYUV, (g_nDecodedPitch * nHeight * 3 / 2));
 
-						g_bFirstFrame = false;
+					//	g_bFirstFrame = false;
 
-						if (result != CUDA_SUCCESS)
-						{
-							printf("cuMemAllocHost returned %d\n", (int)result);
-							checkCudaErrors(result);
-						}
-					}
+					//	if (result != CUDA_SUCCESS)
+					//	{
+					//		printf("cuMemAllocHost returned %d\n", (int)result);
+					//		checkCudaErrors(result);
+					//	}
+					//}
 
 					// If streams are enabled, we can perform the readback to the host while the kernel is executing
-					if (g_ReadbackSID)
-					{
-                        CUresult result = cuMemcpyDtoHAsync(g_pFrameYUV, pDecodedFrame[active_field], (nWidth * nHeight * 3 / 2), g_ReadbackSID);
+					//if (g_ReadbackSID)
+					//{
+     //                   CUresult result = cuMemcpyDtoHAsync(g_pFrameYUV, pDecodedFrame[active_field], (g_nDecodedPitch * nHeight * 3 / 2), g_ReadbackSID);
 
-						if (result != CUDA_SUCCESS)
-						{
-							printf("cuMemAllocHost returned %d\n", (int)result);
-							checkCudaErrors(result);
-						}
-					}
+					//	if (result != CUDA_SUCCESS)
+					//	{
+					//		printf("cuMemAllocHost returned %d\n", (int)result);
+					//		checkCudaErrors(result);
+					//	}
+					//}
 
 #if ENABLE_DEBUG_OUT
 					printf("%s = %02d, PicIndex = %02d, OutputPTS = %08d\n",
@@ -408,12 +392,9 @@ namespace RW
 						g_DecodeFrameCount, oDisplayInfo.picture_index, oDisplayInfo.timestamp);
 #endif
 
-					//pInteropFrame[active_field] = g_pInteropFrame[active_field];
-					//nTexturePitch = g_pVideoDecoder->targetWidth() * 2;
-
 					// perform post processing on the CUDA surface (performs colors space conversion and post processing)
 					// comment this out if we inclue the line of code seen above
-					//cudaPostProcessFrame(&pDecodedFrame[active_field], nDecodedPitch, &pInteropFrame[active_field],
+					//cudaPostProcessFrame(&pDecodedFrame[active_field], g_nDecodedPitch, &pInteropFrame[active_field],
 					//	nTexturePitch, g_pCudaModule->getModule(), g_kernelNV12toARGB, g_KernelSID);
                     
 					// unmap video frame
@@ -439,59 +420,18 @@ namespace RW
 
 		HRESULT CNvDecodeD3D9::cleanup(bool bDestroyContext)
 		{
-			//if (bDestroyContext)
-			//{
-			//	// Attach the CUDA Context (so we may properly free memroy)
-			//	checkCudaErrors(cuCtxPushCurrent(g_oContext));
+			if (bDestroyContext)
+			{
+				// Attach the CUDA Context (so we may properly free memroy)
+				checkCudaErrors(cuCtxPushCurrent(g_oContext));
 
-			//	if (g_pInteropFrame[0])
-			//	{
-			//		checkCudaErrors(cuMemFree(g_pInteropFrame[0]));
-			//	}
-
-			//	if (g_pInteropFrame[1])
-			//	{
-			//		checkCudaErrors(cuMemFree(g_pInteropFrame[1]));
-			//	}
-
-			//	// Detach from the Current thread
-			//	checkCudaErrors(cuCtxPopCurrent(NULL));
-			//}
+	    		// Detach from the Current thread
+				checkCudaErrors(cuCtxPopCurrent(NULL));
+			}
 
 			freeCudaResources(bDestroyContext);
 
 			return S_OK;
-		}
-
-		void CNvDecodeD3D9::cudaPostProcessFrame(CUdeviceptr *ppDecodedFrame, size_t nDecodedPitch,
-			CUdeviceptr *ppTextureData, size_t nTexturePitch,
-			CUmodule cuModNV12toARGB,
-			CUfunction fpCudaKernel, CUstream streamID)
-		{
-			uint32 nWidth = g_pVideoDecoder->targetWidth();
-			uint32 nHeight = g_pVideoDecoder->targetHeight();
-
-			// Upload the Color Space Conversion Matrices
-			if (g_bUpdateCSC)
-			{
-				// CCIR 601/709
-				float hueColorSpaceMat[9];
-				setColorSpaceMatrix(g_eColorSpace, hueColorSpaceMat, g_nHue);
-				updateConstantMemory_drvapi(cuModNV12toARGB, hueColorSpaceMat);
-
-				if (!g_bUpdateAll)
-				{
-					g_bUpdateCSC = false;
-				}
-			}
-
-			// TODO: Stage for handling video post processing
-
-			// Final Stage: NV12toARGB color space conversion
-			CUresult eResult;
-			eResult = cudaLaunchNV12toARGBDrv(*ppDecodedFrame, nDecodedPitch,
-				*ppTextureData, nTexturePitch,
-				nWidth, nHeight, fpCudaKernel, streamID);
 		}
 
 		// Launches the CUDA kernels to fill in the texture data
