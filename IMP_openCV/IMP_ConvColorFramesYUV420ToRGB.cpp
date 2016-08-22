@@ -148,15 +148,13 @@ namespace RW{
                     return tenStatus::nenError;
                 }
 
-                cv::cuda::GpuMat gMat3(m_u32Height, m_u32Width, CV_8UC3);
-                cv::cuda::GpuMat g_mat0 = gMat(cv::Rect(0, 0, m_u32Width, m_u32Height));
-                cv::cuda::GpuMat g_mat1 = gMat(cv::Rect(0, m_u32Height, m_u32Width, m_u32Height));
-                cv::cuda::GpuMat g_mat2 = gMat(cv::Rect(0, 2 * m_u32Height, m_u32Width, m_u32Height));
+				cv::cuda::GpuMat g_mat[3] = { gMat(cv::Rect(0, 0, m_u32Width, m_u32Height)), gMat(cv::Rect(0, m_u32Height, m_u32Width, m_u32Height)), gMat(cv::Rect(0, 2 * m_u32Height, m_u32Width, m_u32Height)) };
+				cv::cuda::GpuMat gMat3(m_u32Height, m_u32Width, CV_8UC3, g_mat);
 
-                cv::cuda::cvtColor(gMat, gMat, cv::COLOR_YUV2RGB);
+                cv::cuda::cvtColor(gMat3, gMat3, cv::COLOR_YUV2RGB);
 
                 cv::Mat mat(m_u32Height, m_u32Width, CV_8UC3);
-                gMat.download(mat);
+                gMat3.download(mat);
                 data->pOutput->pBuffer = mat.data;
                 data->pOutput->u32Size = mat.total();
 
