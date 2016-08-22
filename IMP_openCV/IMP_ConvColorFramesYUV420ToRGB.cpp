@@ -113,9 +113,10 @@ namespace RW{
                 /* Check done */
 
                 size_t pitchY, pitch;
-                uint8_t* arrayY;
-                uint8_t* array420 = (uint8_t*)data->pInput;
-                cv::cuda::GpuMat gMat(m_u32Height, m_u32Width, CV_8UC3);
+                uint8_t *arrayY;
+                uint8_t *array420 = (uint8_t*)data->pInput;
+
+                cv::cuda::GpuMat gMat(m_u32Height * 3, m_u32Width, CV_8UC1);
 
                 err = cudaMallocPitch((void**)&arrayY, &pitchY, m_u32Width, 1);
                 if (err != cudaSuccess) return tenStatus::nenError;
@@ -133,19 +134,24 @@ namespace RW{
                     return tenStatus::nenError;
                 }
 
-                IMP_420To444(array420, gMat.data, m_u32Width, m_u32Height * 3/2, pitchY);
+                IMP_420To444(array420, gMat.data, m_u32Width, m_u32Height, pitchY);
                 err = cudaGetLastError();
                 if (err != cudaSuccess)
                 {
-                    printf("IMP_444To420: kernel() failed to launch error = %d\n", err);
+                    printf("IMP_420To444: kernel() failed to launch error = %d\n", err);
                     return tenStatus::nenError;
                 }
                 err = cudaDeviceSynchronize();
                 if (err != cudaSuccess)
                 {
-                    printf("IMP_444To420: Device synchronize failed! Error = %d\n", err);
+                    printf("IMP_420To444: Device synchronize failed! Error = %d\n", err);
                     return tenStatus::nenError;
                 }
+
+                cv::cuda::GpuMat gMat3(m_u32Height, m_u32Width, CV_8UC3);
+                cv::cuda::GpuMat g_mat0 = gMat(cv::Rect(0, 0, m_u32Width, m_u32Height));
+                cv::cuda::GpuMat g_mat1 = gMat(cv::Rect(0, m_u32Height, m_u32Width, m_u32Height));
+                cv::cuda::GpuMat g_mat2 = gMat(cv::Rect(0, 2 * m_u32Height, m_u32Width, m_u32Height));
 
                 cv::cuda::cvtColor(gMat, gMat, cv::COLOR_YUV2RGB);
 
@@ -189,9 +195,7 @@ namespace RW{
                 m_Logger->trace() << "DEC_CudaInterop::Deinitialise: Time to Deinitialise for nenDecoder_NVIDIA module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
                 return tenStatus::nenSuccess;
-
             }
-
         }
     }
 }

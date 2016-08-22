@@ -7,7 +7,7 @@
 #include <stdint.h>
 
 
-__global__ void kernel420To444(uint8_t *pYUV420, uint8_t *pArrayFull, int iHeight, int iPitch)
+__global__ void kernel420To444(uint8_t *pYUV420, uint8_t *pArrayFull, int iWidth, int iHeight, int iPitch)
 {
     int iPosY = blockIdx.y * blockDim.y + threadIdx.y;
     int iPosX = blockIdx.x * blockDim.x + threadIdx.x;
@@ -18,25 +18,27 @@ __global__ void kernel420To444(uint8_t *pYUV420, uint8_t *pArrayFull, int iHeigh
     {
         return;
     }
-    else if (iPos < iHeight * iPitch) // Y channel
+    else if (iPos < iHeight * iPitch)
     {
-        pArrayFull[iPos] = pYUV420[iPos];
-    }
-    else if (iPos > iHeight * iPitch)
-    {
-        if (iPosX % 2 == 0) // U channel
+        if (iPosX < iWidth)
         {
-            pArrayFull[iOffset + (iPosY - iHeight) * iPitch + iPosX];
-            pArrayFull[iOffset + (iPosY - iHeight) * iPitch + iPosX*2];
-            pArrayFull[iOffset + (iPosY - iHeight)*2 * iPitch + iPosX];
-            pArrayFull[iOffset + (iPosY - iHeight)*2 * iPitch + iPosX * 2];
+            pArrayFull[iPos] = pYUV420[iPos];
         }
-        else // V channel
+        if (iPosY < iHeight / 2)
         {
-            pArrayFull[2 * iOffset + (iPosY - iHeight) * iPitch + (iPosX - 1)];
-            pArrayFull[2 * iOffset + (iPosY - iHeight) * iPitch + (iPosX - 1) * 2];
-            pArrayFull[2 * iOffset + (iPosY - iHeight) * 2 * iPitch + (iPosX - 1)];
-            pArrayFull[2 * iOffset + (iPosY - iHeight) * 2 * iPitch + (iPosX - 1) * 2];
+            if (iPosX < iWidth / 2){
+                pArrayFull[iOffset + (4 * iPosY) * iPitch + 2 * iPosX] = pYUV420[iOffset + iPos];
+                pArrayFull[iOffset + (4 * iPosY) * iPitch + 2 * iPosX + 1] = pYUV420[iOffset + iPos];
+                pArrayFull[iOffset + (4 * iPosY + 1) * iPitch + 2 * iPosX] = pYUV420[iOffset + iPos];
+                pArrayFull[iOffset + (4 * iPosY + 1) * iPitch + 2 * iPosX + 1] = pYUV420[iOffset + iPos];
+            }
+            else if ((iPosX > iPitch / 2) && (iPosX < (iPitch - (iPitch/2 - iWidth/2))))
+            {
+                pArrayFull[iOffset + (4 * iPosY + 2) * iPitch + 2 * iPosX] = pYUV420[iOffset + iPos];
+                pArrayFull[iOffset + (4 * iPosY + 2) * iPitch + 2 * iPosX + 1] = pYUV420[iOffset + iPos];
+                pArrayFull[iOffset + (4 * iPosY + 3) * iPitch + 2 * iPosX] = pYUV420[iOffset + iPos];
+                pArrayFull[iOffset + (4 * iPosY + 3) * iPitch + 2 * iPosX + 1] = pYUV420[iOffset + iPos];
+            }
         }
     }
 }
@@ -44,10 +46,10 @@ __global__ void kernel420To444(uint8_t *pYUV420, uint8_t *pArrayFull, int iHeigh
 extern "C" void IMP_420To444(uint8_t *pArrayYUV420, uint8_t *pArrayFull, int iWidth, int iHeight, size_t pitchY)
 {
     dim3 block(32, 16, 1);
-    dim3 grid(iWidth / block.x, iHeight / block.y, 1);
+    dim3 grid(pitchY / block.x, iHeight / block.y, 1);
 
     //interleaved to plane
-    kernel420To444 << <grid, block >> >(pArrayYUV420, pArrayFull, iHeight, (int)iWidth);
+    kernel420To444 << <grid, block >> >(pArrayYUV420, pArrayFull, iWidth, iHeight, (int)pitchY);
 }
 
 #endif
