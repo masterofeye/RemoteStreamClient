@@ -142,46 +142,8 @@ namespace RW
 				cv::cuda::GpuMat *mat = new cv::cuda::GpuMat();
 				mat->upload(rawFrame);
 
-				//std::vector<cv::Mat> vMat;
-				//cv::split(rawFrame, vMat);
+	    		pControl->Output = mat;
 
-				//Mat mat0(vMat[0]);
-				//Mat mat1(vMat[1]);
-				//Mat mat2(vMat[2]);
-
-				//rawFrame.total();
-				//size_t s0 = vMat[0].total();
-				//size_t s1 = vMat[1].total();
-				//size_t s2 = vMat[2].total();
-
-				//size_t sSize = mat->cols * mat->rows * mat->elemSize();
-
-				//cudaArray *u_dev = nullptr;
-				//cudaError err;
-				//err = cudaMalloc((void**)&u_dev, sSize);
-				//if (err != cudaSuccess) return tenStatus::nenError;
-				//err = cudaMemset(u_dev, 0, sSize);
-				//if (err != cudaSuccess) return tenStatus::nenError;
-
-				//size_t pitch;
-				//err = cudaMallocPitch((void**)&u_dev, &pitch, mat->cols * sizeof(uint8_t) * mat->elemSize(), mat->rows);
-
-				//err = cudaMemcpy(u_dev, mat->data, sSize, cudaMemcpyDeviceToDevice);
-				////err = cudaMemcpy2D(u_dev, pitch, mat->data, pitch, mat->cols * mat->elemSize(), mat->rows, cudaMemcpyDeviceToDevice);
-				//if (err != cudaSuccess) return tenStatus::nenError;
-
-				//uint8_t *pDummy = new uint8_t[sSize];
-
-				////err = cudaMemcpy(pDummy, u_dev, sSize, cudaMemcpyDeviceToHost);
-				//err = cudaMemcpy2D(pDummy, mat->cols * mat->elemSize(), u_dev, pitch, mat->cols * mat->elemSize(), mat->rows, cudaMemcpyDeviceToHost);
-				//if (err != cudaSuccess) return tenStatus::nenError;
-
-				//cv::Mat mat2(mat->rows, mat->cols, mat->type(), pDummy);
-				//cudaFree(u_dev);
-
-				pControl->Output = mat;
-
-				//pControl->pOutputData->u32Size = (uint32_t)nFrameSize;
 				pControl->nCurrentFrameNumber = m_videoCapture.get(CAP_PROP_POS_FRAMES); // nFrameCounter++;
                 pControl->nCurrentPositionMSec = m_videoCapture.get(CAP_PROP_POS_MSEC);
 #ifdef TRACE_PERFORMANCE

@@ -26,7 +26,7 @@ namespace RW
 
         typedef struct stMyControlStruct : public CORE::tstControlStruct
         {
-            CUdeviceptr  pOutput;
+            CUdeviceptr pOutput;
             tstBitStream *pstEncodedStream;
             tstBitStream *pPayload;
             REMOTE_API void UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType);
@@ -69,13 +69,16 @@ namespace RW
 			CUcontext          g_oContext;
 			CUdevice           g_oDevice;
 
-            CUstream           g_ReadbackSID;
+            //CUstream           g_ReadbackSID;
+            //CUstream           g_KernelSID;
 
 			// System Memory surface we want to readback to
 			CUdeviceptr        g_pFrameYUV;
+
 			FrameQueue    *g_pFrameQueue;
 			VideoParser   *g_pVideoParser;
 			VideoDecoder  *g_pVideoDecoder;
+            //CUdeviceptr    g_pInteropFrame[2];
 
 			unsigned int g_nVideoWidth;
 			unsigned int g_nVideoHeight;

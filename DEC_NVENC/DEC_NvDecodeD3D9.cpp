@@ -47,7 +47,8 @@ namespace RW
 			g_kernelPassThru = 0;
 			g_oContext = 0;
 			g_oDevice = 0;
-            g_ReadbackSID = 0;
+            //g_ReadbackSID = 0;
+            //g_KernelSID = 0;
 
 			g_pFrameYUV = { 0 };
 
@@ -60,7 +61,9 @@ namespace RW
 
 			g_DecodeFrameCount = 0;
 
-		}
+            //g_pInteropFrame[0] = 0;
+            //g_pInteropFrame[1] = 0;
+        }
 
 		CNvDecodeD3D9::~CNvDecodeD3D9()
 		{
@@ -70,7 +73,7 @@ namespace RW
         {
             switch (SubModuleType)
             {
-            case RW::CORE::tenSubModule::nenPlayback_Simple:
+            case RW::CORE::tenSubModule::nenGraphic_ColorYUV420ToRGB:
             {
                 RW::IMP::COLOR_YUV420TORGB::tstMyControlStruct *data = static_cast<RW::IMP::COLOR_YUV420TORGB::tstMyControlStruct*>(*Data);
                 data->pInput = this->pOutput;
@@ -181,12 +184,41 @@ namespace RW
                 renderVideoFrame();
             }
 
+            //CUresult result;
+            //uint8_t *argbArr;
+            //checkCudaErrors(result = cuMemAllocHost((void **)&argbArr, (g_nVideoWidth * g_nVideoHeight * 3/2)));
+            ////checkCudaErrors(result = cuMemcpyDtoHAsync((void *)(&argbArr), g_pInteropFrame[0], (g_nVideoWidth * g_nVideoHeight * 3/2), g_ReadbackSID));
+            //
+            //CUDA_MEMCPY2D copyParamY;
+            //memset(&copyParamY, 0, sizeof(copyParamY));
+            //copyParamY.dstMemoryType = CU_MEMORYTYPE_HOST;
+            //copyParamY.dstHost = argbArr;
+            //copyParamY.dstPitch = g_nVideoWidth;
+            //copyParamY.srcMemoryType = CU_MEMORYTYPE_DEVICE;
+            //copyParamY.srcDevice = g_pInteropFrame[0];
+            //copyParamY.srcPitch = g_nDecodedPitch;
+            //copyParamY.WidthInBytes = g_nVideoWidth;
+            //copyParamY.Height = g_nVideoHeight*3/2;
+            //result = cuMemcpy2D(&copyParamY);
+            //if (result != CUDA_SUCCESS)
+            //{
+            //    m_Logger->error("CNvDecodeD3D9::DoRender(...) has returned CUDA error ") << result;
+            //    return tenStatus::nenError;
+            //}
+
             data->pOutput = g_pFrameYUV;
+
+            //FILE *pFile;
+            //pFile = fopen("c:\\dummy\\decoded.raw", "wb");
+            //fwrite(data->pOutput->pBuffer, 1, data->pOutput->u32Size, pFile);
+            //fclose(pFile);
 
 #ifdef TRACE_PERFORMANCE
             RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
             m_Logger->trace() << "DEC_CudaInterop::DoRender: Time to DoRender for nenDecoder_NVIDIA module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
+            //cuMemFreeHost((void*)argbArr);
+
             return enStatus;
         }
 
@@ -248,10 +280,10 @@ namespace RW
 			g_pVideoDecoder = apVideoDecoder.release();
 
             // Create a Stream ID for handling Readback
-			checkCudaErrors(cuStreamCreate(&g_ReadbackSID, 0));
+			//checkCudaErrors(cuStreamCreate(&g_ReadbackSID, 0));
 			//checkCudaErrors(cuStreamCreate(&g_KernelSID, 0));
-			printf("> initCudaVideo()\n");
-			printf("  CUDA Streams (%s) <g_ReadbackSID = %p>\n", ((g_ReadbackSID == 0) ? "Disabled" : "Enabled"), g_ReadbackSID);
+			//printf("> initCudaVideo()\n");
+			//printf("  CUDA Streams (%s) <g_ReadbackSID = %p>\n", ((g_ReadbackSID == 0) ? "Disabled" : "Enabled"), g_ReadbackSID);
 		}
 
 		void CNvDecodeD3D9::freeCudaResources(bool bDestroyContext)
@@ -271,10 +303,15 @@ namespace RW
 				delete g_pFrameQueue;
 			}
 
-			if (g_ReadbackSID)
-			{
-				cuStreamDestroy(g_ReadbackSID);
-			}
+			//if (g_ReadbackSID)
+			//{
+			//	cuStreamDestroy(g_ReadbackSID);
+			//}
+
+            //if (g_KernelSID)
+            //{
+            //    cuStreamDestroy(g_KernelSID);
+            //}
 
 			if (g_CtxLock)
 			{
@@ -298,7 +335,8 @@ namespace RW
 				// Push the current CUDA context (only if we are using CUDA decoding path)
                 checkCudaErrors(cuCtxPushCurrent(g_oContext));
 
-				CUdeviceptr  pDecodedFrame[1] = { 0 };
+                CUdeviceptr  pDecodedFrame[2] = { 0, 0 };
+                CUdeviceptr  pInteropFrame[2] = { 0, 0 };
 
 				*pbIsProgressive = oDisplayInfo.progressive_frame;
 
@@ -337,11 +375,14 @@ namespace RW
 						g_DecodeFrameCount, oDisplayInfo.picture_index, oDisplayInfo.timestamp);
 #endif
 
-					// perform post processing on the CUDA surface (performs colors space conversion and post processing)
-					// comment this out if we inclue the line of code seen above
-					//cudaPostProcessFrame(&pDecodedFrame[active_field], g_nDecodedPitch, &pInteropFrame[active_field],
-					//	nTexturePitch, g_pCudaModule->getModule(), g_kernelNV12toARGB, g_KernelSID);
-                    
+                    ////pInteropFrame[active_field] = g_pInteropFrame[active_field];
+                    //nTexturePitch = g_pVideoDecoder->targetWidth() * 2;
+
+                    //// perform post processing on the CUDA surface (performs colors space conversion and post processing)
+                    //CUresult eResult = cudaLaunchNV12toARGBDrv(pDecodedFrame[active_field], g_nDecodedPitch,
+                    //    g_pInteropFrame[active_field], nTexturePitch,
+                    //    nWidth, nHeight, g_kernelNV12toARGB, g_KernelSID);
+
 					// unmap video frame
 					// unmapFrame() synchronizes with the VideoDecode API (ensures the frame has finished decoding)
 					g_pVideoDecoder->unmapFrame(pDecodedFrame[active_field]);
@@ -370,7 +411,17 @@ namespace RW
 				// Attach the CUDA Context (so we may properly free memroy)
 				checkCudaErrors(cuCtxPushCurrent(g_oContext));
 
-	    		// Detach from the Current thread
+                //if (g_pInteropFrame[0])
+                //{
+                //    checkCudaErrors(cuMemFree(g_pInteropFrame[0]));
+                //}
+
+                //if (g_pInteropFrame[1])
+                //{
+                //    checkCudaErrors(cuMemFree(g_pInteropFrame[1]));
+                //}
+                
+                // Detach from the Current thread
 				checkCudaErrors(cuCtxPopCurrent(NULL));
 			}
 

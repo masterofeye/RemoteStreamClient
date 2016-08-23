@@ -9,7 +9,6 @@
 // CUDA kernel
 extern "C" void IMP_420To444(uint8_t *pArrayYUV420, uint8_t *pArrayFull, int iWidth, int iHeight, size_t pitchY);
 
-
 namespace RW{
     namespace IMP{
         namespace COLOR_YUV420TORGB{
@@ -96,45 +95,20 @@ namespace RW{
                     return tenStatus::nenError;
                 }
 
-                /* Check for previous errors */
-                cudaError err;
-                err = cudaGetLastError();
-                if (err != cudaSuccess)
-                {
-                    printf("IMP_Base::tensProcessOutput: cudaGetLastError returns error = %d\n", err);
-                    return tenStatus::nenError;
-                }
-                err = cudaDeviceSynchronize();
-                if (err != cudaSuccess)
-                {
-                    printf("IMP_Base::tensProessOutput: Device synchronize failed! Error = %d\n", err);
-                    return tenStatus::nenError;
-                }
-                /* Check done */
-
-                size_t pitchY, pitch;
+                size_t pitchY;
                 uint8_t *arrayY;
-                uint8_t *array420 = (uint8_t*)data->pInput;
 
-                cv::cuda::GpuMat gMat(m_u32Height * 3, m_u32Width, CV_8UC1);
+                cv::cuda::GpuMat gMat444(m_u32Height, m_u32Width, CV_8UC3);
 
-                err = cudaMallocPitch((void**)&arrayY, &pitchY, m_u32Width, 1);
+                cudaError err = cudaMallocPitch((void**)&arrayY, &pitchY, m_u32Width, 1);
                 if (err != cudaSuccess) return tenStatus::nenError;
 
-                err = cudaDeviceSynchronize();
-                if (err != cudaSuccess)
-                {
-                    printf("IMP_Base::tensProessOutput: Device synchronize failed! Error = %d\n", err);
-                    return tenStatus::nenError;
-                }
-                err = cudaGetLastError();
-                if (err != cudaSuccess)
-                {
-                    printf("IMP_Base::tensProcessOutput: cudaGetLastError returns error = %d\n", err);
-                    return tenStatus::nenError;
-                }
+                cv::cuda::GpuMat gMat420(m_u32Height * 3 / 2, pitchY, CV_8UC1, (void*)data->pInput);
+                cv::Mat mat1(m_u32Height * 3 / 2, pitchY, CV_8UC1);
+                gMat420.download(mat1);
 
-                IMP_420To444(array420, gMat.data, m_u32Width, m_u32Height, pitchY);
+                IMP_420To444(gMat420.data, gMat444.data, m_u32Width, m_u32Height, pitchY);
+
                 err = cudaGetLastError();
                 if (err != cudaSuccess)
                 {
@@ -148,24 +122,20 @@ namespace RW{
                     return tenStatus::nenError;
                 }
 
-				cv::cuda::GpuMat g_mat[3] = { gMat(cv::Rect(0, 0, m_u32Width, m_u32Height)), gMat(cv::Rect(0, m_u32Height, m_u32Width, m_u32Height)), gMat(cv::Rect(0, 2 * m_u32Height, m_u32Width, m_u32Height)) };
-				cv::cuda::GpuMat gMat3(m_u32Height, m_u32Width, CV_8UC3, g_mat);
-
-                cv::cuda::cvtColor(gMat3, gMat3, cv::COLOR_YUV2RGB);
+                cv::cvtColor(gMat444, gMat444, cv::COLOR_YUV2RGB);
 
                 cv::Mat mat(m_u32Height, m_u32Width, CV_8UC3);
-                gMat3.download(mat);
+                gMat444.download(mat);
+
                 data->pOutput->pBuffer = mat.data;
-                data->pOutput->u32Size = mat.total();
+                data->pOutput->u32Size = mat.total()*mat.channels();
 
                 FILE *pFile;
-                pFile = fopen("C:\\dummy\\test.raw", "wb");
-                fwrite(data->pOutput->pBuffer, 1, data->pOutput->u32Size, pFile);
+                pFile = fopen("c:\\dummy\\dummy.raw", "rb");
+                fwrite(mat.data, 1, mat.total()*mat.channels(), pFile);
                 fclose(pFile);
 
                 cudaFree(arrayY);
-                cudaFree(array420);
-                //cudaFree(array444);
 
                 if (enStatus != tenStatus::nenSuccess || !data->pOutput)
                 {
