@@ -401,7 +401,7 @@ namespace RW{
         }
 
 
-        NVENCSTATUS ENC_CudaInterop::ConvertYUVToNV12(EncodeBuffer *pEncodeBuffer, CUdeviceptr cuDevPtr, int width, int height)
+        NVENCSTATUS ENC_CudaInterop::ConvertYUVToNV12(EncodeBuffer *pEncodeBuffer, CUdeviceptr cuDevPtr, int height)
         {
             ENC_CudaAutoLock cuLock(m_cuContext);
             CUresult err = CUDA_SUCCESS;
@@ -625,7 +625,7 @@ namespace RW{
                 pEncodeBuffer = m_EncodeBufferQueue.GetAvailable();
             }
 
-            ConvertYUVToNV12(pEncodeBuffer, data->pcuYUVArray, m_encodeConfig.width, m_encodeConfig.height);
+            ConvertYUVToNV12(pEncodeBuffer, data->pcuYUVArray, m_encodeConfig.height);
             //pEncodeBuffer->stInputBfr.pNV12devPtr = data->pcuYUVArray;
 
             nvStatus = m_pNvHWEncoder->NvEncMapInputResource(pEncodeBuffer->stInputBfr.nvRegisteredResource, &pEncodeBuffer->stInputBfr.hInputSurface);

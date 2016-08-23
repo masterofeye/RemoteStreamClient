@@ -60,7 +60,7 @@ namespace RW
 			CUvideoctxlock       g_CtxLock;
 
 			// These are CUDA function pointers to the CUDA kernels
-			CUmoduleManager   *g_pCudaModule;
+			//CUmoduleManager   *g_pCudaModule;
 
 			CUmodule           cuModNV12toARGB;
 			CUfunction         g_kernelNV12toARGB;

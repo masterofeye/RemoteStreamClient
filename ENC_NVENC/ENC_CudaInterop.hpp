@@ -61,7 +61,7 @@ namespace RW{
 			NVENCSTATUS                                         AllocateIOBuffers(uint32_t uInputWidth, uint32_t uInputHeight);
 			NVENCSTATUS                                         ReleaseIOBuffers();
 			NVENCSTATUS                                         FlushEncoder();
-            NVENCSTATUS                                         ConvertYUVToNV12(EncodeBuffer *pEncodeBuffer, CUdeviceptr cuDevPtr, int width, int height);
+            NVENCSTATUS                                         ConvertYUVToNV12(EncodeBuffer *pEncodeBuffer, CUdeviceptr cuDevPtr, int height);
 
 		};
 	}

@@ -364,6 +364,12 @@ int CPipeline::RunPipeline()
             //SAFE_DELETE(decodeCtrl.pOutput);
 
             cudaError err = cudaDeviceSynchronize();
+            if (err != cudaSuccess)
+            {
+                printf("Pipeline: Device synchronize failed! Error = %d\n", err);
+                return -1;
+            }
+
         }
     }
     catch (...)

@@ -176,7 +176,7 @@ namespace RW
                 g_pFrameQueue->endDecode();
 
             /////////////////////////////////////////
-            enStatus = (g_pCudaModule && g_pVideoDecoder) ? tenStatus::nenSuccess : tenStatus::nenError;
+            enStatus = (g_pVideoDecoder) ? tenStatus::nenSuccess : tenStatus::nenError;
 
             // On this case we drive the display with a while loop (no openGL calls)
             while (!g_pFrameQueue->isEmpty())
@@ -336,7 +336,7 @@ namespace RW
                 checkCudaErrors(cuCtxPushCurrent(g_oContext));
 
                 CUdeviceptr  pDecodedFrame[2] = { 0, 0 };
-                CUdeviceptr  pInteropFrame[2] = { 0, 0 };
+                //CUdeviceptr  pInteropFrame[2] = { 0, 0 };
 
 				*pbIsProgressive = oDisplayInfo.progressive_frame;
 
@@ -365,7 +365,7 @@ namespace RW
 					nHeight = g_pVideoDecoder->targetHeight();
 
 					// map DirectX texture to CUDA surface
-					size_t nTexturePitch = 0;
+					//size_t nTexturePitch = 0;
 
                     g_pFrameYUV = pDecodedFrame[active_field];
 
@@ -467,28 +467,28 @@ namespace RW
 
     		checkCudaErrors(cuCtxCreate(&g_oContext, CU_CTX_BLOCKING_SYNC, g_oDevice));
 
-			try
-			{
-				// Initialize CUDA releated Driver API (32-bit or 64-bit), depending the platform running
-				if (sizeof(void *) == 4)
-				{
-                    g_pCudaModule = new CUmoduleManager("NV12ToARGB_drvapi_Win32.ptx", ".", 2, 2, 2);
-				}
-				else
-				{
-                    g_pCudaModule = new CUmoduleManager("NV12ToARGB_drvapi_x64.ptx", "C:\\Projekte\\RemoteStreamClient\\build\\x64\\Debug\\", 2, 2, 2);
-				}
-			}
-			catch (char const *p_file)
-			{
-				// If the CUmoduleManager constructor fails to load the PTX file, it will throw an exception
-				printf("\n>> CUmoduleManager::Exception!  %s not found!\n", p_file);
-				printf(">> Please rebuild NV12ToARGB_drvapi.cu or re-install this sample.\n");
-				return E_FAIL;
-			}
+			//try
+			//{
+			//	// Initialize CUDA releated Driver API (32-bit or 64-bit), depending the platform running
+			//	if (sizeof(void *) == 4)
+			//	{
+   //                 g_pCudaModule = new CUmoduleManager("NV12ToARGB_drvapi_Win32.ptx", ".", 2, 2, 2);
+			//	}
+			//	else
+			//	{
+   //                 g_pCudaModule = new CUmoduleManager("NV12ToARGB_drvapi_x64.ptx", "C:\\Projekte\\RemoteStreamClient\\build\\x64\\Debug\\", 2, 2, 2);
+			//	}
+			//}
+			//catch (char const *p_file)
+			//{
+			//	// If the CUmoduleManager constructor fails to load the PTX file, it will throw an exception
+			//	printf("\n>> CUmoduleManager::Exception!  %s not found!\n", p_file);
+			//	printf(">> Please rebuild NV12ToARGB_drvapi.cu or re-install this sample.\n");
+			//	return E_FAIL;
+			//}
 
-			g_pCudaModule->GetCudaFunction("NV12ToARGB_drvapi", &g_kernelNV12toARGB);
-			g_pCudaModule->GetCudaFunction("Passthru_drvapi", &g_kernelPassThru);
+			//g_pCudaModule->GetCudaFunction("NV12ToARGB_drvapi", &g_kernelNV12toARGB);
+			//g_pCudaModule->GetCudaFunction("Passthru_drvapi", &g_kernelPassThru);
 
             /////////////////Change///////////////////////////
             // Now we create the CUDA resources and the CUDA decoder context
@@ -507,7 +507,7 @@ namespace RW
             }
 
             /////////////////////////////////////////
-            return ((g_pCudaModule && g_pVideoDecoder) ? S_OK : E_FAIL);
+            return ((g_pVideoDecoder) ? S_OK : E_FAIL);
         }
 	}
 }
