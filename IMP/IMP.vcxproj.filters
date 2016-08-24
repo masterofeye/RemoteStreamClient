@@ -64,10 +64,10 @@
     <None Include="IMP.json" />
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="IMP_444To420.cu">
+    <CudaCompile Include="ConvColor_BGRtoYUV420\IMP_444To420.cu">
       <Filter>ConvColor_BGRtoYUV420</Filter>
     </CudaCompile>
-    <CudaCompile Include="IMP_420To444.cu">
+    <CudaCompile Include="ConvColor_YUV420toRGB\IMP_420To444.cu">
       <Filter>ConvColor_YUV420toRGB</Filter>
     </CudaCompile>
   </ItemGroup>
