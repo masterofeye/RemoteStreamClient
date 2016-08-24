@@ -5,7 +5,12 @@
 #include <Utils.h>
 #include "spdlog\spdlog.h"
 
+#ifndef SAFE_DELETE
+#define SAFE_DELETE(P) {if (P) {delete P; P = nullptr;}}
+#endif // SAFE_DELETE
+
 namespace RW{
+
     typedef struct stBitStream
     {
         void *pBuffer;

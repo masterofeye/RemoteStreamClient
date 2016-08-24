@@ -23,6 +23,8 @@ int main(int argc, char* argv[])
     QApplication app(argc, argv);
 
     RW::VPL::QT_SIMPLE::VPL_Viewer qViewer;
+    qViewer.setParams(1920, 720);
+    qViewer.resize(1970, 770);
     qViewer.show();
     params.pViewer = &qViewer;
 
@@ -30,7 +32,7 @@ int main(int argc, char* argv[])
     CPipeline pipe(&params);
     CPipethread thread;
 
-    QObject::connect(&thread, SIGNAL(started()), &pipe, SLOT(RunPipeline()));
+    QObject::connect(&thread, SIGNAL(started()), &pipe, SLOT(RunPipeline()), Qt::AutoConnection);
     pipe.moveToThread(&thread);
 
     thread.start();

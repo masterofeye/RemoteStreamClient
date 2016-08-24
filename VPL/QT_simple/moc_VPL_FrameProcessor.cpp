@@ -20,7 +20,7 @@
 QT_BEGIN_MOC_NAMESPACE
 struct qt_meta_stringdata_RW__VPL__QT_SIMPLE__VPL_FrameProcessor_t {
     QByteArrayData data[5];
-    char stringdata0[79];
+    char stringdata0[74];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -32,12 +32,12 @@ static const qt_meta_stringdata_RW__VPL__QT_SIMPLE__VPL_FrameProcessor_t qt_meta
 QT_MOC_LITERAL(0, 0, 38), // "RW::VPL::QT_SIMPLE::VPL_Frame..."
 QT_MOC_LITERAL(1, 39, 18), // "FrameBufferChanged"
 QT_MOC_LITERAL(2, 58, 0), // ""
-QT_MOC_LITERAL(3, 59, 11), // "QByteArray*"
-QT_MOC_LITERAL(4, 71, 7) // "pBuffer"
+QT_MOC_LITERAL(3, 59, 6), // "uchar*"
+QT_MOC_LITERAL(4, 66, 7) // "pBuffer"
 
     },
     "RW::VPL::QT_SIMPLE::VPL_FrameProcessor\0"
-    "FrameBufferChanged\0\0QByteArray*\0pBuffer"
+    "FrameBufferChanged\0\0uchar*\0pBuffer"
 };
 #undef QT_MOC_LITERAL
 
@@ -69,14 +69,14 @@ void RW::VPL::QT_SIMPLE::VPL_FrameProcessor::qt_static_metacall(QObject *_o, QMe
         VPL_FrameProcessor *_t = static_cast<VPL_FrameProcessor *>(_o);
         Q_UNUSED(_t)
         switch (_id) {
-        case 0: _t->FrameBufferChanged((*reinterpret_cast< QByteArray*(*)>(_a[1]))); break;
+        case 0: _t->FrameBufferChanged((*reinterpret_cast< uchar*(*)>(_a[1]))); break;
         default: ;
         }
     } else if (_c == QMetaObject::IndexOfMethod) {
         int *result = reinterpret_cast<int *>(_a[0]);
         void **func = reinterpret_cast<void **>(_a[1]);
         {
-            typedef void (VPL_FrameProcessor::*_t)(QByteArray * );
+            typedef void (VPL_FrameProcessor::*_t)(uchar * );
             if (*reinterpret_cast<_t *>(func) == static_cast<_t>(&VPL_FrameProcessor::FrameBufferChanged)) {
                 *result = 0;
                 return;
@@ -122,7 +122,7 @@ int RW::VPL::QT_SIMPLE::VPL_FrameProcessor::qt_metacall(QMetaObject::Call _c, in
 }
 
 // SIGNAL 0
-void RW::VPL::QT_SIMPLE::VPL_FrameProcessor::FrameBufferChanged(QByteArray * _t1)
+void RW::VPL::QT_SIMPLE::VPL_FrameProcessor::FrameBufferChanged(uchar * _t1)
 {
     void *_a[] = { Q_NULLPTR, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
     QMetaObject::activate(this, &staticMetaObject, 0, _a);

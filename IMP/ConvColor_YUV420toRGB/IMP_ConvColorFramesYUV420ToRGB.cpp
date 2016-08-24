@@ -7,7 +7,7 @@
 #include "opencv2/cudaimgproc.hpp"
 
 // CUDA kernel
-extern "C" void IMP_420To444(uint8_t *pArrayYUV420, uint8_t *pArrayFull, int iWidth, int iHeight, size_t pitchY);
+extern "C" void IMP_420To444(uint8_t *pYUV420Array, uint8_t *pArrayFull, int iWidth, int iHeight, size_t pitchY);
 
 namespace RW{
     namespace IMP{
@@ -109,16 +109,16 @@ namespace RW{
 
                 IMP_420To444(gMat420.data, gMat444.data, m_u32Width, m_u32Height, pitchY);
 
-                err = cudaGetLastError();
-                if (err != cudaSuccess)
-                {
-                    printf("IMP_420To444: kernel() failed to launch error = %d\n", err);
-                    return tenStatus::nenError;
-                }
                 err = cudaDeviceSynchronize();
                 if (err != cudaSuccess)
                 {
                     printf("IMP_420To444: Device synchronize failed! Error = %d\n", err);
+                    return tenStatus::nenError;
+                }
+                err = cudaGetLastError();
+                if (err != cudaSuccess)
+                {
+                    printf("IMP_420To444: kernel() failed to launch error = %d\n", err);
                     return tenStatus::nenError;
                 }
 

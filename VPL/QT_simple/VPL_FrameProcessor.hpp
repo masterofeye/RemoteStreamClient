@@ -16,7 +16,7 @@ namespace RW{
             typedef struct REMOTE_API stMyControlStruct : public CORE::tstControlStruct
             {
                 tstBitStream *pstBitStream;
-                uint64_t    TimeStamp;
+                tstPayloadMsg stPayload;
                 void UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType);
             }tstMyControlStruct;
 
@@ -38,7 +38,7 @@ namespace RW{
                 virtual tenStatus Deinitialise(CORE::tstDeinitialiseControlStruct *DeinitialiseControlStruct) Q_DECL_OVERRIDE;
 
             signals:
-                void FrameBufferChanged(QByteArray *pBuffer);
+                void FrameBufferChanged(uchar *pBuffer);
 
             };
         }

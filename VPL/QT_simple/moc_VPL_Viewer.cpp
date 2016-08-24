@@ -19,8 +19,8 @@
 
 QT_BEGIN_MOC_NAMESPACE
 struct qt_meta_stringdata_RW__VPL__QT_SIMPLE__VPL_Viewer_t {
-    QByteArrayData data[18];
-    char stringdata0[234];
+    QByteArrayData data[8];
+    char stringdata0[105];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -32,30 +32,16 @@ static const qt_meta_stringdata_RW__VPL__QT_SIMPLE__VPL_Viewer_t qt_meta_stringd
 QT_MOC_LITERAL(0, 0, 30), // "RW::VPL::QT_SIMPLE::VPL_Viewer"
 QT_MOC_LITERAL(1, 31, 12), // "setVideoData"
 QT_MOC_LITERAL(2, 44, 0), // ""
-QT_MOC_LITERAL(3, 45, 11), // "QByteArray*"
-QT_MOC_LITERAL(4, 57, 7), // "qBuffer"
-QT_MOC_LITERAL(5, 65, 4), // "play"
-QT_MOC_LITERAL(6, 70, 15), // "connectToViewer"
-QT_MOC_LITERAL(7, 86, 19), // "VPL_FrameProcessor*"
-QT_MOC_LITERAL(8, 106, 9), // "frameProc"
-QT_MOC_LITERAL(9, 116, 17), // "mediaStateChanged"
-QT_MOC_LITERAL(10, 134, 19), // "QMediaPlayer::State"
-QT_MOC_LITERAL(11, 154, 5), // "state"
-QT_MOC_LITERAL(12, 160, 15), // "positionChanged"
-QT_MOC_LITERAL(13, 176, 8), // "position"
-QT_MOC_LITERAL(14, 185, 15), // "durationChanged"
-QT_MOC_LITERAL(15, 201, 8), // "duration"
-QT_MOC_LITERAL(16, 210, 11), // "setPosition"
-QT_MOC_LITERAL(17, 222, 11) // "handleError"
+QT_MOC_LITERAL(3, 45, 6), // "uchar*"
+QT_MOC_LITERAL(4, 52, 6), // "buffer"
+QT_MOC_LITERAL(5, 59, 15), // "connectToViewer"
+QT_MOC_LITERAL(6, 75, 19), // "VPL_FrameProcessor*"
+QT_MOC_LITERAL(7, 95, 9) // "frameProc"
 
     },
     "RW::VPL::QT_SIMPLE::VPL_Viewer\0"
-    "setVideoData\0\0QByteArray*\0qBuffer\0"
-    "play\0connectToViewer\0VPL_FrameProcessor*\0"
-    "frameProc\0mediaStateChanged\0"
-    "QMediaPlayer::State\0state\0positionChanged\0"
-    "position\0durationChanged\0duration\0"
-    "setPosition\0handleError"
+    "setVideoData\0\0uchar*\0buffer\0connectToViewer\0"
+    "VPL_FrameProcessor*\0frameProc"
 };
 #undef QT_MOC_LITERAL
 
@@ -65,7 +51,7 @@ static const uint qt_meta_data_RW__VPL__QT_SIMPLE__VPL_Viewer[] = {
        7,       // revision
        0,       // classname
        0,    0, // classinfo
-       8,   14, // methods
+       2,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -73,24 +59,12 @@ static const uint qt_meta_data_RW__VPL__QT_SIMPLE__VPL_Viewer[] = {
        0,       // signalCount
 
  // slots: name, argc, parameters, tag, flags
-       1,    1,   54,    2, 0x0a /* Public */,
-       5,    0,   57,    2, 0x0a /* Public */,
-       6,    1,   58,    2, 0x0a /* Public */,
-       9,    1,   61,    2, 0x08 /* Private */,
-      12,    1,   64,    2, 0x08 /* Private */,
-      14,    1,   67,    2, 0x08 /* Private */,
-      16,    1,   70,    2, 0x08 /* Private */,
-      17,    0,   73,    2, 0x08 /* Private */,
+       1,    1,   24,    2, 0x0a /* Public */,
+       5,    1,   27,    2, 0x0a /* Public */,
 
  // slots: parameters
     QMetaType::Void, 0x80000000 | 3,    4,
-    QMetaType::Void,
-    QMetaType::Void, 0x80000000 | 7,    8,
-    QMetaType::Void, 0x80000000 | 10,   11,
-    QMetaType::Void, QMetaType::LongLong,   13,
-    QMetaType::Void, QMetaType::LongLong,   15,
-    QMetaType::Void, QMetaType::Int,   13,
-    QMetaType::Void,
+    QMetaType::Void, 0x80000000 | 6,    7,
 
        0        // eod
 };
@@ -101,14 +75,8 @@ void RW::VPL::QT_SIMPLE::VPL_Viewer::qt_static_metacall(QObject *_o, QMetaObject
         VPL_Viewer *_t = static_cast<VPL_Viewer *>(_o);
         Q_UNUSED(_t)
         switch (_id) {
-        case 0: _t->setVideoData((*reinterpret_cast< QByteArray*(*)>(_a[1]))); break;
-        case 1: _t->play(); break;
-        case 2: _t->connectToViewer((*reinterpret_cast< VPL_FrameProcessor*(*)>(_a[1]))); break;
-        case 3: _t->mediaStateChanged((*reinterpret_cast< QMediaPlayer::State(*)>(_a[1]))); break;
-        case 4: _t->positionChanged((*reinterpret_cast< qint64(*)>(_a[1]))); break;
-        case 5: _t->durationChanged((*reinterpret_cast< qint64(*)>(_a[1]))); break;
-        case 6: _t->setPosition((*reinterpret_cast< int(*)>(_a[1]))); break;
-        case 7: _t->handleError(); break;
+        case 0: _t->setVideoData((*reinterpret_cast< uchar*(*)>(_a[1]))); break;
+        case 1: _t->connectToViewer((*reinterpret_cast< VPL_FrameProcessor*(*)>(_a[1]))); break;
         default: ;
         }
     }
@@ -139,13 +107,13 @@ int RW::VPL::QT_SIMPLE::VPL_Viewer::qt_metacall(QMetaObject::Call _c, int _id, v
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 8)
+        if (_id < 2)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 8;
+        _id -= 2;
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 8)
+        if (_id < 2)
             *reinterpret_cast<int*>(_a[0]) = -1;
-        _id -= 8;
+        _id -= 2;
     }
     return _id;
 }

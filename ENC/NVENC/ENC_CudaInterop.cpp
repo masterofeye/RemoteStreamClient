@@ -173,7 +173,7 @@ namespace RW{
                 jitOptVals[2] = (void *)(size_t)jitRegCount;
 
                 string ptx_source;
-                char *ptx_path = "C:\\Projekte\\RemoteStreamClient\\ENC_NVENC\\data\\preproc64_cuda.ptx";
+                char *ptx_path = "C:\\Projekte\\RemoteStreamClient\\ENC\\NVENC\\data\\preproc64_cuda.ptx";
 
                 FILE *fp = fopen(ptx_path, "rb");
                 if (!fp)

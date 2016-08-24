@@ -1,15 +1,11 @@
 #pragma once
 
 #include <qmediaplayer.h>
-#include <QtGui/QMovie>
 #include <QtWidgets/QWidget>
-#include <qbuffer.h>
 
 QT_BEGIN_NAMESPACE
-class QAbstractButton;
-class QSlider;
-class QLabel;
-class QGraphicsVideoItem;
+class QGraphicsPixmapItem;
+class QGraphicsScene;
 QT_END_NAMESPACE
 
 namespace RW
@@ -30,28 +26,21 @@ namespace RW
             {
                 Q_OBJECT
 
+            private:
+                QGraphicsScene      *scene;
+                QGraphicsPixmapItem *item;
+                quint16             _width;
+                quint16             _height;
+                quint32             count;
+
             public:
                 VPL_Viewer();
                 ~VPL_Viewer();
-
-            private:
-                QMediaPlayer         mediaPlayer;
-                QGraphicsVideoItem  *videoItem;
-                QAbstractButton     *playButton;
-                QSlider             *positionSlider;
-                QLabel              *errorLabel;
+                void setParams(quint16 width, quint16 height){ _width = width; _height = height; };
 
                 public slots:
-                void setVideoData(QByteArray *qBuffer);
-                void play();
+                void setVideoData(uchar *buffer);
                 void connectToViewer(VPL_FrameProcessor *frameProc);
-
-                private slots:
-                void mediaStateChanged(QMediaPlayer::State state);
-                void positionChanged(qint64 position);
-                void durationChanged(qint64 duration);
-                void setPosition(int position);
-                void handleError();
 
             };
         }

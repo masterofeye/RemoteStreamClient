@@ -284,8 +284,6 @@ int CPipeline::RunPipeline()
             RW::VPL::QT_SIMPLE::tstMyControlStruct playerCtrl;
             {
                 playerCtrl.pstBitStream = impColor420ControlStruct.pOutput;
-                playerCtrl.TimeStamp = //1000;
-                    videoGrabberControlStruct.nCurrentPositionMSec;
             }
             RW::VPL::QT_SIMPLE::tstMyDeinitialiseControlStruct playerDeinitCtrl;
 

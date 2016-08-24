@@ -54,9 +54,6 @@ namespace RW
                     return enStatus;
                 }
 
-                //VPL_Viewer viewer;
-                //viewer.show();
-                //viewer.connectToViewer(this);
                 data->pViewer->connectToViewer(this);
 
 #ifdef TRACE_PERFORMANCE
@@ -81,15 +78,17 @@ namespace RW
                     enStatus = tenStatus::nenError;
                     return enStatus;
                 }
-                QByteArray *qbArray = new QByteArray;
-                qbArray->setRawData((char*)data->pstBitStream->pBuffer, data->pstBitStream->u32Size);
 
-                emit FrameBufferChanged(qbArray);
+                uint32_t u32Timestamp = data->stPayload.u32Timestamp;
+                uint32_t u32FrameNbr = data->stPayload.u32FrameNbr;
+
+                emit FrameBufferChanged((uchar*)data->pstBitStream->pBuffer);
 
 #ifdef TRACE_PERFORMANCE
                 RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
                 file_logger->trace() << "Time to DoRender for nenPlayback_Simple module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
+                SAFE_DELETE(data->pstBitStream);
                 return enStatus;
             }
 
