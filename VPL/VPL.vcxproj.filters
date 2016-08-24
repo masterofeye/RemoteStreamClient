@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="QT_simple">
+      <UniqueIdentifier>{58a38e12-ab80-40ac-abc6-5a90888f013e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="QT_simple\Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="QT_simple\Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ModuleFactory.cpp" />
+    <ClCompile Include="moc_ModuleFactory.cpp" />
+    <ClCompile Include="QT_simple\moc_VPL_FrameProcessor.cpp">
+      <Filter>QT_simple\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="QT_simple\moc_VPL_Viewer.cpp">
+      <Filter>QT_simple\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="QT_simple\VPL_FrameProcessor.cpp">
+      <Filter>QT_simple\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="QT_simple\VPL_Viewer.cpp">
+      <Filter>QT_simple\Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ModuleFactory.hpp" />
+    <ClInclude Include="QT_simple\VPL_FrameProcessor.hpp">
+      <Filter>QT_simple\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QT_simple\VPL_Viewer.hpp">
+      <Filter>QT_simple\Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="VPL.json" />
+  </ItemGroup>
+</Project>

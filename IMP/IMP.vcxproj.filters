@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="ConvColor_BGRtoYUV420\moc_IMP_ConvColorFrames.cpp">
+      <Filter>ConvColor_BGRtoYUV420</Filter>
+    </ClCompile>
+    <ClCompile Include="ConvColor_BGRtoYUV420\IMP_ConvColorFrames.cpp">
+      <Filter>ConvColor_BGRtoYUV420</Filter>
+    </ClCompile>
+    <ClCompile Include="ConvColor_YUV420toRGB\moc_IMP_ConvColorFramesYUV420ToRGB.cpp">
+      <Filter>ConvColor_YUV420toRGB</Filter>
+    </ClCompile>
+    <ClCompile Include="ConvColor_YUV420toRGB\IMP_ConvColorFramesYUV420ToRGB.cpp">
+      <Filter>ConvColor_YUV420toRGB</Filter>
+    </ClCompile>
+    <ClCompile Include="Crop\moc_IMP_CropFrames.cpp">
+      <Filter>Merge</Filter>
+    </ClCompile>
+    <ClCompile Include="Crop\IMP_CropFrames.cpp">
+      <Filter>Merge</Filter>
+    </ClCompile>
+    <ClCompile Include="Merge\moc_IMP_MergeFrames.cpp">
+      <Filter>Crop</Filter>
+    </ClCompile>
+    <ClCompile Include="Merge\IMP_MergeFrames.cpp">
+      <Filter>Crop</Filter>
+    </ClCompile>
+    <ClCompile Include="IMP_Base.cpp" />
+    <ClCompile Include="moc_ModuleFactory.cpp" />
+    <ClCompile Include="ModuleFactory.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ConvColor_BGRtoYUV420\IMP_ConvColorFrames.hpp">
+      <Filter>ConvColor_BGRtoYUV420</Filter>
+    </ClInclude>
+    <ClInclude Include="ConvColor_YUV420toRGB\IMP_ConvColorFramesYUV420ToRGB.hpp">
+      <Filter>ConvColor_YUV420toRGB</Filter>
+    </ClInclude>
+    <ClInclude Include="Crop\IMP_CropFrames.hpp">
+      <Filter>Merge</Filter>
+    </ClInclude>
+    <ClInclude Include="Merge\IMP_MergeFrames.hpp">
+      <Filter>Crop</Filter>
+    </ClInclude>
+    <ClInclude Include="IMP.h" />
+    <ClInclude Include="IMP_Base.h" />
+    <ClInclude Include="ModuleFactory.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="ConvColor_BGRtoYUV420">
+      <UniqueIdentifier>{3356903a-22fe-4e2f-a16b-68e7f6d65769}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ConvColor_YUV420toRGB">
+      <UniqueIdentifier>{191b1a4b-7349-4f64-abc5-06f4089f1b53}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Merge">
+      <UniqueIdentifier>{dedafd97-4b7b-4546-876f-b0571c29979f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Crop">
+      <UniqueIdentifier>{1e9599cc-691a-49d1-97c4-dfd6bd89855a}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="IMP.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="IMP_444To420.cu">
+      <Filter>ConvColor_BGRtoYUV420</Filter>
+    </CudaCompile>
+    <CudaCompile Include="IMP_420To444.cu">
+      <Filter>ConvColor_YUV420toRGB</Filter>
+    </CudaCompile>
+  </ItemGroup>
+</Project>

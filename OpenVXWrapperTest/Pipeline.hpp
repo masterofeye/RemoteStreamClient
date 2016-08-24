@@ -10,18 +10,18 @@
 
 /*Modules*/
 #include "GraphBuilder.h"
-#include "ENC_CudaInterop.hpp"
-#include "VideoGrabberSimu.hpp"
-#include "IMP_CropFrames.hpp"
-#include "IMP_MergeFrames.hpp"
-#include "IMP_ConvColorFrames.hpp"
-//#include "DEC_Intel.hpp"
-//#include "DEC_inputs.h"
-#include "DEC_NvDecodeD3D9.hpp"
-#include "DEC_NVENC_inputs.h"
-#include "IMP_ConvColorFramesYUV420ToRGB.hpp"
-#include "VPL_FrameProcessor.hpp"
-#include "VPL_Viewer.hpp"
+#include "NVENC\ENC_CudaInterop.hpp"
+#include "Simu\VideoGrabberSimu.hpp"
+#include "Crop\IMP_CropFrames.hpp"
+#include "Merge\IMP_MergeFrames.hpp"
+#include "ConvColor_BGRtoYUV420\IMP_ConvColorFrames.hpp"
+#include "ConvColor_YUV420toRGB\IMP_ConvColorFramesYUV420ToRGB.hpp"
+#include "INTEL\DEC_Intel.hpp"
+#include "INTEL\DEC_inputs.h"
+#include "NVENC\DEC_NvDecodeD3D9.hpp"
+#include "NVENC\DEC_NVENC_inputs.h"
+#include "QT_simple\VPL_FrameProcessor.hpp"
+#include "QT_simple\VPL_Viewer.hpp"
 
 #include "HighResolution\HighResClock.h"
 #include "..\Common_NVENC\inc\dynlink_cuda.h"
@@ -34,7 +34,7 @@
 typedef struct stPipelineParams
 {
     std::shared_ptr<spdlog::logger> file_logger;
-    RW::VPL::VPL_Viewer *pViewer;
+    RW::VPL::QT_SIMPLE::VPL_Viewer *pViewer;
     //VideoPlayer *pViewer;
 
 }tstPipelineParams;

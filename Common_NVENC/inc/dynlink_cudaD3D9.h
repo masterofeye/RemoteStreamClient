@@ -17,7 +17,7 @@
     #include <windows.h>
     #include <windowsx.h>
 #endif
-#include <d3dx9.h>
+#include <..\..\..\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include\d3dx9.h>
 
 #if __CUDA_API_VERSION >= 3020
 //    #define cuD3D9CtxCreate                    cuD3D9CtxCreate_v2
