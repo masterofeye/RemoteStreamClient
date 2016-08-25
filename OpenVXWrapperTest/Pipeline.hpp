@@ -10,11 +10,7 @@
 
 /*Modules*/
 #include "GraphBuilder.h"
-#include "NVENC\ENC_CudaInterop.hpp"
-#include "Simu\VideoGrabberSimu.hpp"
-#include "Crop\IMP_CropFrames.hpp"
-#include "Merge\IMP_MergeFrames.hpp"
-#include "ConvColor_BGRtoYUV420\IMP_ConvColorFrames.hpp"
+
 #include "ConvColor_YUV420toRGB\IMP_ConvColorFramesYUV420ToRGB.hpp"
 #include "INTEL\DEC_Intel.hpp"
 #include "INTEL\DEC_inputs.h"
@@ -35,7 +31,6 @@ typedef struct stPipelineParams
 {
     std::shared_ptr<spdlog::logger> file_logger;
     RW::VPL::QT_SIMPLE::VPL_Viewer *pViewer;
-    //VideoPlayer *pViewer;
 
 }tstPipelineParams;
 

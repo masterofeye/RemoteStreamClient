@@ -21,14 +21,12 @@ int main(int argc, char* argv[])
     params.file_logger = file_logger;
 
     QApplication app(argc, argv);
-
     RW::VPL::QT_SIMPLE::VPL_Viewer qViewer;
     qViewer.setParams(1920, 720);
     qViewer.resize(1970, 770);
     qViewer.show();
     params.pViewer = &qViewer;
 
-    //RunPipeline(params);
     CPipeline pipe(&params);
     CPipethread thread;
 

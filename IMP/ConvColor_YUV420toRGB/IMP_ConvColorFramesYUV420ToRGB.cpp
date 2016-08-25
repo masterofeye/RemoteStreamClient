@@ -1,10 +1,13 @@
 #include "IMP_ConvColorFramesYUV420ToRGB.hpp"
-#include "..\VPL\QT_simple\VPL_FrameProcessor.hpp"
 #include <cuda_runtime.h>
 #include "opencv2/cudev/common.hpp"
 #include "opencv2/opencv.hpp"
 #include "opencv2/cudev/common.hpp"
 #include "opencv2/cudaimgproc.hpp"
+
+#if defined (CLIENT)
+#include "..\VPL\QT_simple\VPL_FrameProcessor.hpp"
+#endif
 
 // CUDA kernel
 extern "C" void IMP_420To444(uint8_t *pYUV420Array, uint8_t *pArrayFull, int iWidth, int iHeight, size_t pitchY);
@@ -17,12 +20,14 @@ namespace RW{
             {
                 switch (SubModuleType)
                 {
+#if defined (CLIENT)
                 case CORE::tenSubModule::nenPlayback_Simple:
                 {
                     VPL::QT_SIMPLE::tstMyControlStruct *data = static_cast<VPL::QT_SIMPLE::tstMyControlStruct*>(*Data);
                     data->pstBitStream = this->pOutput;
                     break;
                 }
+#endif
                 default:
                     break;
                 }

@@ -19,23 +19,23 @@ __global__ void kernel420To444(uint8_t *pYUV420Array, uint8_t *pArrayFull, int i
 
     if (iPosX < iWidth)
     {
-        pArrayFull[iPos444] = pYUV420[iPos420];
+        pArrayFull[iPos444] = pYUV420Array[iPos420];
         //int val = pYUV420Array[0];
 
         if (iPosY < iHeight / 2)
         {
             if (iPosX % 2 == 0){
-                pArrayFull[(2 * iPosY) * iDepth * iWidth + iDepth * iPosX + 1] = pYUV420[iOffset + iPos420];
-                pArrayFull[(2 * iPosY) * iDepth * iWidth + iDepth * (iPosX + 1) + 1] = pYUV420[iOffset + iPos420];
-                pArrayFull[((2 * iPosY) + 1) * iDepth * iWidth + iDepth * iPosX + 1] = pYUV420[iOffset + iPos420];
-                pArrayFull[((2 * iPosY) + 1) * iDepth * iWidth + iDepth * (iPosX + 1) + 1] = pYUV420[iOffset + iPos420];
+                pArrayFull[(2 * iPosY) * iDepth * iWidth + iDepth * iPosX + 1] = pYUV420Array[iOffset + iPos420];
+                pArrayFull[(2 * iPosY) * iDepth * iWidth + iDepth * (iPosX + 1) + 1] = pYUV420Array[iOffset + iPos420];
+                pArrayFull[((2 * iPosY) + 1) * iDepth * iWidth + iDepth * iPosX + 1] = pYUV420Array[iOffset + iPos420];
+                pArrayFull[((2 * iPosY) + 1) * iDepth * iWidth + iDepth * (iPosX + 1) + 1] = pYUV420Array[iOffset + iPos420];
             }
             else 
             {
-                pArrayFull[(2 * iPosY) * iDepth * iWidth + iDepth * iPosX + 2] = pYUV420[iOffset + iPos420];
-                pArrayFull[(2 * iPosY) * iDepth * iWidth + iDepth * (iPosX + 1) + 2] = pYUV420[iOffset + iPos420];
-                pArrayFull[((2 * iPosY) + 1) * iDepth * iWidth + iDepth * iPosX + 2] = pYUV420[iOffset + iPos420];
-                pArrayFull[((2 * iPosY) + 1) * iDepth * iWidth + iDepth * (iPosX + 1) + 2] = pYUV420[iOffset + iPos420];
+                pArrayFull[(2 * iPosY) * iDepth * iWidth + iDepth * iPosX + 2] = pYUV420Array[iOffset + iPos420];
+                pArrayFull[(2 * iPosY) * iDepth * iWidth + iDepth * (iPosX + 1) + 2] = pYUV420Array[iOffset + iPos420];
+                pArrayFull[((2 * iPosY) + 1) * iDepth * iWidth + iDepth * iPosX + 2] = pYUV420Array[iOffset + iPos420];
+                pArrayFull[((2 * iPosY) + 1) * iDepth * iWidth + iDepth * (iPosX + 1) + 2] = pYUV420Array[iOffset + iPos420];
             }
         }
     }
