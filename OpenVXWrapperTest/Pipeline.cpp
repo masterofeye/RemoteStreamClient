@@ -238,11 +238,6 @@ int CPipeline::RunPipeline()
 
             /*******Cleanup. Whatever has been created here has to be destroyed here. Modules do not do that. ******/
 
-             //terminate testing data
-            free(buffer);
-            SAFE_DELETE(pBitStream);
-            SAFE_DELETE(pFile);
-
             //SAFE_DELETE(decodeInitCtrl.inputParams);
             //SAFE_DELETE(decodeCtrl.pOutput->pBuffer);
             //SAFE_DELETE(decodeCtrl.pOutput);

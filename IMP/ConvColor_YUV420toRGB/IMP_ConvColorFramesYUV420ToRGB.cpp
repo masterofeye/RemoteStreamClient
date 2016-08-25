@@ -133,12 +133,12 @@ namespace RW{
                 gMat444.download(mat);
 
                 data->pOutput->pBuffer = mat.data;
-                data->pOutput->u32Size = mat.total()*mat.channels();
+                data->pOutput->u32Size = (uint32_t)mat.total()*mat.channels();
 
-                FILE *pFile;
-                pFile = fopen("c:\\dummy\\dummy.raw", "rb");
-                fwrite(mat.data, 1, mat.total()*mat.channels(), pFile);
-                fclose(pFile);
+                //FILE *pFile;
+                //pFile = fopen("c:\\dummy\\dummy.raw", "rb");
+                //fwrite(mat.data, 1, mat.total()*mat.channels(), pFile);
+                //fclose(pFile);
 
                 cudaFree(arrayY);
 

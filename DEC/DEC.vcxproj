@@ -167,7 +167,6 @@
     <ClInclude Include="..\Common_NVENC\inc\exception.h" />
     <ClInclude Include="..\Common_NVENC\inc\helper_cuda.h" />
     <ClInclude Include="..\Common_NVENC\inc\helper_cuda_drvapi.h" />
-    <ClInclude Include="INTEL\decode_render.h" />
     <ClInclude Include="INTEL\DEC_inputs.h" />
     <ClInclude Include="INTEL\DEC_Intel.hpp" />
     <ClInclude Include="INTEL\pipeline_decode.h" />
@@ -184,7 +183,6 @@
     <ClCompile Include="..\Common_NVENC\src\cudaModuleMgr.cpp" />
     <ClCompile Include="..\Common_NVENC\src\dynlink_cuda.cpp" />
     <ClCompile Include="..\Common_NVENC\src\dynlink_nvcuvid.cpp" />
-    <ClCompile Include="INTEL\decode_render.cpp" />
     <ClCompile Include="INTEL\DEC_Intel.cpp" />
     <ClCompile Include="INTEL\moc_DEC_Intel.cpp" />
     <ClCompile Include="INTEL\pipeline_decode.cpp" />

@@ -9,6 +9,7 @@
 namespace RW{
     namespace DEC{
         namespace INTEL{
+
             enum MemType {
                 SYSTEM_MEMORY = 0x00,
                 D3D9_MEMORY = 0x01,
@@ -32,9 +33,11 @@ namespace RW{
                 bool    bUseHWLib;        // Default: false. Use hardware acceleration lib
 
                 mfxU32  fourcc;           // Default: MFX_FOURCC_RGB4. Output format parameters (MFX_FOURCC_NV12 or MFX_FOURCC_RGB4 or MFX_FOURCC_P010 or MFX_FOURCC_A2RGB10)
+                //mfxU32  nFrames;          // Default: 1. Number of Frames
+                mfxU32  nMaxFPS;          // rendering limited by certain fps
                 sPluginParams pluginParams;
 
-                stInputParams() : videoType(MFX_CODEC_AVC), bLowLat(true), bCalLat(true), bUseHWLib(false), memType(SYSTEM_MEMORY),
+                stInputParams() : videoType(MFX_CODEC_AVC), bLowLat(false), bCalLat(false), bUseHWLib(false), memType(SYSTEM_MEMORY),
                     nAsyncDepth(4), gpuCopy(MFX_GPUCOPY_DEFAULT),/* nFrames(1), */Width(0), Height(0), fourcc(MFX_FOURCC_RGB4)
                 {}
                 ~stInputParams(){}

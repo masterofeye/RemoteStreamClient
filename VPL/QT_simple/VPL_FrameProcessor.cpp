@@ -79,6 +79,11 @@ namespace RW
                     return enStatus;
                 }
 
+                //FILE *pFile;
+                //fopen_s(&pFile, "C:\\dummy\\fpOut.raw", "wb");
+                //fwrite(data->pstBitStream->pBuffer, 1, data->pstBitStream->u32Size, pFile);
+                //fclose(pFile);
+
                 uint32_t u32Timestamp = data->stPayload.u32Timestamp;
                 uint32_t u32FrameNbr = data->stPayload.u32FrameNbr;
 

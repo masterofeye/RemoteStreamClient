@@ -6,7 +6,6 @@
 namespace RW{
     namespace DEC{
         namespace INTEL{
-
             class CDecodingPipeline;
 
             typedef struct stMyInitialiseControlStruct : public CORE::tstInitialiseControlStruct

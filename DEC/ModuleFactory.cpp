@@ -1,5 +1,5 @@
 #include "ModuleFactory.hpp"
-#include "INTEL\DEC_Intel.hpp"
+#include "Intel\DEC_Intel.hpp"
 #include "NVENC\DEC_NvDecodeD3D9.hpp"
 
 
@@ -30,7 +30,7 @@ namespace RW{
                 if (Module != nullptr)
                     status = tenStatus::nenSuccess;
                 break;
-			default:
+            default:
 				//TODO Status can't find module
 				status = tenStatus::nenError;
 				break;

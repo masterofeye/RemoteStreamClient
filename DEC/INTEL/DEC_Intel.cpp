@@ -2,7 +2,7 @@
 
 #include "DEC_Intel.hpp"
 #include "pipeline_decode.h"
-#include "..\VPL\QT_simple\VPL_FrameProcessor.hpp"
+#include "..\..\VPL\QT_simple\VPL_FrameProcessor.hpp"
 
 namespace RW{
     namespace DEC{
@@ -106,7 +106,7 @@ namespace RW{
                 }
                 if (!data->pstEncodedStream)
                 {
-                    m_Logger->error("DEC_Intel::DoRender: pstEncodedStream of stMyControlStruct is empty!");
+                    m_Logger->error("DEC_Intel::DoRender: data->pstEncodedStream is empty!");
                     return tenStatus::nenError;
                 }
                 data->pOutput = new tstBitStream;
