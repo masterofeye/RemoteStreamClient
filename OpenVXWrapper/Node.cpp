@@ -343,6 +343,10 @@ namespace RW
                         //Commit the changes back to the array
                         vxCommitArrayRange(csArrayNextNode, 0, 1, controlStructNext);
                         vxCommitArrayRange(kArrayNextNode, 0, 1, kernelNext);
+
+
+                        vxReleaseParameter(&paramNext[0]);
+                        vxReleaseParameter(&paramNext[1]);
                     }
                     else
                     {
@@ -353,6 +357,9 @@ namespace RW
                     }
                     vxCommitArrayRange(csArrayCurrentNode, 0, 1, controlStruct);
                     vxCommitArrayRange(kArrayCurrentNode, 0, 1, kernelOfCurrentNode);
+
+
+
                 }
                 else
                 {
@@ -361,14 +368,16 @@ namespace RW
                     vxCommitArrayRange(kArrayCurrentNode, 0, 1, kernelOfCurrentNode);
                     return VX_SUCCESS;
                 }
-                 
+
             }
             else
             {
                 return VX_FAILURE;
             }
 
-        
+            vxReleaseParameter(&param[0]);
+            vxReleaseParameter(&param[1]);
+
 #ifdef TRACE_PERFORMANCE
 			auto t2 = RW::CORE::HighResClock::now();
 			auto t3 = RW::CORE::HighResClock::diffNano(t1, t2).count();

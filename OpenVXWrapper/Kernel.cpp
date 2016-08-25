@@ -110,6 +110,9 @@ namespace RW
             vxCommitArrayRange(kernenArray, 0, 1, kernel);
             vxCommitArrayRange(controlStructArray, 0, 1, controlStruct);
 
+            vxReleaseParameter(&param[0]);
+            vxReleaseParameter(&param[1]);
+
             return status;
         }
 
@@ -176,6 +179,9 @@ namespace RW
 			}
             vxCommitArrayRange(kernenArray, 0, 1, kernel);
             vxCommitArrayRange(controlStructArray, 0, 1, controlStruct);
+
+            vxReleaseParameter(&param[0]);
+            vxReleaseParameter(&param[1]);
             return status;
         }
         
@@ -245,20 +251,17 @@ namespace RW
             }
 			catch (std::bad_alloc &e)
 			{
-                const char* dummy = e.what();
 				kernel->Logger()->critical("Bad memory allocation during some_function: ") << e.what();
 				status = VX_FAILURE;
 			}
 			catch (std::runtime_error &e)
 			{
-                const char* dummy = e.what();
-                kernel->Logger()->critical("Runtime error during some_function: ") << e.what();
+				kernel->Logger()->critical("Runtime error during some_function: ") << e.what();
 				status = VX_FAILURE;
 			}
 			catch (std::exception e)
 			{
-                const char* dummy = e.what();
-                kernel->Logger()->critical("Exception error during some_function: ") << e.what();
+				kernel->Logger()->critical("Exception error during some_function: ") << e.what();
 				status = VX_FAILURE;
 			}
 			catch (...)
@@ -271,6 +274,8 @@ namespace RW
 			vxCommitArrayRange(kernenArray, 0, 1, kernel);
 			vxCommitArrayRange(controlStructArray, 0, 1, controlStruct);
 
+            vxReleaseParameter(&param[0]);
+            vxReleaseParameter(&param[1]);
 
             return status;
         }
