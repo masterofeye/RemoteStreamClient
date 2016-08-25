@@ -58,7 +58,6 @@ namespace RW{
 			nenReceive_Simple,
 			nenReceive_Productive,
             nenPlayback_Simple,
-            nenTest_Test
 		};
 
 
@@ -132,9 +131,10 @@ namespace RW{
                 {
                     { "nenVideoGrabber_WC" },
                     { "nenVideoGrabber_FG_USB" },
+                    { "nenVideoGrabber_FG_PCI" },
                     { "nenVideoGrabber_SIMU" },
-                    { "nenGraphic_Color" },
                     { "nenGraphic_ColorYUV420ToRGB" },
+                    { "nenGraphic_Color" },
                     { "nenGraphic_Crop" },
                     { "nenGraphic_Merge" },
                     { "nenEncode_NVIDIA" },
@@ -147,7 +147,7 @@ namespace RW{
                     { "nenReceive_Productive" },
                     { "nenPlayback_Simple" }
                 };
-
+                    
                 return ModuleName[((int)SubModule)-1];
                
             }

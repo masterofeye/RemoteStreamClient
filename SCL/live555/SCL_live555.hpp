@@ -1,18 +1,5 @@
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-#include <WinSock2.h>
-#include <Ws2tcpip.h>
-
-#include "GroupsockHelper.hh"
-#include <liveMedia.hh>
-#include <BasicUsageEnvironment.hh>
-
-#pragma comment (lib, "Ws2_32.lib")
-#pragma comment (lib, "Mswsock.lib")
-#pragma comment (lib, "AdvApi32.lib")
-
 #include "AbstractModule.hpp"
 
 namespace RW
@@ -26,13 +13,11 @@ namespace RW
 
             typedef struct stMyInitialiseControlStruct : public CORE::tstInitialiseControlStruct
             {
-                VPL_Viewer *pViewer;
             }tstMyInitialiseControlStruct;
 
             typedef struct REMOTE_API stMyControlStruct : public CORE::tstControlStruct
             {
                 tstBitStream *pstBitStream;
-                tstPayloadMsg stPayload;
 
                 void UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType);
             }tstMyControlStruct;

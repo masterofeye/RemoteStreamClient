@@ -108,7 +108,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Tool\RemotePkg\live\groupsock\include;C:\Tool\RemotePkg\live\BasicUsageEnvironment\include;C:\Tool\RemotePkg\live\UsageEnvironment\include;C:\Tool\RemotePkg\live\liveMedia\include;..\Intel_common\include;$(INTELMEDIASDKROOT)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Tool\RemotePkg\live\groupsock\include;C:\Tool\RemotePkg\live\BasicUsageEnvironment\include;C:\Tool\RemotePkg\live\UsageEnvironment\include;C:\Tool\RemotePkg\live\liveMedia\include;..\Intel_common\include;$(INTELMEDIASDKROOT)\include;C:\tool\RemotePkg\CUDA\CUDAToolkit\include;..\Common_NVENC\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BrowseInformation>false</BrowseInformation>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>

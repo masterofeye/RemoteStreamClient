@@ -753,21 +753,23 @@ namespace RW{
             mfxStatus CDecodingPipeline::WriteNextFrameToBuffer(mfxFrameSurface1* frame)
             {
                 mfxU32 h, w;
+                m_pOutput = new RW::tstBitStream();
 
                 switch (frame->Info.FourCC)
                 {
                 case MFX_FOURCC_YV12:
+
+                    w = frame->Info.CropW / 2;
+                    h = frame->Info.CropH / 2;
+
                     m_pOutput->u32Size += frame->Info.CropW * frame->Info.CropH;
+                    m_pOutput->u32Size += (w * h) + (w * h);
+                    m_pOutput->pBuffer = new uint8_t[m_pOutput->u32Size];
 
                     for (mfxU32 i = 0; i < frame->Info.CropH; i++)
                     {
                         memcpy(m_pOutput->pBuffer, frame->Data.Y + (frame->Info.CropY * frame->Data.Pitch + frame->Info.CropX) + i * frame->Data.Pitch, frame->Info.CropW);
                     }
-
-                    w = frame->Info.CropW / 2;
-                    h = frame->Info.CropH / 2;
-
-                    m_pOutput->u32Size += (w * h) + (w * h);
 
                     for (mfxU32 i = 0; i < h; i++)
                     {
@@ -781,17 +783,18 @@ namespace RW{
 
                 case MFX_FOURCC_NV12:
 
+                    h = frame->Info.CropH / 2;
+                    w = frame->Info.CropW;
+
                     m_pOutput->u32Size += frame->Info.CropW * frame->Info.CropH;
+                    m_pOutput->u32Size += (w * h) + (w * h);
+                    m_pOutput->pBuffer = new uint8_t[m_pOutput->u32Size];
 
                     for (mfxU32 i = 0; i < frame->Info.CropH; i++)
                     {
                         memcpy(m_pOutput->pBuffer, frame->Data.Y + (frame->Info.CropY * frame->Data.Pitch + frame->Info.CropX) + i * frame->Data.Pitch, frame->Info.CropW);
                     }
 
-                    h = frame->Info.CropH / 2;
-                    w = frame->Info.CropW;
-
-                    m_pOutput->u32Size += (w * h) + (w * h);
 
                     for (mfxU32 i = 0; i < h; i++)
                     {
@@ -812,17 +815,17 @@ namespace RW{
 
                 case MFX_FOURCC_P010:
 
+                    h = frame->Info.CropH / 2;
+                    w = frame->Info.CropW;
+
+                    m_pOutput->u32Size += 2 * w * h;
                     m_pOutput->u32Size += 2 * frame->Info.CropW * frame->Info.CropH;
+                    m_pOutput->pBuffer = new uint8_t[m_pOutput->u32Size];
 
                     for (mfxU32 i = 0; i < frame->Info.CropH; i++)
                     {
                         memcpy(m_pOutput->pBuffer, (frame->Data.Y + (frame->Info.CropY * frame->Data.Pitch + frame->Info.CropX) + i * frame->Data.Pitch), 2 * frame->Info.CropW);
                     }
-
-                    h = frame->Info.CropH / 2;
-                    w = frame->Info.CropW;
-
-                    m_pOutput->u32Size += 2 * w * h;
 
                     for (mfxU32 i = 0; i < h; i++)
                     {
@@ -850,6 +853,7 @@ namespace RW{
                     ptr = ptr + frame->Info.CropX + frame->Info.CropY * frame->Data.Pitch;
 
                     m_pOutput->u32Size += 4 * w * h;
+                    m_pOutput->pBuffer = new uint8_t[m_pOutput->u32Size];
 
                     for (mfxU32 i = 0; i < h; i++)
                     {
@@ -978,12 +982,8 @@ namespace RW{
             mfxStatus CDecodingPipeline::RunDecoding(tstBitStream *pPayload, tstBitStream *EncodedData, tstBitStream *OutputData)
             {
                 mfxStatus           sts = MFX_ERR_NONE;
-                if (OutputData){
-                    m_pOutput = OutputData;
-                }
-                else{
-                    return MFX_ERR_NULL_PTR;
-                }
+                m_pOutput = OutputData;
+
                 if (EncodedData){
                     SetEncodedData(EncodedData);
                 }
@@ -1102,6 +1102,7 @@ namespace RW{
                         pOutSurface = nullptr;
                         do {
                             sts = m_pmfxDEC->DecodeFrameAsync(pBitstream, &(m_pCurrentFreeSurface->frame), &pOutSurface, &(m_pCurrentFreeOutputSurface->syncp));
+
                             count++;
                             if (pBitstream && MFX_ERR_MORE_DATA == sts && pBitstream->MaxLength == pBitstream->DataLength)
                             {
@@ -1281,6 +1282,8 @@ namespace RW{
                 if (bErrIncompatibleVideoParams) {
                     sts = MFX_ERR_INCOMPATIBLE_VIDEO_PARAM;
                 }
+
+                OutputData = m_pOutput;
 
                 return sts; // ERR_NONE or ERR_INCOMPATIBLE_VIDEO_PARAM
             }

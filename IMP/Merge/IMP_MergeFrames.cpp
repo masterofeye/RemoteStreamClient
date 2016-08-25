@@ -3,7 +3,9 @@
 #include "opencv2/cudev/common.hpp"
 #include "..\ConvColor_BGRtoYUV420\IMP_ConvColorFrames.hpp"
 #include "..\Crop\IMP_CropFrames.hpp"
+#if defined (SERVER)
 #include "..\..\ENC\NVENC\ENC_CudaInterop.hpp"
+#endif
 
 namespace RW{
 	namespace IMP{
@@ -34,6 +36,7 @@ namespace RW{
 					data->pInput->_pgMat = this->pOutput->_pgMat;
 					break;
 				}
+#if defined (SERVER)
                 case CORE::tenSubModule::nenEncode_NVIDIA:
                 {
                     RW::ENC::NVENC::tstMyControlStruct *data = static_cast<RW::ENC::NVENC::tstMyControlStruct*>(*Data);
@@ -41,6 +44,7 @@ namespace RW{
                     data->pcuYUVArray = this->pOutput->_pcuYUV420;
                     break;
                 }
+#endif
                 default:
 					break;
 				}

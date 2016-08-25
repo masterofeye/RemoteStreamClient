@@ -53,7 +53,7 @@ int CPipeline::RunPipeline()
             int iParentIndex = -1;
 
             FILE *pFile;
-            fopen_s(&pFile, "C:\\dummy\\HeavyHand.264", "rb");
+            fopen_s(&pFile, "C:\\dummy\\bitstream.264", "rb");
             if (!pFile)
             {
                 file_logger->error("File did not load!");
@@ -61,6 +61,7 @@ int CPipeline::RunPipeline()
             }
             // obtain file size:
             fseek(pFile, 0, SEEK_END);
+            // Size of one frame
             long lSize = ftell(pFile);
             rewind(pFile);
 
@@ -83,6 +84,24 @@ int CPipeline::RunPipeline()
             pPayload->pBuffer = nullptr;
             pPayload->u32Size = sizeof(RW::stPayloadMsg);
 
+            RW::SCL::LIVE555::tstMyInitialiseControlStruct receiveInitCtrl;
+            RW::SCL::LIVE555::tstMyControlStruct receiveCtrl;
+            {
+                receiveCtrl.pstBitStream = pBitStream;
+            }
+            RW::SCL::LIVE555::tstMyDeinitialiseControlStruct receiveDeinitCtrl;
+
+            if (builder.BuildNode(&kernelManager,
+                &receiveInitCtrl,
+                iParentIndex++,
+                sizeof(RW::SCL::LIVE555::tstMyInitialiseControlStruct),
+                &receiveCtrl,
+                sizeof(RW::SCL::LIVE555::tstMyControlStruct),
+                &receiveDeinitCtrl,
+                sizeof(RW::SCL::LIVE555::tstMyDeinitialiseControlStruct),
+                RW::CORE::tenSubModule::nenReceive_Simple) != RW::tenStatus::nenSuccess)
+                file_logger->error("nenReceive_Simple couldn't build correct");
+
             RW::DEC::INTEL::tstMyInitialiseControlStruct decodeInitCtrl;
             {
                 decodeInitCtrl.inputParams = new RW::DEC::INTEL::tstInputParams();
@@ -96,7 +115,7 @@ int CPipeline::RunPipeline()
             }
             RW::DEC::INTEL::tstMyControlStruct decodeCtrl;
             {
-                decodeCtrl.pstEncodedStream = pBitStream;
+                decodeCtrl.pstEncodedStream = receiveCtrl.pstBitStream;
                 decodeCtrl.pPayload = pPayload;
             }
             RW::DEC::INTEL::tstMyDeinitialiseControlStruct decodeDeinitCtrl;
@@ -166,7 +185,6 @@ int CPipeline::RunPipeline()
             //    RW::CORE::tenSubModule::nenGraphic_ColorYUV420ToRGB) != RW::tenStatus::nenSuccess)
             //    file_logger->error("nenGraphic_ColorYUV420ToRGB couldn't build correct");
 
-
             RW::VPL::QT_SIMPLE::tstMyInitialiseControlStruct playerInitCtrl;
             {
                 playerInitCtrl.pViewer = params.pViewer;
@@ -192,7 +210,7 @@ int CPipeline::RunPipeline()
             RW::tenStatus res = RW::tenStatus::nenSuccess;
             if (graph.VerifyGraph() == RW::tenStatus::nenSuccess)
             {
-                for (uint16_t u16Index = 0; u16Index < 100; u16Index++)
+                for (uint16_t u16Index = 0; u16Index < 1; u16Index++)
                 {
                     res = graph.ScheduleGraph();
                     if (res == RW::tenStatus::nenSuccess)

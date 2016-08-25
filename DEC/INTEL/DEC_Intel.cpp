@@ -102,9 +102,9 @@ namespace RW{
                     m_Logger->error("DEC_Intel::DoRender: Data of stMyControlStruct is empty!");
                     return tenStatus::nenError;
                 }
-                if (!data->pOutput)
+                if (!data->pstEncodedStream)
                 {
-                    m_Logger->error("DEC_Intel::DoRender: pOutput of stMyControlStruct is empty!");
+                    m_Logger->error("DEC_Intel::DoRender: pstEncodedStream of stMyControlStruct is empty!");
                     return tenStatus::nenError;
                 }
 

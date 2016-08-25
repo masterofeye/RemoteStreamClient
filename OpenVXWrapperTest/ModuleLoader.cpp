@@ -151,15 +151,6 @@ namespace RW{
                                 Pluginlist->append(module);
                             }
                                 break;
-                            case tenModule::enTest:
-                            {
-                                module = moduleFactory->Module(tenSubModule::nenTest_Test);
-                                if (module == nullptr)
-                                    m_Logger->error("Test module coudn't load correct.");
-                                m_Logger->debug("nenTest_Test loaded");
-                                Pluginlist->append(module);
-                            }
-                                break;
                             default:
 								m_Logger->alert("This module wasn't found.");
 								break;

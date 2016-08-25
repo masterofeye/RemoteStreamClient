@@ -13,21 +13,21 @@
     <ClCompile Include="ConvColor_YUV420toRGB\IMP_ConvColorFramesYUV420ToRGB.cpp">
       <Filter>ConvColor_YUV420toRGB</Filter>
     </ClCompile>
-    <ClCompile Include="Crop\moc_IMP_CropFrames.cpp">
-      <Filter>Merge</Filter>
-    </ClCompile>
-    <ClCompile Include="Crop\IMP_CropFrames.cpp">
-      <Filter>Merge</Filter>
-    </ClCompile>
-    <ClCompile Include="Merge\moc_IMP_MergeFrames.cpp">
-      <Filter>Crop</Filter>
-    </ClCompile>
-    <ClCompile Include="Merge\IMP_MergeFrames.cpp">
-      <Filter>Crop</Filter>
-    </ClCompile>
     <ClCompile Include="IMP_Base.cpp" />
     <ClCompile Include="moc_ModuleFactory.cpp" />
     <ClCompile Include="ModuleFactory.cpp" />
+    <ClCompile Include="Merge\IMP_MergeFrames.cpp">
+      <Filter>Merge</Filter>
+    </ClCompile>
+    <ClCompile Include="Merge\moc_IMP_MergeFrames.cpp">
+      <Filter>Merge</Filter>
+    </ClCompile>
+    <ClCompile Include="Crop\IMP_CropFrames.cpp">
+      <Filter>Crop</Filter>
+    </ClCompile>
+    <ClCompile Include="Crop\moc_IMP_CropFrames.cpp">
+      <Filter>Crop</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConvColor_BGRtoYUV420\IMP_ConvColorFrames.hpp">
@@ -36,15 +36,15 @@
     <ClInclude Include="ConvColor_YUV420toRGB\IMP_ConvColorFramesYUV420ToRGB.hpp">
       <Filter>ConvColor_YUV420toRGB</Filter>
     </ClInclude>
-    <ClInclude Include="Crop\IMP_CropFrames.hpp">
-      <Filter>Merge</Filter>
-    </ClInclude>
-    <ClInclude Include="Merge\IMP_MergeFrames.hpp">
-      <Filter>Crop</Filter>
-    </ClInclude>
     <ClInclude Include="IMP.h" />
     <ClInclude Include="IMP_Base.h" />
     <ClInclude Include="ModuleFactory.hpp" />
+    <ClInclude Include="Merge\IMP_MergeFrames.hpp">
+      <Filter>Merge</Filter>
+    </ClInclude>
+    <ClInclude Include="Crop\IMP_CropFrames.hpp">
+      <Filter>Crop</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ConvColor_BGRtoYUV420">
