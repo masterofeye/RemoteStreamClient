@@ -15,6 +15,8 @@ namespace RW{
                 {
                     RW::VPL::QT_SIMPLE::tstMyControlStruct *data = static_cast<RW::VPL::QT_SIMPLE::tstMyControlStruct*>(*Data);
                     data->pstBitStream = this->pOutput;
+                    data->stPayload = this->stPayload;
+                    SAFE_DELETE(this->pstEncodedStream);
                     break;
                 }
                 default:
@@ -107,16 +109,18 @@ namespace RW{
                     m_Logger->error("DEC_Intel::DoRender: pstEncodedStream of stMyControlStruct is empty!");
                     return tenStatus::nenError;
                 }
+                data->pOutput = new tstBitStream;
 
                 mfxStatus sts = MFX_ERR_NONE; // return value check
 
                 for (;;)
                 {
-                    sts = m_pPipeline->RunDecoding(data->pPayload, data->pstEncodedStream, data->pOutput);
+                    sts = m_pPipeline->RunDecoding(data->pstEncodedStream, data->pOutput);
                     if (sts != MFX_ERR_NONE)
                     {
                         enStatus = tenStatus::nenError;
                     }
+                    data->stPayload = *m_pPipeline->GetPayloadMsg();
 
                     if (MFX_ERR_INCOMPATIBLE_VIDEO_PARAM == sts || MFX_ERR_DEVICE_LOST == sts || MFX_ERR_DEVICE_FAILED == sts || data->pOutput == nullptr)
                     {

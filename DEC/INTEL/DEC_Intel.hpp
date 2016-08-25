@@ -18,7 +18,7 @@ namespace RW{
             {
                 tstBitStream *pOutput;
                 tstBitStream *pstEncodedStream;
-                tstBitStream *pPayload;
+                tstPayloadMsg stPayload;
                 REMOTE_API void UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType);
             }tstMyControlStruct;
 

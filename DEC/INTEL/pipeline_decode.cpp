@@ -679,6 +679,11 @@ namespace RW{
                 if (m_pGeneralAllocator)
                 {
                     m_pGeneralAllocator->Free(m_pGeneralAllocator->pthis, &m_mfxResponse);
+
+                    if (m_bVppIsUsed)
+                    {
+                        m_pGeneralAllocator->Free(m_pGeneralAllocator->pthis, &m_mfxVppResponse);
+                    }
                 }
 
                 return;
@@ -753,90 +758,43 @@ namespace RW{
             mfxStatus CDecodingPipeline::WriteNextFrameToBuffer(mfxFrameSurface1* frame)
             {
                 mfxU32 h, w;
-                m_pOutput = new RW::tstBitStream();
+                m_pOutput->u32Size = 0;
 
                 switch (frame->Info.FourCC)
                 {
                 case MFX_FOURCC_YV12:
+                m_pOutput->u32Size += frame->Info.CropW * frame->Info.CropH;
 
-                    w = frame->Info.CropW / 2;
-                    h = frame->Info.CropH / 2;
+                w = frame->Info.CropW / 2;
+                h = frame->Info.CropH / 2;
 
-                    m_pOutput->u32Size += frame->Info.CropW * frame->Info.CropH;
-                    m_pOutput->u32Size += (w * h) + (w * h);
-                    m_pOutput->pBuffer = new uint8_t[m_pOutput->u32Size];
+                m_pOutput->u32Size += (w * h) + (w * h);
 
-                    for (mfxU32 i = 0; i < frame->Info.CropH; i++)
-                    {
-                        memcpy(m_pOutput->pBuffer, frame->Data.Y + (frame->Info.CropY * frame->Data.Pitch + frame->Info.CropX) + i * frame->Data.Pitch, frame->Info.CropW);
-                    }
+                break;
 
-                    for (mfxU32 i = 0; i < h; i++)
-                    {
-                        memcpy(m_pOutput->pBuffer, (frame->Data.U + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX / 2) + i * frame->Data.Pitch / 2), w);
-                    }
-                    for (mfxU32 i = 0; i < h; i++)
-                    {
-                        memcpy(m_pOutput->pBuffer, (frame->Data.V + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX / 2) + i * frame->Data.Pitch / 2), w);
-                    }
-                    break;
+            case MFX_FOURCC_NV12:
 
-                case MFX_FOURCC_NV12:
+                m_pOutput->u32Size += frame->Info.CropW * frame->Info.CropH;
 
-                    h = frame->Info.CropH / 2;
-                    w = frame->Info.CropW;
+                h = frame->Info.CropH / 2;
+                w = frame->Info.CropW;
 
-                    m_pOutput->u32Size += frame->Info.CropW * frame->Info.CropH;
-                    m_pOutput->u32Size += (w * h) + (w * h);
-                    m_pOutput->pBuffer = new uint8_t[m_pOutput->u32Size];
+                m_pOutput->u32Size += (w * h) + (w * h);
 
-                    for (mfxU32 i = 0; i < frame->Info.CropH; i++)
-                    {
-                        memcpy(m_pOutput->pBuffer, frame->Data.Y + (frame->Info.CropY * frame->Data.Pitch + frame->Info.CropX) + i * frame->Data.Pitch, frame->Info.CropW);
-                    }
+                break;
 
+            case MFX_FOURCC_P010:
 
-                    for (mfxU32 i = 0; i < h; i++)
-                    {
-                        for (mfxU32 j = 0; j < w; j += 2)
-                        {
-                            memcpy(m_pOutput->pBuffer, (frame->Data.UV + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX) + i * frame->Data.Pitch + j), 1);
-                        }
-                    }
-                    for (mfxU32 i = 0; i < h; i++)
-                    {
-                        for (mfxU32 j = 0; j < w; j += 2)
-                        {
-                            memcpy(m_pOutput->pBuffer, (frame->Data.UV + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX) + i * frame->Data.Pitch + j), 1);
-                        }
-                    }
+                m_pOutput->u32Size += 2 * frame->Info.CropW * frame->Info.CropH;
 
-                    break;
+                h = frame->Info.CropH / 2;
+                w = frame->Info.CropW;
 
-                case MFX_FOURCC_P010:
+                m_pOutput->u32Size += 2 * w * h;
 
-                    h = frame->Info.CropH / 2;
-                    w = frame->Info.CropW;
-
-                    m_pOutput->u32Size += 2 * w * h;
-                    m_pOutput->u32Size += 2 * frame->Info.CropW * frame->Info.CropH;
-                    m_pOutput->pBuffer = new uint8_t[m_pOutput->u32Size];
-
-                    for (mfxU32 i = 0; i < frame->Info.CropH; i++)
-                    {
-                        memcpy(m_pOutput->pBuffer, (frame->Data.Y + (frame->Info.CropY * frame->Data.Pitch + frame->Info.CropX) + i * frame->Data.Pitch), 2 * frame->Info.CropW);
-                    }
-
-                    for (mfxU32 i = 0; i < h; i++)
-                    {
-                        memcpy(m_pOutput->pBuffer, (frame->Data.UV + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX) + i * frame->Data.Pitch), 2 * w);
-                    }
-                    break;
-
-                case MFX_FOURCC_RGB4:
-                case 100: //DXGI_FORMAT_AYUV
-                case MFX_FOURCC_A2RGB10:
-                    mfxU8* ptr;
+            case MFX_FOURCC_RGB4:
+            case 100: //DXGI_FORMAT_AYUV
+            case MFX_FOURCC_A2RGB10:
 
                     if (frame->Info.CropH > 0 && frame->Info.CropW > 0)
                     {
@@ -849,22 +807,109 @@ namespace RW{
                         h = frame->Info.Height;
                     }
 
-                    ptr = MSDK_MIN(MSDK_MIN(frame->Data.R, frame->Data.G), frame->Data.B);
-                    ptr = ptr + frame->Info.CropX + frame->Info.CropY * frame->Data.Pitch;
+                m_pOutput->u32Size += 4 * w * h;
 
-                    m_pOutput->u32Size += 4 * w * h;
-                    m_pOutput->pBuffer = new uint8_t[m_pOutput->u32Size];
+                break;
 
-                    for (mfxU32 i = 0; i < h; i++)
-                    {
-                        memcpy(m_pOutput->pBuffer, (ptr + i * frame->Data.Pitch), 4 * w);
-                    }
+            default:
+                return MFX_ERR_UNSUPPORTED;
+            }
 
-                    break;
+            m_pOutput->pBuffer = new mfxU8[m_pOutput->u32Size];
+            mfxU32 offset = 0;
 
-                default:
-                    return MFX_ERR_UNSUPPORTED;
+            switch (frame->Info.FourCC)
+            {
+            case MFX_FOURCC_YV12:
+
+                for (mfxU32 i = 0; i < frame->Info.CropH; i++)
+                {
+                    uint8_t *pU8 = (uint8_t*)m_pOutput->pBuffer + offset;
+                    memcpy(pU8, frame->Data.Y + (frame->Info.CropY * frame->Data.Pitch + frame->Info.CropX) + i * frame->Data.Pitch, frame->Info.CropW);
+                    offset += frame->Info.CropW;
                 }
+
+                for (mfxU32 i = 0; i < h; i++)
+                {
+                    uint8_t *pU8 = (uint8_t*)m_pOutput->pBuffer + offset;
+                    memcpy(pU8, (frame->Data.U + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX / 2) + i * frame->Data.Pitch / 2), w);
+                    offset += w;
+                }
+                for (mfxU32 i = 0; i < h; i++)
+                {
+                    uint8_t *pU8 = (uint8_t*)m_pOutput->pBuffer + offset;
+                    memcpy(pU8, (frame->Data.V + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX / 2) + i * frame->Data.Pitch / 2), w);
+                    offset += w;
+                }
+                break;
+
+            case MFX_FOURCC_NV12:
+
+                for (mfxU32 i = 0; i < frame->Info.CropH; i++)
+                {
+                    uint8_t *pU8 = (uint8_t*)m_pOutput->pBuffer + offset;
+                    memcpy(pU8, frame->Data.Y + (frame->Info.CropY * frame->Data.Pitch + frame->Info.CropX) + i * frame->Data.Pitch, frame->Info.CropW);
+                    offset += frame->Info.CropW;
+                }
+
+                for (mfxU32 i = 0; i < h; i++)
+                {
+                    for (mfxU32 j = 0; j < w; j += 2)
+                    {
+                        uint8_t *pU8 = (uint8_t*)m_pOutput->pBuffer + offset;
+                        memcpy(pU8, (frame->Data.UV + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX) + i * frame->Data.Pitch + j), 1);
+                        offset++;
+                    }
+                }
+                for (mfxU32 i = 0; i < h; i++)
+                {
+                    for (mfxU32 j = 0; j < w; j += 2)
+                    {
+                        uint8_t *pU8 = (uint8_t*)m_pOutput->pBuffer + offset;
+                        memcpy(pU8, (frame->Data.UV + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX) + i * frame->Data.Pitch + j), 1);
+                        offset++;
+                    }
+                }
+
+                break;
+
+            case MFX_FOURCC_P010:
+
+                for (mfxU32 i = 0; i < frame->Info.CropH; i++)
+                {
+                    uint8_t *pU8 = (uint8_t*)m_pOutput->pBuffer + offset;
+                    memcpy(pU8, (frame->Data.Y + (frame->Info.CropY * frame->Data.Pitch + frame->Info.CropX) + i * frame->Data.Pitch), 2 * frame->Info.CropW);
+                    offset += 2 * frame->Info.CropW;
+                }
+
+                for (mfxU32 i = 0; i < h; i++)
+                {
+                    uint8_t *pU8 = (uint8_t*)m_pOutput->pBuffer + offset;
+                    memcpy(pU8, (frame->Data.UV + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX) + i * frame->Data.Pitch), 2 * w);
+                    offset += 2 * w;
+                }
+                break;
+
+            case MFX_FOURCC_RGB4:
+            case 100: //DXGI_FORMAT_AYUV
+            case MFX_FOURCC_A2RGB10:
+                mfxU8* ptr;
+
+                ptr = MSDK_MIN(MSDK_MIN(frame->Data.R, frame->Data.G), frame->Data.B);
+                ptr = ptr + frame->Info.CropX + frame->Info.CropY * frame->Data.Pitch;
+
+                for (mfxU32 i = 0; i < h; i++)
+                {
+                    uint8_t *pU8 = (uint8_t*)m_pOutput->pBuffer + offset;
+                    memcpy(pU8, (ptr + i * frame->Data.Pitch), 4 * w);
+                    offset += 4 * w;
+                }
+
+                break;
+
+            default:
+                return MFX_ERR_UNSUPPORTED;
+            }
                 return MFX_ERR_NONE;
             }
 
@@ -979,12 +1024,16 @@ namespace RW{
                 return sts;
             }
 
-            mfxStatus CDecodingPipeline::RunDecoding(tstBitStream *pPayload, tstBitStream *EncodedData, tstBitStream *OutputData)
-            {
-                mfxStatus           sts = MFX_ERR_NONE;
+        mfxStatus CDecodingPipeline::RunDecoding(tstBitStream *EncodedData, tstBitStream *OutputData)
+        {
+            mfxStatus           sts = MFX_ERR_NONE;
+            if (OutputData){
                 m_pOutput = OutputData;
-
-                if (EncodedData){
+            }
+            else{
+                return MFX_ERR_NULL_PTR;
+            }
+            if (EncodedData){
                     SetEncodedData(EncodedData);
                 }
                 else{
@@ -1009,14 +1058,11 @@ namespace RW{
                     // create device and allocator
                     sts = CreateAllocator();
                     MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
-                }
 
-                // in case of HW accelerated decode frames must be allocated prior to decoder initialization
-                sts = AllocFrames();
-                MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
+                    // in case of HW accelerated decode frames must be allocated prior to decoder initialization
+                    sts = AllocFrames();
+                    MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
 
-                if (!m_bFirstFrameInitialized)
-                {
                     sts = m_pmfxDEC->Init(&m_mfxVideoParams);
                     if (MFX_WRN_PARTIAL_ACCELERATION == sts)
                     {
@@ -1050,11 +1096,6 @@ namespace RW{
                 {
                     pBitstream = 0;
                 }
-
-                mfxPayload dec_payload;
-                dec_payload.Data = (mfxU8*)pPayload->pBuffer;
-                dec_payload.BufSize = pPayload->u32Size;
-                dec_payload.Type = 5;
 
                 int count = 0;
 
@@ -1230,28 +1271,6 @@ namespace RW{
                             m_OutputSurfacesPool.AddSurface(m_pCurrentFreeOutputSurface);
                             m_pCurrentFreeOutputSurface = nullptr;
                         }
-                        if (pPayload)
-                        {
-                            mfxPayload dec_payload;
-                            mfxU64 ts;
-                            dec_payload.Data = (mfxU8*)pPayload->pBuffer;
-                            dec_payload.BufSize = pPayload->u32Size;
-                            dec_payload.Type = 5;
-                            dec_payload.NumBit = dec_payload.BufSize * 8;
-
-                            while (dec_payload.NumBit != 0)
-                            {
-                                mfxStatus stats = m_pmfxDEC->GetPayload(&ts, &dec_payload);
-                                if ((stats == MFX_ERR_NONE) && (dec_payload.Type == 5))
-                                {
-                                    memcpy(pPayload->pBuffer, dec_payload.Data, dec_payload.BufSize);
-                                }
-                                else
-                                {
-                                    break;
-                                }
-                            }
-                        }
                     }
                 } //while processing
 
@@ -1273,8 +1292,6 @@ namespace RW{
                         << " MIN: " << (CTimer::ConvertToSeconds(*std::min_element(m_vLatency.begin(), m_vLatency.end())) * 1000);
                 }
 
-                DeleteFrames();
-
                 // exit in case of other errors
                 MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
 
@@ -1283,9 +1300,34 @@ namespace RW{
                     sts = MFX_ERR_INCOMPATIBLE_VIDEO_PARAM;
                 }
 
-                OutputData = m_pOutput;
-
                 return sts; // ERR_NONE or ERR_INCOMPATIBLE_VIDEO_PARAM
+            }
+
+            tstPayloadMsg* CDecodingPipeline::GetPayloadMsg()
+            {
+                mfxPayload dec_payload;
+                mfxU64 ts;
+                mfxU8 data[sizeof(stPayloadMsg)];
+                dec_payload.Data = data;
+                dec_payload.BufSize = sizeof(stPayloadMsg);
+                dec_payload.Type = 5;
+                dec_payload.NumBit = dec_payload.BufSize * 8;
+                tstPayloadMsg *stPayload;
+
+                while (dec_payload.NumBit != 0)
+                {
+                    mfxStatus stats = m_pmfxDEC->GetPayload(&ts, &dec_payload);
+                    if ((stats == MFX_ERR_NONE) && (dec_payload.Type == 5))
+                    {
+                        stPayload = (tstPayloadMsg*)dec_payload.Data;
+                        //memcpy(&stPayload, dec_payload.Data, dec_payload.BufSize);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                return stPayload;
             }
 
             void CDecodingPipeline::PrintInfo()

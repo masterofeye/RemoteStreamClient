@@ -80,10 +80,6 @@ int CPipeline::RunPipeline()
             pBitStream->pBuffer = buffer;
             pBitStream->u32Size = lSize;
 
-            RW::tstBitStream *pPayload = new RW::tstBitStream();
-            pPayload->pBuffer = nullptr;
-            pPayload->u32Size = sizeof(RW::stPayloadMsg);
-
             RW::SCL::LIVE555::tstMyInitialiseControlStruct receiveInitCtrl;
             RW::SCL::LIVE555::tstMyControlStruct receiveCtrl;
             {
@@ -116,7 +112,6 @@ int CPipeline::RunPipeline()
             RW::DEC::INTEL::tstMyControlStruct decodeCtrl;
             {
                 decodeCtrl.pstEncodedStream = receiveCtrl.pstBitStream;
-                decodeCtrl.pPayload = pPayload;
             }
             RW::DEC::INTEL::tstMyDeinitialiseControlStruct decodeDeinitCtrl;
 
@@ -192,6 +187,7 @@ int CPipeline::RunPipeline()
             RW::VPL::QT_SIMPLE::tstMyControlStruct playerCtrl;
             {
                 playerCtrl.pstBitStream = decodeCtrl.pOutput;
+                playerCtrl.stPayload = decodeCtrl.stPayload;
             }
             RW::VPL::QT_SIMPLE::tstMyDeinitialiseControlStruct playerDeinitCtrl;
 
@@ -244,7 +240,6 @@ int CPipeline::RunPipeline()
 
              //terminate testing data
             free(buffer);
-            SAFE_DELETE(pPayload);
             SAFE_DELETE(pBitStream);
             SAFE_DELETE(pFile);
 

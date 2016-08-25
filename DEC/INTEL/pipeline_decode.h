@@ -84,10 +84,11 @@ namespace RW{
                 virtual ~CDecodingPipeline();
 
                 virtual mfxStatus Init(tstInputParams *pParams);
-                virtual mfxStatus RunDecoding(tstBitStream *pPayload, tstBitStream *EncodedData, tstBitStream *OutputData);
+                virtual mfxStatus RunDecoding(tstBitStream *EncodedData, tstBitStream *OutputData);
                 virtual void Close();
                 virtual mfxStatus ResetDecoder();
                 virtual mfxStatus ResetDevice();
+                tstPayloadMsg *GetPayloadMsg();
 
             protected: // functions
                 mfxStatus SetEncodedData(tstBitStream *pstEncodedStream);
