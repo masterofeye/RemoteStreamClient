@@ -13,11 +13,11 @@ namespace RW{
                 VPL_Viewer *pViewer;
             }tstMyInitialiseControlStruct;
 
-            typedef struct REMOTE_API stMyControlStruct : public CORE::tstControlStruct
+            typedef struct stMyControlStruct : public CORE::tstControlStruct
             {
                 tstBitStream *pstBitStream;
                 tstPayloadMsg stPayload;
-                void UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType);
+                REMOTE_API void UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType);
             }tstMyControlStruct;
 
             typedef struct stMyDeinitialiseControlStruct : public CORE::tstDeinitialiseControlStruct
