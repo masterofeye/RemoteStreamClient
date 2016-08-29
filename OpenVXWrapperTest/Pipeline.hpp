@@ -21,7 +21,7 @@
 #include "QT_simple\VPL_Viewer.hpp"
 
 #include "HighResolution\HighResClock.h"
-#include "..\Common_NVENC\inc\dynlink_cuda.h"
+#include "dynlink_cuda.h"
 #include "opencv2\cudev\common.hpp"
 
 #define SAFE_DELETE(P) {if (P) {delete P; P = nullptr;}}

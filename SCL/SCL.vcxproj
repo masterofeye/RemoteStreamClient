@@ -108,7 +108,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Tool\RemotePkg\live\groupsock\include;C:\Tool\RemotePkg\live\BasicUsageEnvironment\include;C:\Tool\RemotePkg\live\UsageEnvironment\include;C:\Tool\RemotePkg\live\liveMedia\include;..\Intel_common\include;$(INTELMEDIASDKROOT)\include;C:\tool\RemotePkg\CUDA\CUDAToolkit\include;..\Common_NVENC\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BrowseInformation>false</BrowseInformation>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -126,7 +126,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>Qt5Cored.lib;Qt5Guid.lib;Qt5Multimediad.lib;Qt5MultimediaWidgetsd.lib;Qt5Networkd.lib;Qt5OpenGLd.lib;Qt5Widgetsd.lib;RWPluginInterface.lib;HighResolution.lib;qtmaind.lib;kernel32.lib;advapi32.lib;shell32.lib;ws2_32.lib;winmm.lib;libliveMedia.lib;libgroupsock.lib;libBasicUsageEnvironment.lib;libUsageEnvironment.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Tool\RemotePkg\live\liveMedia;C:\Tool\RemotePkg\live\groupsock;C:\Tool\RemotePkg\live\BasicUsageEnvironment;C:\Tool\RemotePkg\live\UsageEnvironment;..\build\x64\Debug;C:\Tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>"/MANIFESTDEPENDENCY:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' publicKeyToken='6595b64144ccf1df' language='*' processorArchitecture='*'" %(AdditionalOptions)</AdditionalOptions>
       <DataExecutionPrevention>true</DataExecutionPrevention>
       <GenerateDebugInformation>true</GenerateDebugInformation>

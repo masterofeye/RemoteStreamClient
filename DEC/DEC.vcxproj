@@ -67,7 +67,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtMultimedia;.\..\Intel_common\include;$(INTELMEDIASDKROOT)\include;$(INTELMEDIASDKROOT)\igfx_s3dcontrol\include;C:\tool\RemotePkg\CUDA\CUDAToolkit\include;..\Common_NVENC\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtMultimedia;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>TRACE_PERFORMANCE;_WINDOWS;UNICODE;WIN32;WIN64;QT_PLUGIN;QT_GUI_LIB;QT_CORE_LIB;NV_WINDOWS;_MBCS;INIT_CUDA_D3D9;_DEBUG;TRACE_PERFORMANCE;_DEBUG;_WINDOWS;UNICODE;WIN32;WIN64;QT_PLUGIN;QT_GUI_LIB;QT_CORE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -81,7 +81,7 @@
       <AdditionalOptions>/DYNAMICBASE /NXCOMPAT %(AdditionalOptions)</AdditionalOptions>
       <AdditionalDependencies>HighResolution.lib;Qt5Cored.lib;Qt5Widgetsd.lib;Qt5Guid.lib;RWPluginInterface.lib;libmfx.lib;igfx_s3dcontrol.lib;dxgi.lib;d3d9.lib;d3d11.lib;dxva2.lib;dwmapi.lib;comsuppw.lib;d3dx9d.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;odbc32.lib;odbccp32.lib;HighResolution.lib;Qt5Cored.lib;Qt5Widgetsd.lib;Qt5Guid.lib;RWPluginInterface.lib;libmfx.lib;igfx_s3dcontrol.lib;dxgi.lib;d3d9.lib;d3d11.lib;dxva2.lib;dwmapi.lib;comsuppw.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>C:\Projekte\RemoteUtil\thirdparty;C:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\lib;..\build\x64\Debug;C:\tool\RemotePkg\CUDA\CUDAToolkit\lib\x64;C:\tool\RemotePkg\CUDA\CUDAToolkit\lib\x64\$(Configuration);..\Common_NVENC\lib\$(PlatformName);$(INTELMEDIASDKROOT)\igfx_s3dcontrol\lib\$(Platform);$(DXSDK_DIR)\Lib\x64;C:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\lib;..\build\x64\Debug;$(INTELMEDIASDKROOT)\igfx_s3dcontrol\lib\$(Platform);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>libcmt.lib;MSVCRT.lib</IgnoreSpecificDefaultLibraries>
       <DelayLoadDLLs>
       </DelayLoadDLLs>
@@ -152,7 +152,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Intel_common\Intel_common.vcxproj">
+    <ProjectReference Include="..\..\RemoteUtil\thirdparty\Intel_common\Intel_common.vcxproj">
       <Project>{db71b91d-16d8-4339-9621-d81798e46e8f}</Project>
     </ProjectReference>
     <ProjectReference Include="..\RWPluginInterface\RWPluginInterface.vcxproj">
@@ -160,13 +160,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Common_NVENC\inc\cudaModuleMgr.h" />
-    <ClInclude Include="..\Common_NVENC\inc\dynlink_cuda.h" />
-    <ClInclude Include="..\Common_NVENC\inc\dynlink_cuviddec.h" />
-    <ClInclude Include="..\Common_NVENC\inc\dynlink_nvcuvid.h" />
-    <ClInclude Include="..\Common_NVENC\inc\exception.h" />
-    <ClInclude Include="..\Common_NVENC\inc\helper_cuda.h" />
-    <ClInclude Include="..\Common_NVENC\inc\helper_cuda_drvapi.h" />
+    <ClInclude Include="..\..\RemoteUtil\thirdparty\Common_NVENC\inc\cudaModuleMgr.h" />
+    <ClInclude Include="..\..\RemoteUtil\thirdparty\Common_NVENC\inc\dynlink_cuda.h" />
+    <ClInclude Include="..\..\RemoteUtil\thirdparty\Common_NVENC\inc\dynlink_nvcuvid.h" />
     <ClInclude Include="INTEL\DEC_inputs.h" />
     <ClInclude Include="INTEL\DEC_Intel.hpp" />
     <ClInclude Include="INTEL\pipeline_decode.h" />
@@ -180,9 +176,9 @@
     <ClInclude Include="NVENC\VideoParser.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Common_NVENC\src\cudaModuleMgr.cpp" />
-    <ClCompile Include="..\Common_NVENC\src\dynlink_cuda.cpp" />
-    <ClCompile Include="..\Common_NVENC\src\dynlink_nvcuvid.cpp" />
+    <ClCompile Include="..\..\RemoteUtil\thirdparty\Common_NVENC\src\cudaModuleMgr.cpp" />
+    <ClCompile Include="..\..\RemoteUtil\thirdparty\Common_NVENC\src\dynlink_cuda.cpp" />
+    <ClCompile Include="..\..\RemoteUtil\thirdparty\Common_NVENC\src\dynlink_nvcuvid.cpp" />
     <ClCompile Include="INTEL\DEC_Intel.cpp" />
     <ClCompile Include="INTEL\moc_DEC_Intel.cpp" />
     <ClCompile Include="INTEL\pipeline_decode.cpp" />

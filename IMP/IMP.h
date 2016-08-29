@@ -8,7 +8,7 @@
 #include <QtPlugin>
 #include "AbstractModule.hpp"
 #include "Utils.h"
-#include "..\Common_NVENC\inc\dynlink_cuda.h"
+#include "dynlink_cuda.h"
 
 #ifdef TRACE_PERFORMANCE
 #include "HighResolution\HighResClock.h"
@@ -51,6 +51,7 @@ namespace RW
 			CUdeviceptr _pcuYUV420;
 			bool _bExportImg;
 			cv::cuda::GpuMat *_pgMat;
+            uint8_t *_pu8YUV;
 			//CUarray _cuArrayUV[2];
 			//CUarray _cuArrayY;
 		};
