@@ -448,7 +448,7 @@ namespace RW{
 #if D3D_SURFACES_SUPPORT
                 mfxStatus sts = MFX_ERR_NONE;
 
-                HWND window = nullptr;
+                HWND window = NULL;
 
 #if MFX_D3D11_SUPPORT
                 if (D3D11_MEMORY == m_memType)
@@ -460,10 +460,8 @@ namespace RW{
                 if (!m_hwdev)
                     return MFX_ERR_MEMORY_ALLOC;
 
-                sts = m_hwdev->Init(
-                    window,
-                    0,
-                    MSDKAdapter::GetNumber(m_mfxSession));
+                mfxU32 u32Nbr = MSDKAdapter::GetNumber(m_mfxSession);
+                sts = m_hwdev->Init(window, 0, u32Nbr);
                 MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
 #endif
                 return MFX_ERR_NONE;
@@ -730,6 +728,17 @@ namespace RW{
                 // initialize parameters with values from parsed header
                 sts = InitMfxParams(pParams);
                 MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
+
+                if (m_bVppIsUsed)
+                    m_bDecOutSysmem = pParams->bUseHWLib ? false : true;
+                else
+                    m_bDecOutSysmem = pParams->memType == SYSTEM_MEMORY;
+
+                if (m_bVppIsUsed)
+                {
+                    m_pmfxVPP = new MFXVideoVPP(m_mfxSession);
+                    if (!m_pmfxVPP) return MFX_ERR_MEMORY_ALLOC;
+                }
 
                 // in case of HW accelerated decode frames must be allocated prior to decoder initialization
                 sts = AllocFrames();
@@ -1046,7 +1055,10 @@ namespace RW{
                     sts = InitMfxParams(m_pInputParams);
                     MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
 
-                    m_bDecOutSysmem = true;
+                    if (m_bVppIsUsed)
+                        m_bDecOutSysmem = m_pInputParams->bUseHWLib ? false : true;
+                    else
+                        m_bDecOutSysmem = m_pInputParams->memType == SYSTEM_MEMORY;
 
                     if (m_bVppIsUsed)
                     {
@@ -1317,7 +1329,7 @@ namespace RW{
                 dec_payload.BufSize = sizeof(stPayloadMsg);
                 dec_payload.Type = 5;
                 dec_payload.NumBit = dec_payload.BufSize * 8;
-                tstPayloadMsg *stPayload;
+                tstPayloadMsg *stPayload = nullptr;
 
                 while (dec_payload.NumBit != 0)
                 {

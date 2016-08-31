@@ -159,7 +159,6 @@ namespace RW{
                 std::vector<msdk_tick>  m_vLatency;
 
                 mfxExtVPPDoNotUse       m_VppDoNotUse;      // for disabling VPP algorithms
-                //mfxExtVPPDeinterlacing  m_VppDeinterlacing;
                 std::vector<mfxExtBuffer*> m_VppExtParams;
 
                 CHWDevice               *m_hwdev;

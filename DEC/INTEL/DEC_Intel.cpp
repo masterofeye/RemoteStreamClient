@@ -116,13 +116,16 @@ namespace RW{
                 for (;;)
                 {
                     sts = m_pPipeline->RunDecoding(data->pstEncodedStream, data->pOutput);
-                    if (sts != MFX_ERR_NONE)
+                    if (sts == MFX_ERR_NONE)
                     {
-                        enStatus = tenStatus::nenError;
+                        RW::tstPayloadMsg *pMsg = m_pPipeline->GetPayloadMsg();
+                        if (pMsg)
+                            data->stPayload = *pMsg;
+                        else
+                            m_Logger->error("DEC_Intel::DoRender: GetPayloadMsg failed!");
+                        break;
                     }
-                    data->stPayload = *m_pPipeline->GetPayloadMsg();
-
-                    if (MFX_ERR_INCOMPATIBLE_VIDEO_PARAM == sts || MFX_ERR_DEVICE_LOST == sts || MFX_ERR_DEVICE_FAILED == sts || data->pOutput == nullptr)
+                    else if (MFX_ERR_INCOMPATIBLE_VIDEO_PARAM == sts || MFX_ERR_DEVICE_LOST == sts || MFX_ERR_DEVICE_FAILED == sts || data->pOutput == nullptr)
                     {
                         if (MFX_ERR_INCOMPATIBLE_VIDEO_PARAM == sts)
                         {
@@ -148,7 +151,7 @@ namespace RW{
 
                 if (sts != MFX_ERR_NONE)
                 {
-                    //tenStatus enStatus = tenStatus::nenError;
+                    enStatus = tenStatus::nenError;
                 }
 #ifdef TRACE_PERFORMANCE
                 RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
