@@ -180,8 +180,8 @@ namespace RW
             vxCommitArrayRange(kernenArray, 0, 1, kernel);
             vxCommitArrayRange(controlStructArray, 0, 1, controlStruct);
 
-            vxReleaseParameter(&param[0]);
-            vxReleaseParameter(&param[1]);
+            //vxReleaseParameter(&param[0]);
+            //vxReleaseParameter(&param[1]);
             return status;
         }
         

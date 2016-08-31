@@ -148,7 +148,7 @@ namespace RW{
                     { "nenPlayback_Simple" }
                 };
                     
-                return ModuleName[((int)SubModule)-1];
+                return ModuleName[((int)SubModule)];
                
             }
 

@@ -19,6 +19,7 @@ namespace RW
             m_Graph((*CurrentGraph)()),
             m_Kernel((*Kernel2Connect)()),
             m_Initialize(false),
+            m_NextNode(nullptr),
             m_Logger(Logger)
 		{
             CreateNode();
@@ -41,15 +42,21 @@ namespace RW
                     {
                         switch (type)
                         {
-                        case VX_TYPE_SCALAR:
+                            case VX_TYPE_SCALAR:
                             {
                                 vx_scalar s = (vx_scalar)(*it);
                                 vxReleaseScalar(&s);
                             }
                             break;
-                        default:
-                            //TODO Log
+                            case VX_TYPE_ARRAY:
+                            {
+                                vx_array s = (vx_array)(*it);
+                                vxReleaseArray(&s);
+                            }
                             break;
+                            default:
+                                //TODO Log
+                                break;
                         }
                     }
                 }
@@ -172,6 +179,8 @@ namespace RW
             if (res != VX_SUCCESS)
                 return tenStatus::nenError;
 
+
+            m_ListOfReferences.push_back((vx_reference)testArray);
             if (vxSetParameterByIndex(m_Node, Index, (vx_reference)testArray) != VX_SUCCESS)
             {
                 m_Logger->error("Couldn't add parameter to Node. ") << "Index: " << Index;
