@@ -462,14 +462,21 @@ namespace RW{
 
                 mfxU32 u32Nbr = MSDKAdapter::GetNumber(m_mfxSession);
                 sts = m_hwdev->Init(window, 0, u32Nbr);
-                MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
+                if (sts != MFX_ERR_NONE)
+                {
+                    m_hwdev = nullptr;
+                    m_pInputParams->bUseHWLib = false;
+                    sts = Init(m_pInputParams);
+                    MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
+                }
 #endif
                 return MFX_ERR_NONE;
             }
 
             mfxStatus CDecodingPipeline::ResetDevice()
             {
-                return m_hwdev->Reset();
+                if (m_hwdev)
+                    return m_hwdev->Reset();
             }
 
             mfxStatus CDecodingPipeline::AllocFrames()
@@ -617,6 +624,9 @@ namespace RW{
                     sts = CreateHWDevice();
                     MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
 
+                }
+                if (m_memType != SYSTEM_MEMORY || !m_bDecOutSysmem)
+                {
                     // provide device manager to MediaSDK
                     mfxHDL hdl = nullptr;
                     mfxHandleType hdl_t =
@@ -1052,6 +1062,11 @@ namespace RW{
 
                 if (!m_bFirstFrameInitialized)
                 {
+                    // create device and allocator
+                    sts = CreateAllocator();
+                    MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
+                    //}
+
                     sts = InitMfxParams(m_pInputParams);
                     MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
 
@@ -1067,11 +1082,6 @@ namespace RW{
                     }
 
                     MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
-
-                    // create device and allocator
-                    sts = CreateAllocator();
-                    MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
-                    //}
 
                     // in case of HW accelerated decode frames must be allocated prior to decoder initialization
                     sts = AllocFrames();
