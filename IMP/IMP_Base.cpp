@@ -8,108 +8,70 @@ extern "C" void IMP_444To420(uint8_t *pArrayFull, uint8_t *pArrayYUV420, int iWi
 namespace RW{
 	namespace IMP{
 
-		tenStatus IMP_Base::tensProcessOutput(cv::cuda::GpuMat *pgMat, cOutputBase *pOutput)
+        tenStatus IMP_Base::GpuMatToGpuYUV(cv::cuda::GpuMat *pgMat, CUdeviceptr *pOutput)
 		{
 			tenStatus enStatus = tenStatus::nenSuccess;
 			if (!pOutput)
 			{
-				m_Logger->error("IMP_Base::tensProcessOutput: pOutput is empty!");
+                printf("IMP_Base::GpuMatToGpuYUV: Output is empty!");
 				return tenStatus::nenError;
 			}
 
-			if (pOutput->_bExportImg)
-			{
-				if (!pOutput->_pcuYUV420)
-				{
-					m_Logger->error("IMP_Base::tensProcessOutput: Empty cuda array!");
-					enStatus = tenStatus::nenError;
-				}
+			int iWidth = pgMat->cols;
+			int iHeight = pgMat->rows;
 
-				int iWidth = pgMat->cols;
-				int iHeight = pgMat->rows;
+			size_t pitchY;
+			uint8_t* arrayY;
+			uint8_t* arrayYUV420 = (uint8_t *)*pOutput;
 
-				size_t pitchY;
-				uint8_t* arrayY;
-				uint8_t* arrayYUV420 = (uint8_t *)pOutput->_pcuYUV420;
+            cudaError err = cudaMallocPitch((void**)&arrayY, &pitchY, iWidth, 1);
+			if (err != cudaSuccess) return tenStatus::nenError;
 
-                cudaError err = cudaMallocPitch((void**)&arrayY, &pitchY, iWidth, 1);
-				if (err != cudaSuccess) return tenStatus::nenError;
-
-                IMP_444To420(pgMat->data, arrayYUV420, iWidth, iHeight, pitchY);
-                err = cudaGetLastError();
-                if (err != cudaSuccess)
-                {
-                    printf("IMP_444To420: kernel() failed to launch error = %d\n", err);
-                    return tenStatus::nenError;
-                }
-                err = cudaDeviceSynchronize();
-                if (err != cudaSuccess)
-                {
-                    printf("IMP_444To420: Device synchronize failed! Error = %d\n", err);
-                    return tenStatus::nenError;
-                }
-
-                cudaFree(arrayY);
-
-                pOutput->_pcuYUV420 = (CUdeviceptr)arrayYUV420;
-			}
-			else
-			{
-				if (!pgMat)
-				{
-					m_Logger->error("IMP_Base::tensProcessInput: pgMat is empty!");
-					enStatus = tenStatus::nenError;
-				}
-				pOutput->_pgMat = pgMat;
-			}
-
-			return enStatus;
-		}
-
-		tenStatus IMP_Base::tensProcessInput(cInputBase *pInput, cv::cuda::GpuMat *pgMat)
-		{
-			tenStatus enStatus = tenStatus::nenSuccess;
-			if (!pInput)
+            IMP_444To420(pgMat->data, arrayYUV420, iWidth, iHeight, pitchY);
+            err = cudaGetLastError();
+            if (err != cudaSuccess)
             {
-				m_Logger->error("IMP_Base::tensProcessInput: pInput is empty!");
-				return tenStatus::nenError;
+                printf("IMP_444To420: kernel() failed to launch error = %d\n", err);
+                return tenStatus::nenError;
             }
-			if (!pgMat)
+            err = cudaDeviceSynchronize();
+            if (err != cudaSuccess)
             {
-                m_Logger->error("IMP_Base::tensProcessInput: pOutput is empty!");
+                printf("IMP_444To420: Device synchronize failed! Error = %d\n", err);
                 return tenStatus::nenError;
             }
 
-			if (pInput->_bImportImg)
-			{
-				if (!pInput->_stImg.pvImg)
-				{
-					m_Logger->error("IMP_Base::tensProcessInput: Empty Input data!");
-					enStatus = tenStatus::nenError;
-				}
-				if (pInput->_stImg.iWidth == 0 || pInput->_stImg.iHeight == 0)
-				{
-					m_Logger->error("IMP_Base::tensProcessInput: Invalid parameters (iWidth or iHeight)");
-					enStatus = tenStatus::nenError;
-				}
+            cudaFree(arrayY);
 
-				if (pInput->_stImg.pvImg)
-				{
-					cv::Mat mat = cv::Mat(pInput->_stImg.iHeight, pInput->_stImg.iWidth, CV_8UC3, pInput->_stImg.pvImg);
-					pgMat->upload(mat);
-				}
-			}
-			else
-			{
-				pgMat = (cv::cuda::GpuMat*)pInput->_pgMat;
-			}
+            *pOutput = (CUdeviceptr)arrayYUV420;
 
-			if (!pgMat)
-            {
-                m_Logger->error("IMP_Base::tensProcessInput: pgMat is empty!");
-				enStatus = tenStatus::nenError;
-            }
 			return enStatus;
 		}
+        tenStatus IMP_Base::GpuMatToCpuYUV(cv::cuda::GpuMat *pgMat, uint8_t *pOutput)
+        {
+            tenStatus enStatus = tenStatus::nenSuccess;
+            if (!pOutput)
+            {
+                printf("IMP_Base::tensProcessOutput: pOutput is empty!");
+                return tenStatus::nenError;
+            }
+
+            CUdeviceptr arrYUV;
+            size_t pitch;
+
+            cudaError err = cudaMallocPitch((void**)&arrYUV, &pitch, pgMat->cols, pgMat->rows * 3 / 2);
+
+            GpuMatToGpuYUV(pgMat, &arrYUV);
+
+            int iWidth = pgMat->cols;
+            int iHeight = pgMat->rows * 3/2;
+
+            cudaMemcpy2D(pOutput, iWidth, (void*)arrYUV, pitch, iWidth, iHeight, cudaMemcpyDeviceToHost);
+
+            cudaFree((void*)arrYUV);
+
+            return enStatus;
+        }
+
 	}
 }

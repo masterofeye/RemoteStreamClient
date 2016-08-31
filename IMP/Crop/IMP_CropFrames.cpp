@@ -96,10 +96,8 @@ namespace RW{
 					return tenStatus::nenError;
 				}
 
-				IMP_Base impBase = IMP_Base(m_Logger);
 				cv::cuda::GpuMat *pgMat = data->pvOutput->at(0);
 				data->pInput->_pgMat = pgMat;
-				enStatus = impBase.tensProcessInput(data->pInput, pgMat);
 				if (enStatus != tenStatus::nenSuccess || pgMat == nullptr)
 				{
 					m_Logger->error("DoRender: impBase.tensProcessInput did not succeed!");

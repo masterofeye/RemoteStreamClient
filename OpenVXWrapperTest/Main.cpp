@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
     QApplication app(argc, argv);
     RW::VPL::QT_SIMPLE::VPL_Viewer qViewer;
     qViewer.setParams(1920, 720);
-    qViewer.resize(1970, 770);
+    qViewer.resize(1924, 724);
     qViewer.show();
     params.pViewer = &qViewer;
 

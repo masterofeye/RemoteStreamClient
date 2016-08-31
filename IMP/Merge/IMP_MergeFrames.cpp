@@ -5,6 +5,7 @@
 #include "..\Crop\IMP_CropFrames.hpp"
 #if defined (SERVER)
 #include "..\..\ENC\NVENC\ENC_CudaInterop.hpp"
+#include "..\..\ENC\Intel\ENC_Intel.hpp"
 #endif
 
 namespace RW{
@@ -39,9 +40,32 @@ namespace RW{
 #if defined (SERVER)
                 case CORE::tenSubModule::nenEncode_NVIDIA:
                 {
+                    CUdeviceptr arrYUV;
+                    size_t pitch;
+
+                    cudaError err = cudaMallocPitch((void**)&arrYUV, &pitch, this->pOutput->_pgMat->cols, this->pOutput->_pgMat->rows * 3 / 2);
+
+                    IMP::IMP_Base imp;
+                    tenStatus enStatus = imp.GpuMatToGpuYUV(this->pOutput->_pgMat, &arrYUV);
+
                     RW::ENC::NVENC::tstMyControlStruct *data = static_cast<RW::ENC::NVENC::tstMyControlStruct*>(*Data);
 
-                    data->pcuYUVArray = this->pOutput->_pcuYUV420;
+                    data->pcuYUVArray = arrYUV;
+                    SAFE_DELETE(this->pOutput->_pgMat);
+
+                    break;
+                }
+                case CORE::tenSubModule::nenEncode_INTEL:
+                {
+                    uint8_t *pu8Output = new uint8_t[this->pOutput->_pgMat->cols* this->pOutput->_pgMat->rows * 3 / 2];
+
+                    IMP::IMP_Base imp;
+                    tenStatus enStatus = imp.GpuMatToCpuYUV(this->pOutput->_pgMat, pu8Output);
+
+                    RW::ENC::INTEL::tstMyControlStruct *data = static_cast<RW::ENC::INTEL::tstMyControlStruct*>(*Data);
+
+                    data->pInputArray = pu8Output;
+                    SAFE_DELETE(this->pOutput->_pgMat);
                     break;
                 }
 #endif
@@ -105,8 +129,6 @@ namespace RW{
 					return tenStatus::nenError;
 				}
 
-				IMP_Base impBase = IMP_Base(m_Logger);
-
 				for (int iIndex = 0; iIndex < data->pvInput->size(); iIndex++)
 				{
 					if (data->pOutput->_pgMat == data->pvInput->at(iIndex)->_pgMat)
@@ -115,15 +137,8 @@ namespace RW{
 					}
 					cInputBase *pInput = data->pvInput->at(iIndex);
 
-					cv::cuda::GpuMat *pgMat = data->pOutput->_pgMat;
-					enStatus = impBase.tensProcessInput(pInput, pgMat);
+					cv::cuda::GpuMat *pgMat = pInput->_pgMat;
 					
-					if (enStatus != tenStatus::nenSuccess || pgMat == nullptr)
-					{
-						m_Logger->error("Initialise: impBase.Initialise for gMat1 did not succeed!");
-						return enStatus;
-					}
-
 					if (!data->pOutput)
 					{
 						data->pOutput->_pgMat = pgMat;
@@ -133,12 +148,10 @@ namespace RW{
 						enStatus = ApplyMerge(data->pOutput->_pgMat, pgMat);
 					}
 				}
-                enStatus = impBase.tensProcessOutput(data->pOutput->_pgMat, data->pOutput);
-
 
 				if (enStatus != tenStatus::nenSuccess || data->pOutput == nullptr)
 				{
-					m_Logger->error("DoRender: impBase.tensProcessOutput did not succeed!");
+					m_Logger->error("DoRender: Failed!");
 					return enStatus;
 				}
 

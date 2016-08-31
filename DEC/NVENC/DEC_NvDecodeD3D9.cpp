@@ -171,7 +171,11 @@ namespace RW
                 memset(&packet, 0, sizeof(CUVIDSOURCEDATAPACKET));
                 packet.payload_size = data->pstEncodedStream->u32Size;
                 packet.payload = (unsigned char*)data->pstEncodedStream->pBuffer;
-                RW::tstPayloadMsg *plMsg = (RW::tstPayloadMsg *)data->pPayload->pBuffer;
+                //RW::tstPayloadMsg *plMsg;
+                //if (data->pPayload)
+                //{
+                //    plMsg = (RW::tstPayloadMsg *)data->pPayload->pBuffer;
+                //}
                 packet.flags = CUVID_PKT_ENDOFSTREAM;
                 CUresult oResult = cuvidParseVideoData(g_pVideoParser->hParser_, &packet);
                 if ((packet.flags & CUVID_PKT_ENDOFSTREAM) || (oResult != CUDA_SUCCESS))

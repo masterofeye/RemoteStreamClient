@@ -7,7 +7,7 @@
 #include <stdint.h>
 
 
-__global__ void kernel444To420(uint8_t *pArrayFull, uint8_t *pYUV420, int iHeight, int iPitch)
+__global__ void kernel444To420(uint8_t *pArrayFull, uint8_t *pYUV420, int iWidth, int iHeight, int iPitch)
 {
 	int iPosY = blockIdx.y * blockDim.y + threadIdx.y;
 	int iPosX = blockIdx.x * blockDim.x + threadIdx.x;
@@ -15,7 +15,7 @@ __global__ void kernel444To420(uint8_t *pArrayFull, uint8_t *pYUV420, int iHeigh
 
     int iPosIn = iPosY * 3 * iPitch + 3 * iPosX;
 
-	pYUV420[iPos] = pArrayFull[iPosIn];
+    pYUV420[iPos] = pArrayFull[iPosIn];
 
     if ((iPosX % 2 == 0) && (iPosY % 2 == 0))
     {
@@ -38,10 +38,10 @@ __global__ void kernel444To420(uint8_t *pArrayFull, uint8_t *pYUV420, int iHeigh
 extern "C" void IMP_444To420(uint8_t *pArrayFull, uint8_t *pArrayYUV420, int iWidth, int iHeight, size_t pitchY)
 {
 	dim3 block(32, 16, 1);
-	dim3 grid(iWidth / block.x, iHeight / block.y, 1);
+    dim3 grid(pitchY / block.x, iHeight / block.y, 1);
 
     //plane to plane
-    kernel444To420 << <grid, block >> >(pArrayFull, pArrayYUV420, iHeight, (int)pitchY);
+    kernel444To420 << <grid, block >> >(pArrayFull, pArrayYUV420, iWidth, iHeight, (int)pitchY);
 }
 
 #endif

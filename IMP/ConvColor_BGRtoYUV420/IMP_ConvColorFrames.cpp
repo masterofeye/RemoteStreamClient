@@ -1,11 +1,11 @@
 #include "IMP_ConvColorFrames.hpp"
 #include "..\Crop\IMP_CropFrames.hpp"
 #include "opencv2\opencv.hpp"
-//#include "opencv2\core\cuda.hpp"
 #include "opencv2\cudev\common.hpp"
 #include "opencv2\cudaimgproc.hpp"
 #if defined (SERVER)
 #include "..\ENC\NVENC\ENC_CudaInterop.hpp"
+#include "..\ENC\Intel\ENC_Intel.hpp"
 #endif
 
 namespace RW{
@@ -35,11 +35,34 @@ namespace RW{
 #if defined (SERVER)
                 case CORE::tenSubModule::nenEncode_NVIDIA:
 				{
-					RW::ENC::NVENC::tstMyControlStruct *data = static_cast<RW::ENC::NVENC::tstMyControlStruct*>(*Data);
+                    CUdeviceptr arrYUV;
+                    size_t pitch;
+                    
+                    cudaError err = cudaMallocPitch((void**)&arrYUV, &pitch, this->pOutput->_pgMat->cols, this->pOutput->_pgMat->rows * 3 / 2);
 
-					data->pcuYUVArray = this->pOutput->_pcuYUV420;
+                    IMP::IMP_Base imp;
+                    tenStatus enStatus = imp.GpuMatToGpuYUV(this->pOutput->_pgMat, &arrYUV);
+
+					RW::ENC::NVENC::tstMyControlStruct *data = static_cast<RW::ENC::NVENC::tstMyControlStruct*>(*Data);
+                    this->pOutput->_pcuYUV420 = arrYUV;
+                    data->pcuYUVArray = arrYUV;
+                    SAFE_DELETE(this->pOutput->_pgMat);
+
 					break;
 				}
+                case CORE::tenSubModule::nenEncode_INTEL:
+                {
+                    uint8_t *pu8Output = new uint8_t[this->pOutput->_pgMat->cols* this->pOutput->_pgMat->rows * 3 / 2];
+
+                    IMP::IMP_Base imp;
+                    tenStatus enStatus = imp.GpuMatToCpuYUV(this->pOutput->_pgMat, pu8Output);
+
+                    RW::ENC::INTEL::tstMyControlStruct *data = static_cast<RW::ENC::INTEL::tstMyControlStruct*>(*Data);
+                    this->pOutput->_pu8Array = pu8Output;
+                    data->pInputArray = pu8Output;
+                    SAFE_DELETE(this->pOutput->_pgMat);
+                    break;
+                }
 #endif
 				default:
 					break;
@@ -78,8 +101,6 @@ namespace RW{
 #ifdef TRACE_PERFORMANCE
 				RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
 #endif
-				IMP_Base impBase = IMP_Base(m_Logger);
-
 				stMyControlStruct* data = static_cast<stMyControlStruct*>(ControlStruct);
 
 				if (!data)
@@ -93,32 +114,13 @@ namespace RW{
 					return tenStatus::nenError;
 				}
 
-				IMP::IMP_Base cBase = IMP_Base(m_Logger);
-				cv::cuda::GpuMat *pgMat = data->pOutput->_pgMat;
+				cv::cuda::GpuMat *pgMat = data->pInput->_pgMat;
 
-				bool bCreateAndDeleteGpuMatHere = false;
-				if (pgMat == nullptr && data->pOutput->_bExportImg)	{
-					if (data->pInput->_pgMat){
-						pgMat = data->pInput->_pgMat;
-					}
-					else{
-						pgMat = new cv::cuda::GpuMat();
-						bCreateAndDeleteGpuMatHere = true;
-					}
-				}
-				enStatus = impBase.tensProcessInput(data->pInput, pgMat);
+                cv::cuda::cvtColor(*pgMat, *pgMat, cv::COLOR_BGR2YUV);// , 0, cv::cuda::Stream::Stream());
 
-				cv::cuda::cvtColor(*pgMat, *pgMat, cv::COLOR_BGR2YUV);// , 0, cv::cuda::Stream::Stream());
+                data->pOutput->_pgMat = pgMat;
 
-				IMP_Base imp(m_Logger);
-				enStatus = imp.tensProcessOutput(pgMat, data->pOutput);
-
-				if (bCreateAndDeleteGpuMatHere)	{
-					delete pgMat;
-					pgMat = nullptr;
-				}
-
-				if (enStatus != tenStatus::nenSuccess || !data->pOutput->_pcuYUV420){
+				if (enStatus != tenStatus::nenSuccess){
 					m_Logger->error("DoRender: impBase.tensProcessOutput did not succeed!");
 				}
 

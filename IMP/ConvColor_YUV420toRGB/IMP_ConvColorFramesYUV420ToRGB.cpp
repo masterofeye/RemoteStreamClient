@@ -105,14 +105,17 @@ namespace RW{
 
                 cv::cuda::GpuMat gMat444(m_u32Height, m_u32Width, CV_8UC3);
 
-                cudaError err = cudaMallocPitch((void**)&arrayY, &pitchY, m_u32Width, 1);
+                cudaError err = cudaMallocPitch((void**)&arrayY, &pitchY, m_u32Width, m_u32Height * 3 / 2);
                 if (err != cudaSuccess) return tenStatus::nenError;
 
-                cv::cuda::GpuMat gMat420(m_u32Height * 3 / 2, pitchY, CV_8UC1, (void*)data->pInput);
-                cv::Mat mat1(m_u32Height * 3 / 2, pitchY, CV_8UC1);
-                gMat420.download(mat1);
+                err = cudaMemcpy2D(arrayY, pitchY, (void*)data->pInput, m_u32Width, m_u32Width, m_u32Height * 3 / 2, cudaMemcpyDeviceToDevice);
+                if (err != cudaSuccess)
+                {
+                    printf("IMP_420To444: cudaMemcpy2D failed! Error = %d\n", err);
+                    return tenStatus::nenError;
+                }
 
-                IMP_420To444(gMat420.data, gMat444.data, m_u32Width, m_u32Height, pitchY);
+                IMP_420To444(arrayY, gMat444.data, m_u32Width, m_u32Height, pitchY);
 
                 err = cudaDeviceSynchronize();
                 if (err != cudaSuccess)
@@ -127,19 +130,28 @@ namespace RW{
                     return tenStatus::nenError;
                 }
 
-                cv::cvtColor(gMat444, gMat444, cv::COLOR_YUV2RGB);
+                //cv::cuda::GpuMat gMat420(m_u32Height * 3 / 2, pitchY, CV_8UC1, (void*)arrayY);
+                //cv::Mat mat1(m_u32Height * 3 / 2, pitchY, CV_8UC1);
+                //gMat420.download(mat1);
 
                 cv::Mat mat(m_u32Height, m_u32Width, CV_8UC3);
+                gMat444.download(mat);
+
+
+                cv::cvtColor(gMat444, gMat444, cv::COLOR_YUV2RGB);
+
+                //cv::Mat mat(m_u32Height, m_u32Width, CV_8UC3);
                 gMat444.download(mat);
 
                 data->pOutput->pBuffer = mat.data;
                 data->pOutput->u32Size = (uint32_t)mat.total()*mat.channels();
 
-                //FILE *pFile;
-                //pFile = fopen("c:\\dummy\\dummy.raw", "rb");
-                //fwrite(mat.data, 1, mat.total()*mat.channels(), pFile);
-                //fclose(pFile);
+                FILE *pFile;
+                pFile = fopen("c:\\dummy\\dummy.raw", "rb");
+                fwrite(mat.data, 1, mat.total()*mat.channels(), pFile);
+                fclose(pFile);
 
+                cudaFree(&data->pInput);
                 cudaFree(arrayY);
 
                 if (enStatus != tenStatus::nenSuccess || !data->pOutput)

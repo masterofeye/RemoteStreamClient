@@ -23,27 +23,23 @@ namespace RW
 			cOutputBase()
 			{
 				_pgMat = nullptr;
-				_bExportImg = false;
+                _pu8Array = nullptr;
 			};
-			cOutputBase(CUdeviceptr pcuYUV420, bool bExportImg = false)
+			cOutputBase(CUdeviceptr pcuYUV420)
 			{
 				_pcuYUV420 = pcuYUV420;
 				_pgMat = nullptr;
-				_bExportImg = bExportImg;
-			}
-			//cOutputBase(CUarray cuArrayY, CUarray cuArrayU, CUarray cuArrayV, bool bExportImg = false)
-			//{
-			//	_cuArrayY = cuArrayY;
-			//	_cuArrayUV[0] = cuArrayU;
-			//	_cuArrayUV[1] = cuArrayV;
-
-			//	_pgMat = nullptr;
-			//	_bExportImg = bExportImg;
-			//};
-			cOutputBase(cv::cuda::GpuMat *pgMat, bool bExportImg = false)
+                _pu8Array = nullptr;
+            }
+            cOutputBase(uint8_t *pu8Array)
+            {
+                _pu8Array = pu8Array;
+                _pgMat = nullptr;
+            }
+			cOutputBase(cv::cuda::GpuMat *pgMat)
 			{
 				_pgMat = pgMat;
-				_bExportImg = bExportImg;
+                _pu8Array = nullptr;
 			};
 
 			~cOutputBase(){}
@@ -51,9 +47,7 @@ namespace RW
 			CUdeviceptr _pcuYUV420;
 			bool _bExportImg;
 			cv::cuda::GpuMat *_pgMat;
-            uint8_t *_pu8YUV;
-			//CUarray _cuArrayUV[2];
-			//CUarray _cuArrayY;
+            uint8_t *_pu8Array;
 		};
 
 		class cInputBase{
