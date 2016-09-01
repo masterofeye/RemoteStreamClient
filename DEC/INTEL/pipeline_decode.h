@@ -117,6 +117,8 @@ namespace RW{
                 virtual mfxStatus SyncOutputSurface(mfxU32 wait);
                 virtual mfxStatus DeliverOutput(mfxFrameSurface1* frame);
                 virtual void PrintPerFrameStat(bool force = false);
+                mfxStatus CDecodingPipeline::FirstFrameInit();
+
 
             protected: // variables
                 std::shared_ptr<spdlog::logger> m_Logger;

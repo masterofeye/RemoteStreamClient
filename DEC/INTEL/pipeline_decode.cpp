@@ -40,6 +40,7 @@ or https://software.intel.com/en-us/media-client-solutions-support.
 
 #pragma warning(disable : 4100)
 
+#define USE_VPP_EX 
 #define __SYNC_WA // avoid sync issue on Media SDK side
 
 namespace RW{
@@ -155,11 +156,13 @@ namespace RW{
                 // Init session
                 if (pParams->bUseHWLib) {
                     // try searching on all display adapters
-                    initPar.Implementation = MFX_IMPL_HARDWARE_ANY;
+                    initPar.Implementation = MFX_IMPL_HARDWARE;// MFX_IMPL_HARDWARE;
+
+                    if (D3D9_MEMORY == pParams->memType)
+                        initPar.Implementation |= MFX_IMPL_VIA_D3D9;
 
                     // if d3d11 surfaces are used ask the library to run acceleration through D3D11
                     // feature may be unsupported due to OS or MSDK API version
-
                     if (D3D11_MEMORY == pParams->memType)
                         initPar.Implementation |= MFX_IMPL_VIA_D3D11;
 
@@ -169,11 +172,25 @@ namespace RW{
                     if (MFX_ERR_NONE != sts) {
                         initPar.Implementation = (initPar.Implementation & !MFX_IMPL_HARDWARE_ANY) | MFX_IMPL_HARDWARE;
                         sts = m_mfxSession.InitEx(initPar);
+                        if (MFX_ERR_NONE != sts){
+                            initPar.Implementation = MFX_IMPL_HARDWARE_ANY;
+                            sts = m_mfxSession.Init(initPar.Implementation, &initPar.Version);
+                            if (MFX_ERR_NONE != sts){
+                                m_pInputParams->bUseHWLib = false;
+                                sts = Init(m_pInputParams);
+                                return sts;
+                            }
+                        }
                     }
                 }
                 else {
                     initPar.Implementation = MFX_IMPL_SOFTWARE;
                     sts = m_mfxSession.InitEx(initPar);
+                    if (MFX_ERR_NONE != sts)
+                    {
+                        initPar.Implementation = MFX_IMPL_AUTO_ANY;
+                        sts = m_mfxSession.InitEx(initPar);
+                    }
                 }
 
                 MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
@@ -267,19 +284,22 @@ namespace RW{
             void CDecodingPipeline::Close()
             {
 
+                WipeMfxBitstream(&m_mfxBS);
+                MSDK_SAFE_DELETE(m_pmfxDEC);
+                MSDK_SAFE_DELETE(m_pmfxVPP);
+
                 DeleteFrames();
 
-                //WipeMfxBitstream(&m_mfxBS);
-                delete m_pmfxDEC;
-                m_pmfxDEC = nullptr;
-                delete m_pmfxVPP;
-                m_pmfxVPP = nullptr;
+                MSDK_SAFE_DELETE_ARRAY(m_VppDoNotUse.AlgList);
 
                 m_pPlugin.reset();
                 m_mfxSession.Close();
 
-                delete[] m_VppDoNotUse.AlgList;
-
+                // delete frames
+                if (m_pGeneralAllocator)
+                {
+                    m_pGeneralAllocator->Free(m_pGeneralAllocator->pthis, &m_mfxResponse);
+                }
                 // allocator if used as external for MediaSDK must be deleted after decoder
                 DeleteAllocator();
 
@@ -1044,6 +1064,78 @@ namespace RW{
                 return sts;
             }
 
+            mfxStatus CDecodingPipeline::FirstFrameInit()
+            {
+                mfxStatus           sts = MFX_ERR_NONE;
+
+                // create device and allocator
+                sts = CreateAllocator();
+                MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
+
+                sts = InitMfxParams(m_pInputParams);
+                MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
+
+                if (m_bVppIsUsed)
+                    m_bDecOutSysmem = m_pInputParams->bUseHWLib ? false : true;
+                else
+                    m_bDecOutSysmem = m_pInputParams->memType == SYSTEM_MEMORY;
+
+                if (m_bVppIsUsed)
+                {
+                    m_pmfxVPP = new MFXVideoVPP(m_mfxSession);
+                    if (!m_pmfxVPP) return MFX_ERR_MEMORY_ALLOC;
+                }
+
+                MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
+
+                // in case of HW accelerated decode frames must be allocated prior to decoder initialization
+                sts = AllocFrames();
+                MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
+
+                sts = m_pmfxDEC->Init(&m_mfxVideoParams);
+                if (MFX_WRN_PARTIAL_ACCELERATION == sts)
+                {
+                    m_Logger->warn("CDecodingPipeline::InitForFirstFrame: partial acceleration");
+                    MSDK_IGNORE_MFX_STS(sts, MFX_WRN_PARTIAL_ACCELERATION);
+                }
+                MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
+
+                if (m_bVppIsUsed)
+                {
+                    MSDK_CHECK_POINTER(m_pmfxVPP, MFX_ERR_NULL_PTR);
+
+                    // close VPP in case it was initialized
+                    sts = m_pmfxVPP->Close();
+                    MSDK_IGNORE_MFX_STS(sts, MFX_ERR_NOT_INITIALIZED);
+                    MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
+
+                    sts = m_pmfxVPP->Init(&m_mfxVppVideoParams);
+                    if (MFX_WRN_PARTIAL_ACCELERATION == sts)
+                    {
+                        m_Logger->warn("CDecodingPipeline::InitForFirstFrame: partial acceleration");
+                        MSDK_IGNORE_MFX_STS(sts, MFX_WRN_PARTIAL_ACCELERATION);
+                    }
+                    if (MFX_ERR_NONE != sts)
+                    {
+                        m_pInputParams->bUseHWLib = false;
+                        m_bDecOutSysmem = true;
+                        sts = Init(m_pInputParams);
+                        MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
+
+                        sts = FirstFrameInit();
+                        MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
+
+                        return sts;
+                    }
+                }
+
+                sts = m_pmfxDEC->GetVideoParam(&m_mfxVideoParams);
+                MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
+
+                m_bFirstFrameInitialized = true;
+                return MFX_ERR_NONE;
+            }
+
             mfxStatus CDecodingPipeline::RunDecoding(tstBitStream *EncodedData, tstBitStream *OutputData)
             {
                 mfxStatus           sts = MFX_ERR_NONE;
@@ -1062,56 +1154,8 @@ namespace RW{
 
                 if (!m_bFirstFrameInitialized)
                 {
-                    // create device and allocator
-                    sts = CreateAllocator();
+                    sts = FirstFrameInit();
                     MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
-                    //}
-
-                    sts = InitMfxParams(m_pInputParams);
-                    MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
-
-                    if (m_bVppIsUsed)
-                        m_bDecOutSysmem = m_pInputParams->bUseHWLib ? false : true;
-                    else
-                        m_bDecOutSysmem = m_pInputParams->memType == SYSTEM_MEMORY;
-
-                    if (m_bVppIsUsed)
-                    {
-                        m_pmfxVPP = new MFXVideoVPP(m_mfxSession);
-                        if (!m_pmfxVPP) return MFX_ERR_MEMORY_ALLOC;
-                    }
-
-                    MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
-
-                    // in case of HW accelerated decode frames must be allocated prior to decoder initialization
-                    sts = AllocFrames();
-                    MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
-
-                    //if (!m_bFirstFrameInitialized)
-                    //{
-                    sts = m_pmfxDEC->Init(&m_mfxVideoParams);
-                    if (MFX_WRN_PARTIAL_ACCELERATION == sts)
-                    {
-                        m_Logger->warn("CDecodingPipeline::InitForFirstFrame: partial acceleration");
-                        MSDK_IGNORE_MFX_STS(sts, MFX_WRN_PARTIAL_ACCELERATION);
-                    }
-                    MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
-
-                    if (m_bVppIsUsed)
-                    {
-                        sts = m_pmfxVPP->Init(&m_mfxVppVideoParams);
-                        if (MFX_WRN_PARTIAL_ACCELERATION == sts)
-                        {
-                            m_Logger->warn("CDecodingPipeline::InitForFirstFrame: partial acceleration");
-                            MSDK_IGNORE_MFX_STS(sts, MFX_WRN_PARTIAL_ACCELERATION);
-                        }
-                        MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
-                    }
-
-                    sts = m_pmfxDEC->GetVideoParam(&m_mfxVideoParams);
-                    MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
-
-                    m_bFirstFrameInitialized = true;
                 }
 
                 mfxFrameSurface1*   pOutSurface = nullptr;
