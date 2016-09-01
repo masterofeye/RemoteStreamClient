@@ -486,6 +486,7 @@ namespace RW{
                 {
                     m_hwdev = nullptr;
                     m_pInputParams->bUseHWLib = false;
+                    m_pInputParams->memType = SYSTEM_MEMORY;
                     sts = Init(m_pInputParams);
                     MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
                 }
@@ -1118,6 +1119,7 @@ namespace RW{
                     if (MFX_ERR_NONE != sts)
                     {
                         m_pInputParams->bUseHWLib = false;
+                        m_pInputParams->memType = SYSTEM_MEMORY;
                         m_bDecOutSysmem = true;
                         sts = Init(m_pInputParams);
                         MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
