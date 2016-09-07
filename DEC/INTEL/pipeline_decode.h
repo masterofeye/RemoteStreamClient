@@ -84,14 +84,15 @@ namespace RW{
                 virtual ~CDecodingPipeline();
 
                 virtual mfxStatus Init(tstInputParams *pParams);
-                virtual mfxStatus RunDecoding(tstBitStream *EncodedData, tstBitStream *OutputData);
+                virtual mfxStatus RunDecoding();
                 virtual void Close();
                 virtual mfxStatus ResetDecoder();
                 virtual mfxStatus ResetDevice();
                 tstPayloadMsg *GetPayloadMsg();
+                mfxStatus SetEncodedData(tstBitStream *pstEncodedStream);
+                RW::tstBitStream *GetOutput(){ return m_pOutput; }
 
             protected: // functions
-                mfxStatus SetEncodedData(tstBitStream *pstEncodedStream);
                 virtual mfxStatus InitMfxParams(tstInputParams *pParams);
 
                 virtual mfxStatus InitVppParams();
@@ -115,7 +116,6 @@ namespace RW{
                  * @return MFX_ERR_UNKNOWN An error has occurred.
                  */
                 virtual mfxStatus SyncOutputSurface(mfxU32 wait);
-                virtual mfxStatus DeliverOutput(mfxFrameSurface1* frame);
                 virtual void PrintPerFrameStat(bool force = false);
                 mfxStatus CDecodingPipeline::FirstFrameInit();
 

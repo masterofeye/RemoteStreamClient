@@ -1,7 +1,7 @@
 #include "IMP_MergeFrames.hpp"
 #include "opencv2/opencv.hpp"
 #include "opencv2/cudev/common.hpp"
-#include "..\ConvColor_BGRtoYUV420\IMP_ConvColorFrames.hpp"
+#include "..\ConvColor_BGRtoYUV420\IMP_ConvColorFramesBGRToYUV420.hpp"
 #include "..\Crop\IMP_CropFrames.hpp"
 #if defined (SERVER)
 #include "..\..\ENC\NVENC\ENC_CudaInterop.hpp"
@@ -31,9 +31,9 @@ namespace RW{
 					data->pInput->_pgMat = this->pOutput->_pgMat;
                     break;
 				}
-				case CORE::tenSubModule::nenGraphic_Color:
+				case CORE::tenSubModule::nenGraphic_ColorBGRToYUV:
 				{
-					IMP::COLOR::tstMyControlStruct *data = static_cast<IMP::COLOR::tstMyControlStruct*>(*Data);
+					IMP::COLOR_BGRTOYUV::tstMyControlStruct *data = static_cast<IMP::COLOR_BGRTOYUV::tstMyControlStruct*>(*Data);
 					data->pInput->_pgMat = this->pOutput->_pgMat;
 					break;
 				}
@@ -44,9 +44,13 @@ namespace RW{
                     size_t pitch;
 
                     cudaError err = cudaMallocPitch((void**)&arrYUV, &pitch, this->pOutput->_pgMat->cols, this->pOutput->_pgMat->rows * 3 / 2);
+                    if (err != CUDA_SUCCESS)
+                        printf("RW::IMP::MERGE::stMyControlStruct::UpdateData case CORE::tenSubModule::nenEncode_NVIDIA: cudaMallocPitch failed!");
 
                     IMP::IMP_Base imp;
                     tenStatus enStatus = imp.GpuMatToGpuYUV(this->pOutput->_pgMat, &arrYUV);
+                    if (enStatus != tenStatus::nenSuccess)
+                        printf("RW::IMP::MERGE::stMyControlStruct::UpdateData case CORE::tenSubModule::nenEncode_NVIDIA: GpuMatToGpuYUV failed!");
 
                     RW::ENC::NVENC::tstMyControlStruct *data = static_cast<RW::ENC::NVENC::tstMyControlStruct*>(*Data);
 
@@ -61,6 +65,8 @@ namespace RW{
 
                     IMP::IMP_Base imp;
                     tenStatus enStatus = imp.GpuMatToCpuYUV(this->pOutput->_pgMat, pu8Output);
+                    if (enStatus != tenStatus::nenSuccess)
+                        printf("RW::IMP::MERGE::stMyControlStruct::UpdateData case CORE::tenSubModule::nenEncode_INTEL: GpuMatToCpuYUV failed!");
 
                     RW::ENC::INTEL::tstMyControlStruct *data = static_cast<RW::ENC::INTEL::tstMyControlStruct*>(*Data);
 
@@ -72,7 +78,7 @@ namespace RW{
                 default:
 					break;
 				}
-
+                SAFE_DELETE(this->pvInput);
 			}
 
 			CORE::tstModuleVersion IMP_MergeFrames::ModulVersion() {

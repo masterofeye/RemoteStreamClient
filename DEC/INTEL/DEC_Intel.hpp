@@ -2,6 +2,7 @@
 
 #include "AbstractModule.hpp"
 #include "DEC_inputs.h"
+#include "..\..\IMP\IMP.h"
 
 namespace RW{
     namespace DEC{

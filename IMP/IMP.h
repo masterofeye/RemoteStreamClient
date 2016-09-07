@@ -10,6 +10,8 @@
 #include "Utils.h"
 #include "dynlink_cuda.h"
 
+#include "..\OpenVXWrapperTest\Pipeline_Config.h"
+
 #ifdef TRACE_PERFORMANCE
 #include "HighResolution\HighResClock.h"
 #endif
@@ -48,37 +50,20 @@ namespace RW
 			bool _bExportImg;
 			cv::cuda::GpuMat *_pgMat;
             uint8_t *_pu8Array;
+            stBitStream *_pBitstream;
 		};
 
 		class cInputBase{
 		public:
-			typedef struct stImportImg
-			{
-				void *pvImg;
-				int iWidth;
-				int iHeight;
-
-				stImportImg(int width, int height, void* data)
-				{
-					iWidth = width;
-					iHeight = height;
-					pvImg = data;
-				}
-				stImportImg()
-				{
-					pvImg = nullptr;
-				}
-			}tstImportImg;
-
-
 			cInputBase()
 			{
 				_pgMat = nullptr;
+                _pBitstream = nullptr;
 				_bImportImg = false;
 			};
-			cInputBase(tstImportImg stImg, bool bImportImg = false)
+			cInputBase(tstBitStream *pBitstream, bool bImportImg = false)
 			{
-				_stImg = stImg;
+				_pBitstream = pBitstream;
 				_pgMat = nullptr;
 				_bImportImg = bImportImg;
 			};
@@ -90,8 +75,9 @@ namespace RW
 
 			~cInputBase(){}
 
-			tstImportImg _stImg;
+            tstBitStream *_pBitstream;
 			cv::cuda::GpuMat *_pgMat;
+            CUdeviceptr _cuDevice;
 			bool _bImportImg;
 		};
 	}

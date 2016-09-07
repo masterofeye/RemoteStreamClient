@@ -89,6 +89,7 @@ namespace RW{
 
                 m_hwdev = nullptr;
 
+                m_pOutput = nullptr;
             }
 
             CDecodingPipeline::~CDecodingPipeline()
@@ -801,6 +802,9 @@ namespace RW{
             mfxStatus CDecodingPipeline::WriteNextFrameToBuffer(mfxFrameSurface1* frame)
             {
                 mfxU32 h, w;
+                if (!m_pOutput)
+                    m_pOutput = new RW::tstBitStream;
+
                 m_pOutput->u32Size = 0;
 
                 switch (frame->Info.FourCC)
@@ -822,7 +826,7 @@ namespace RW{
                     h = frame->Info.CropH / 2;
                     w = frame->Info.CropW;
 
-                    m_pOutput->u32Size += (w * h) + (w * h);
+                    m_pOutput->u32Size += (w * h);// +(w * h);
 
                     break;
 
@@ -954,27 +958,7 @@ namespace RW{
                 return MFX_ERR_NONE;
             }
 
-            mfxStatus CDecodingPipeline::DeliverOutput(mfxFrameSurface1* frame)
-            {
-                CAutoTimer timer_fwrite(m_tick_fwrite);
 
-                mfxStatus res = MFX_ERR_NONE;
-
-                if (!frame)
-                {
-                    return MFX_ERR_NULL_PTR;
-                }
-
-                res = WriteNextFrameToBuffer(frame);
-
-                //CSmplYUVWriter          m_FileWriter;
-                //TCHAR filename[MSDK_MAX_FILENAME_LEN] = TEXT("c:\\dummy\\decOutput.raw");
-                //sts = m_FileWriter.Init(filename, 1);
-                //res = m_FileWriter.WriteNextFrame(frame);
-                //m_FileWriter.Close();
-
-                return res;
-            }
 
             void CDecodingPipeline::PrintPerFrameStat(bool force)
             {
@@ -1011,13 +995,14 @@ namespace RW{
                 if (!m_pCurrentOutputSurface) {
                     return MFX_ERR_MORE_DATA;
                 }
-
-                mfxStatus sts = m_mfxSession.SyncOperation(m_pCurrentOutputSurface->syncp, wait);
+                mfxStatus sts;
+                sts = m_mfxSession.SyncOperation(m_pCurrentOutputSurface->syncp, wait);
 
                 if (MFX_WRN_IN_EXECUTION == sts) {
                     return sts;
                 }
-                if (MFX_ERR_NONE == sts) {
+                if (MFX_ERR_NONE == sts) 
+                {
                     // we got completely decoded frame - pushing it to the delivering thread...
                     ++m_synced_count;
                     if (m_bPrintLatency) {
@@ -1027,16 +1012,13 @@ namespace RW{
                         PrintPerFrameStat();
                     }
                     m_output_count = m_synced_count;
-                    sts = DeliverOutput(&(m_pCurrentOutputSurface->surface->frame));
+
+                    sts = WriteNextFrameToBuffer(&(m_pCurrentOutputSurface->surface->frame));
                     if (MFX_ERR_NONE != sts) {
                         sts = MFX_ERR_UNKNOWN;
                     }
                     ReturnSurfaceToBuffers(m_pCurrentOutputSurface);
                     m_pCurrentOutputSurface = nullptr;
-                }
-
-                if (MFX_ERR_NONE != sts) {
-                    sts = MFX_ERR_UNKNOWN;
                 }
 
                 return sts;
@@ -1138,21 +1120,9 @@ namespace RW{
                 return MFX_ERR_NONE;
             }
 
-            mfxStatus CDecodingPipeline::RunDecoding(tstBitStream *EncodedData, tstBitStream *OutputData)
+            mfxStatus CDecodingPipeline::RunDecoding()
             {
                 mfxStatus           sts = MFX_ERR_NONE;
-                if (OutputData){
-                    m_pOutput = OutputData;
-                }
-                else{
-                    return MFX_ERR_NULL_PTR;
-                }
-                if (EncodedData){
-                    SetEncodedData(EncodedData);
-                }
-                else{
-                    return MFX_ERR_NULL_PTR;
-                }
 
                 if (!m_bFirstFrameInitialized)
                 {

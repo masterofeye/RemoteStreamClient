@@ -32,34 +32,41 @@ namespace RW
 
                 _width = 0;
                 _height = 0;
-                count = 0;
+                _count = 0;
             }
 
             VPL_Viewer::~VPL_Viewer()
             {
+                printf("Destructor VPL_Viewer");
             }
 
             void VPL_Viewer::connectToViewer(VPL_FrameProcessor *frameProc)
             {
                 //To enable asynchronous threads we have to select QueuedConnection. This will create a copy of the parameter. 
-                connect(frameProc, SIGNAL(FrameBufferChanged(uchar*)), this, SLOT(setVideoData(uchar*)), Qt::QueuedConnection);
+                connect(frameProc, SIGNAL(FrameBufferChanged(void*)), this, SLOT(setVideoData(void*)), Qt::DirectConnection);
             }
 
-            void VPL_Viewer::setVideoData(uchar *buffer)
+            void VPL_Viewer::setVideoData(void *buffer)
             {
-                QImage img(buffer, _width, _height, QImage::Format::Format_RGBX8888);
+                RW::tstBitStream* ptr = (RW::tstBitStream*)buffer;
+                QImage img(ptr->pBuffer, _width, _height, _format);
 
                 QPixmap pix(QPixmap::fromImage(img));
 
-                if (count == 0)
+                if (_count == 0)
                     item = scene->addPixmap(pix);
                 else
                     item->setPixmap(pix);
 
-                //scene->addEllipse(QRect(count, 0, 50, 50), QPen(Qt::red));
-                count++;
+                //FILE *pFile;
+                //fopen_s(&pFile, "c:\\dummy\\outViewer.raw", "wb");
+                //fwrite(buffer, 1,_width*_height*3, pFile);
+                //fclose(pFile);
 
-                SAFE_DELETE(buffer);
+                //scene->addEllipse(QRect(count, 0, 50, 50), QPen(Qt::red));
+                SAFE_DELETE(ptr);
+
+                _count++;
             }
         }
     }

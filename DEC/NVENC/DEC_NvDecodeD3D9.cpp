@@ -1,5 +1,5 @@
 #include "DEC_NvDecodeD3D9.hpp"
-#include "..\..\IMP\ConvColor_YUV420toRGB\IMP_ConvColorFramesYUV420ToRGB.hpp"
+#include "..\..\IMP\ConvColor_NV12toRGB\IMP_ConvColorFramesNV12ToRGB.hpp"
 
 #if defined(WIN32) || defined(_WIN32) || defined(WIN64) || defined(_WIN64)
 #define WINDOWS_LEAN_AND_MEAN
@@ -75,15 +75,16 @@ namespace RW
             {
                 switch (SubModuleType)
                 {
-                case RW::CORE::tenSubModule::nenGraphic_ColorYUV420ToRGB:
+                case RW::CORE::tenSubModule::nenGraphic_ColorNV12ToRGB:
                 {
-                    RW::IMP::COLOR_YUV420TORGB::tstMyControlStruct *data = static_cast<RW::IMP::COLOR_YUV420TORGB::tstMyControlStruct*>(*Data);
-                    data->pInput = this->pOutput;
+                    RW::IMP::COLOR_NV12TORGB::tstMyControlStruct *data = static_cast<RW::IMP::COLOR_NV12TORGB::tstMyControlStruct*>(*Data);
+                    data->pInput->_cuDevice = this->pOutput;
                     break;
                 }
                 default:
                     break;
                 }
+                SAFE_DELETE(this->pstEncodedStream);
             }
 
             CORE::tstModuleVersion CNvDecodeD3D9::ModulVersion() {
@@ -412,25 +413,6 @@ namespace RW
 
             HRESULT CNvDecodeD3D9::cleanup(bool bDestroyContext)
             {
-                if (bDestroyContext)
-                {
-                    // Attach the CUDA Context (so we may properly free memroy)
-                    checkCudaErrors(cuCtxPushCurrent(g_oContext));
-
-                    //if (g_pInteropFrame[0])
-                    //{
-                    //    checkCudaErrors(cuMemFree(g_pInteropFrame[0]));
-                    //}
-
-                    //if (g_pInteropFrame[1])
-                    //{
-                    //    checkCudaErrors(cuMemFree(g_pInteropFrame[1]));
-                    //}
-
-                    // Detach from the Current thread
-                    checkCudaErrors(cuCtxPopCurrent(NULL));
-                }
-
                 freeCudaResources(bDestroyContext);
 
                 return S_OK;

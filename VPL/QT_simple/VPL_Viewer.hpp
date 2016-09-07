@@ -31,15 +31,17 @@ namespace RW
                 QGraphicsPixmapItem *item;
                 quint16             _width;
                 quint16             _height;
-                quint32             count;
+                quint32             _count;
+                QImage::Format      _format;    // for DEC::INTEL use QImage::Format::Format_RGBX8888; for DEC::NVEND use QImage::Format::Format_RGB888
 
             public:
                 VPL_Viewer();
                 ~VPL_Viewer();
                 void setParams(quint16 width, quint16 height){ _width = width; _height = height; };
+                void setImgType(QImage::Format format){ _format = format; };
 
                 public slots:
-                void setVideoData(uchar *buffer);
+                void setVideoData(void *buffer);
                 void connectToViewer(VPL_FrameProcessor *frameProc);
 
             };

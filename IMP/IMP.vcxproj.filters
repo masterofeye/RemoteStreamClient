@@ -1,18 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="ConvColor_BGRtoYUV420\moc_IMP_ConvColorFrames.cpp">
-      <Filter>ConvColor_BGRtoYUV420</Filter>
-    </ClCompile>
-    <ClCompile Include="ConvColor_BGRtoYUV420\IMP_ConvColorFrames.cpp">
-      <Filter>ConvColor_BGRtoYUV420</Filter>
-    </ClCompile>
-    <ClCompile Include="ConvColor_YUV420toRGB\moc_IMP_ConvColorFramesYUV420ToRGB.cpp">
-      <Filter>ConvColor_YUV420toRGB</Filter>
-    </ClCompile>
-    <ClCompile Include="ConvColor_YUV420toRGB\IMP_ConvColorFramesYUV420ToRGB.cpp">
-      <Filter>ConvColor_YUV420toRGB</Filter>
-    </ClCompile>
     <ClCompile Include="IMP_Base.cpp" />
     <ClCompile Include="moc_ModuleFactory.cpp" />
     <ClCompile Include="ModuleFactory.cpp" />
@@ -28,14 +16,20 @@
     <ClCompile Include="Crop\moc_IMP_CropFrames.cpp">
       <Filter>Crop</Filter>
     </ClCompile>
+    <ClCompile Include="ConvColor_NV12toRGB\moc_IMP_ConvColorFramesNV12ToRGB.cpp">
+      <Filter>ConvColor_NV12toRGB</Filter>
+    </ClCompile>
+    <ClCompile Include="ConvColor_NV12toRGB\IMP_ConvColorFramesNV12ToRGB.cpp">
+      <Filter>ConvColor_NV12toRGB</Filter>
+    </ClCompile>
+    <ClCompile Include="ConvColor_BGRtoYUV420\moc_IMP_ConvColorFramesBGRToYUV420.cpp">
+      <Filter>ConvColor_BGRtoYUV420</Filter>
+    </ClCompile>
+    <ClCompile Include="ConvColor_BGRtoYUV420\IMP_ConvColorFramesBGRToYUV420.cpp">
+      <Filter>ConvColor_BGRtoYUV420</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ConvColor_BGRtoYUV420\IMP_ConvColorFrames.hpp">
-      <Filter>ConvColor_BGRtoYUV420</Filter>
-    </ClInclude>
-    <ClInclude Include="ConvColor_YUV420toRGB\IMP_ConvColorFramesYUV420ToRGB.hpp">
-      <Filter>ConvColor_YUV420toRGB</Filter>
-    </ClInclude>
     <ClInclude Include="IMP.h" />
     <ClInclude Include="IMP_Base.h" />
     <ClInclude Include="ModuleFactory.hpp" />
@@ -45,30 +39,35 @@
     <ClInclude Include="Crop\IMP_CropFrames.hpp">
       <Filter>Crop</Filter>
     </ClInclude>
+    <ClInclude Include="ConvColor_NV12toRGB\IMP_ConvColorFramesNV12ToRGB.hpp">
+      <Filter>ConvColor_NV12toRGB</Filter>
+    </ClInclude>
+    <ClInclude Include="ConvColor_BGRtoYUV420\IMP_ConvColorFramesBGRToYUV420.hpp">
+      <Filter>ConvColor_BGRtoYUV420</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="ConvColor_BGRtoYUV420">
-      <UniqueIdentifier>{3356903a-22fe-4e2f-a16b-68e7f6d65769}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ConvColor_YUV420toRGB">
-      <UniqueIdentifier>{191b1a4b-7349-4f64-abc5-06f4089f1b53}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Merge">
       <UniqueIdentifier>{dedafd97-4b7b-4546-876f-b0571c29979f}</UniqueIdentifier>
     </Filter>
     <Filter Include="Crop">
       <UniqueIdentifier>{1e9599cc-691a-49d1-97c4-dfd6bd89855a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ConvColor_NV12toRGB">
+      <UniqueIdentifier>{191b1a4b-7349-4f64-abc5-06f4089f1b53}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ConvColor_BGRtoYUV420">
+      <UniqueIdentifier>{3356903a-22fe-4e2f-a16b-68e7f6d65769}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="IMP.json" />
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="ConvColor_BGRtoYUV420\IMP_444To420.cu">
-      <Filter>ConvColor_BGRtoYUV420</Filter>
+    <CudaCompile Include="ConvColor_NV12toRGB\IMP_NV12To444.cu">
+      <Filter>ConvColor_NV12toRGB</Filter>
     </CudaCompile>
-    <CudaCompile Include="ConvColor_YUV420toRGB\IMP_420To444.cu">
-      <Filter>ConvColor_YUV420toRGB</Filter>
-    </CudaCompile>
+    <CudaCompile Include="IMP_444To420.cu" />
+    <CudaCompile Include="IMP_444ToNV12.cu" />
   </ItemGroup>
 </Project>

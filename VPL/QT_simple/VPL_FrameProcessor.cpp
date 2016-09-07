@@ -79,27 +79,27 @@ namespace RW
                     return enStatus;
                 }
 
-                //FILE *pFile;
-                //fopen_s(&pFile, "C:\\dummy\\fpOut.raw", "wb");
-                //fwrite(data->pstBitStream->pBuffer, 1, data->pstBitStream->u32Size, pFile);
-                //fclose(pFile);
-
                 uint32_t u32Timestamp = data->stPayload.u32Timestamp;
                 uint32_t u32FrameNbr = data->stPayload.u32FrameNbr;
 
-                emit FrameBufferChanged((uchar*)data->pstBitStream->pBuffer);
+                //FILE *pFile;
+                //fopen_s(&pFile, "c:\\dummy\\outFrameProc.raw", "wb");
+                //fwrite(data->pstBitStream->pBuffer, 1, data->pstBitStream->u32Size, pFile);
+                //fclose(pFile);
+
+                emit FrameBufferChanged((void*)data->pstBitStream);
 
 #ifdef TRACE_PERFORMANCE
                 RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
                 m_Logger->trace() << "Time to DoRender for nenPlayback_Simple module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
-                SAFE_DELETE(data->pstBitStream);
+                //SAFE_DELETE(data->pstBitStream);
                 return enStatus;
             }
 
             tenStatus VPL_FrameProcessor::Deinitialise(CORE::tstDeinitialiseControlStruct *DeinitialiseControlStruct)
             {
-                m_Logger->debug("Deinitialise nenGraphic_Color");
+                m_Logger->debug("Deinitialise nenPlayback_Simple");
 #ifdef TRACE_PERFORMANCE
                 RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
 #endif

@@ -98,6 +98,7 @@ int CPipeline::RunPipeline()
                 RW::CORE::tenSubModule::nenReceive_Simple) != RW::tenStatus::nenSuccess)
                 file_logger->error("nenReceive_Simple couldn't build correct");
 
+            // ---- If you use DEC\Intel set qViewer.setImgType(QImage::Format::Format_RGBX8888) in Main ----
             RW::DEC::INTEL::tstMyInitialiseControlStruct decodeInitCtrl;
             {
                 decodeInitCtrl.inputParams = new RW::DEC::INTEL::tstInputParams();
@@ -108,11 +109,14 @@ int CPipeline::RunPipeline()
                 decodeInitCtrl.inputParams->Width = 1920;
                 decodeInitCtrl.inputParams->bCalLat = false;
                 decodeInitCtrl.inputParams->bLowLat = false;
-                decodeInitCtrl.inputParams->bUseHWLib = true;
+                decodeInitCtrl.inputParams->bUseHWLib = false;
+                // ---- Do not use MFX_FOURCC_NV12 and COLOR_NV12TORGB. It does not work properly now. Use MFX_FOURCC_RGB4 instead ----
+                decodeInitCtrl.inputParams->fourcc = MFX_FOURCC_RGB4;  
             }
             RW::DEC::INTEL::tstMyControlStruct decodeCtrl;
             {
                 decodeCtrl.pstEncodedStream = receiveCtrl.pstBitStream;
+                decodeCtrl.pOutput = nullptr;
             }
             RW::DEC::INTEL::tstMyDeinitialiseControlStruct decodeDeinitCtrl;
 
@@ -127,7 +131,7 @@ int CPipeline::RunPipeline()
                 RW::CORE::tenSubModule::nenDecoder_INTEL) != RW::tenStatus::nenSuccess)
                 file_logger->error("nenDecoder_INTEL couldn't build correct");
 
-
+            // ---- If you use DEC\NVENC set qViewer.setImgType(QImage::Format::Format_RGB888) in Main ----
             //RW::DEC::NVENC::tstMyInitialiseControlStruct decodeInitCtrl;
             //{
             //    decodeInitCtrl.inputParams = new RW::DEC::NVENC::tstInputParams();
@@ -158,27 +162,28 @@ int CPipeline::RunPipeline()
             //    file_logger->error("nenDecoder_NVIDIA couldn't build correct");
 
 
-            //RW::IMP::COLOR_YUV420TORGB::tstMyInitialiseControlStruct impColor420InitialiseControlStruct;
+            // ---- Use COLOR_NV12TORGB to convert the DEC\NVENC output into RGB ----
+            //RW::IMP::COLOR_NV12TORGB::tstMyInitialiseControlStruct impColor420InitialiseControlStruct;
             //{
             //    impColor420InitialiseControlStruct.nHeight = decodeInitCtrl.inputParams->nHeight;
             //    impColor420InitialiseControlStruct.nWidth = decodeInitCtrl.inputParams->nWidth;
             //}
-            //RW::IMP::COLOR_YUV420TORGB::tstMyControlStruct impColor420ControlStruct;
+            //RW::IMP::COLOR_NV12TORGB::tstMyControlStruct impColor420ControlStruct;
             //{
-            //    impColor420ControlStruct.pInput = decodeCtrl.pOutput;
+            //    impColor420ControlStruct.pInput = new RW::IMP::cInputBase();
             //    impColor420ControlStruct.pOutput = new RW::tstBitStream;
             //}
-            //RW::IMP::COLOR_YUV420TORGB::tstMyDeinitialiseControlStruct impColor420DeinitialiseControlStruct;
+            //RW::IMP::COLOR_NV12TORGB::tstMyDeinitialiseControlStruct impColor420DeinitialiseControlStruct;
 
             //if (builder.BuildNode(&kernelManager,
             //    &impColor420InitialiseControlStruct,
             //    iParentIndex++,
-            //    sizeof(RW::IMP::COLOR_YUV420TORGB::tstMyInitialiseControlStruct),
+            //    sizeof(RW::IMP::COLOR_NV12TORGB::tstMyInitialiseControlStruct),
             //    &impColor420ControlStruct,
-            //    sizeof(RW::IMP::COLOR_YUV420TORGB::tstMyControlStruct),
+            //    sizeof(RW::IMP::COLOR_NV12TORGB::tstMyControlStruct),
             //    &impColor420DeinitialiseControlStruct,
-            //    sizeof(RW::IMP::COLOR_YUV420TORGB::tstMyDeinitialiseControlStruct),
-            //    RW::CORE::tenSubModule::nenGraphic_ColorYUV420ToRGB) != RW::tenStatus::nenSuccess)
+            //    sizeof(RW::IMP::COLOR_NV12TORGB::tstMyDeinitialiseControlStruct),
+            //    RW::CORE::tenSubModule::nenGraphic_ColorNV12ToRGB) != RW::tenStatus::nenSuccess)
             //    file_logger->error("nenGraphic_ColorYUV420ToRGB couldn't build correct");
 
             RW::VPL::QT_SIMPLE::tstMyInitialiseControlStruct playerInitCtrl;
@@ -187,7 +192,7 @@ int CPipeline::RunPipeline()
             }
             RW::VPL::QT_SIMPLE::tstMyControlStruct playerCtrl;
             {
-                playerCtrl.pstBitStream = decodeCtrl.pOutput;//impColor420ControlStruct.pOutput;
+                playerCtrl.pstBitStream =  decodeCtrl.pOutput;//impColor420ControlStruct.pOutput;//
             }
             RW::VPL::QT_SIMPLE::tstMyDeinitialiseControlStruct playerDeinitCtrl;
 
@@ -238,9 +243,7 @@ int CPipeline::RunPipeline()
 
             /*******Cleanup. Whatever has been created here has to be destroyed here. Modules do not do that. ******/
 
-            //SAFE_DELETE(decodeInitCtrl.inputParams);
-            //SAFE_DELETE(decodeCtrl.pOutput->pBuffer);
-            //SAFE_DELETE(decodeCtrl.pOutput);
+            SAFE_DELETE(decodeInitCtrl.inputParams);
 
             cudaError err = cudaDeviceSynchronize();
             if (err != cudaSuccess)

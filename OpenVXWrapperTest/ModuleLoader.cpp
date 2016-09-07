@@ -6,24 +6,24 @@
 #include <QDebug>
 
 namespace RW{
-	namespace CORE{
+    namespace CORE{
         ModuleLoader::ModuleLoader(std::shared_ptr<spdlog::logger> Logger)
             : m_Logger(Logger)
-		{
-		}
+        {
+        }
 
 
-		ModuleLoader::~ModuleLoader()
-		{
-		}
+        ModuleLoader::~ModuleLoader()
+        {
+        }
 
-		void ModuleLoader::LoadPlugins(QList<AbstractModule *> *Pluginlist)
-		{
+        void ModuleLoader::LoadPlugins(QList<AbstractModule *> *Pluginlist)
+        {
             QDir pluginsDir = QDir(qApp->applicationDirPath());
-			//pluginsDir.cd("Plugins");
+            //pluginsDir.cd("Plugins");
 
             //Filter only the *.plu files
-			QString qsSuffix = "*.plu";
+            QString qsSuffix = "*.plu";
             pluginsDir.setNameFilters(QStringList() << qsSuffix);
 
             //Any Files there?
@@ -32,22 +32,22 @@ namespace RW{
                 m_Logger->error("No plugins found. Path: ") << pluginsDir.absolutePath().toStdString();
             }
             //TODO Duplikate müssen gefiltert werden
-			foreach(QString fileName, pluginsDir.entryList(QDir::Files))
+            foreach(QString fileName, pluginsDir.entryList(QDir::Files))
             {
-				QPluginLoader loader(pluginsDir.absoluteFilePath(fileName));
-				if (loader.load())
+                QPluginLoader loader(pluginsDir.absoluteFilePath(fileName));
+                if (loader.load())
                 {
-					QObject *plugin = loader.instance();
-					if (plugin != NULL)
+                    QObject *plugin = loader.instance();
+                    if (plugin != NULL)
                     {
-						AbstractModuleFactory *moduleFactory = NULL;
-						moduleFactory = qobject_cast <AbstractModuleFactory*>(plugin);
-						if (moduleFactory != NULL)
-						{
-							moduleFactory->SetLogger(m_Logger);
-							AbstractModule *module = nullptr;
-							switch (moduleFactory->ModuleType())
-							{
+                        AbstractModuleFactory *moduleFactory = NULL;
+                        moduleFactory = qobject_cast <AbstractModuleFactory*>(plugin);
+                        if (moduleFactory != NULL)
+                        {
+                            moduleFactory->SetLogger(m_Logger);
+                            AbstractModule *module = nullptr;
+                            switch (moduleFactory->ModuleType())
+                            {
                             case tenModule::enVideoGrabber:
                             {
                                 module = moduleFactory->Module(tenSubModule::nenVideoGrabber_SIMU);
@@ -56,7 +56,7 @@ namespace RW{
                                 m_Logger->debug("nenVideoGrabber_SIMU loaded");
                                 Pluginlist->append(module);
                             }
-								break;
+                            break;
                             case tenModule::enEncoder:
                             {
                                 module = moduleFactory->Module(tenSubModule::nenEncode_NVIDIA);
@@ -65,18 +65,14 @@ namespace RW{
                                 m_Logger->debug("nenEncode_NVIDIA loaded");
                                 Pluginlist->append(module);
                             }
-                                break; 
-                            case tenModule::enGraphic:
                             {
-                                module = moduleFactory->Module(tenSubModule::nenGraphic_Color);
+                                module = moduleFactory->Module(tenSubModule::nenEncode_INTEL);
                                 if (module == nullptr)
-                                    m_Logger->error("nenGraphic_Color module coudn't load correct.");
-                                else
-                                {
-                                    m_Logger->debug("nenGraphic_Color loaded");
-                                    Pluginlist->append(module);
-                                }
+                                    m_Logger->error("INTEL encoder module coudn't load correct.");
+                                m_Logger->debug("nenEncode_INTEL loaded");
+                                Pluginlist->append(module);
                             }
+                            break;
                             {
                                 module = moduleFactory->Module(tenSubModule::nenGraphic_Crop);
                                 if (module == nullptr)
@@ -97,8 +93,19 @@ namespace RW{
                                     Pluginlist->append(module);
                                 }
                             }
+                            case tenModule::enGraphic:
                             {
-                                module = moduleFactory->Module(tenSubModule::nenGraphic_ColorYUV420ToRGB);
+                                module = moduleFactory->Module(tenSubModule::nenGraphic_ColorBGRToYUV);
+                                if (module == nullptr)
+                                    m_Logger->error("nenGraphic_Color module coudn't load correct.");
+                                else
+                                {
+                                    m_Logger->debug("nenGraphic_Color loaded");
+                                    Pluginlist->append(module);
+                                }
+                            }
+                            {
+                                module = moduleFactory->Module(tenSubModule::nenGraphic_ColorNV12ToRGB);
                                 if (module == nullptr)
                                     m_Logger->error("nenGraphic_Merge module coudn't load correct.");
                                 else
@@ -107,7 +114,7 @@ namespace RW{
                                     Pluginlist->append(module);
                                 }
                             }
-                                break;
+                            break;
                             case tenModule::enDecoder:
                             {
                                 module = moduleFactory->Module(tenSubModule::nenDecoder_NVIDIA);
@@ -123,7 +130,7 @@ namespace RW{
                                 m_Logger->debug("nenDecoder_INTEL loaded");
                                 Pluginlist->append(module);
                             }
-                                break;
+                            break;
                             case tenModule::enPlayback:
                             {
                                 module = moduleFactory->Module(tenSubModule::nenPlayback_Simple);
@@ -132,7 +139,7 @@ namespace RW{
                                 m_Logger->debug("nenPlayback_Simple loaded");
                                 Pluginlist->append(module);
                             }
-								break;
+                            break;
                             case tenModule::enSend:
                             {
                                 module = moduleFactory->Module(tenSubModule::nenStream_Simple);
@@ -141,7 +148,7 @@ namespace RW{
                                 m_Logger->debug("nenStream_Simple loaded");
                                 Pluginlist->append(module);
                             }
-                                break;
+                            break;
                             case tenModule::enReceive:
                             {
                                 module = moduleFactory->Module(tenSubModule::nenReceive_Simple);
@@ -150,22 +157,22 @@ namespace RW{
                                 m_Logger->debug("nenReceive_Simple loaded");
                                 Pluginlist->append(module);
                             }
-                                break;
+                            break;
                             default:
-								m_Logger->alert("This module wasn't found.");
-								break;
+                                m_Logger->alert("This module wasn't found.");
+                                break;
 
-							}
-						}
-					}
+                            }
+                        }
+                    }
                 }
                 else
                 {
                     m_Logger->error(fileName.toStdString().c_str()) << " was not loaded!";
                 }
-			}
+            }
             m_Logger->debug("Amount of loaded modules: ") << Pluginlist->count();
-		}
-	}
+        }
+    }
 
 }

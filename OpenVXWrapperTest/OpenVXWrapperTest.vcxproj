@@ -107,6 +107,7 @@
     <ClInclude Include="ModuleLoader.hpp" />
     <ClInclude Include="NodeBuilder.h" />
     <ClInclude Include="Pipeline.hpp" />
+    <ClInclude Include="Pipeline_Config.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

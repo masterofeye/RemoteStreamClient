@@ -106,7 +106,8 @@ VideoDecoder::VideoDecoder(const CUVIDEOFORMAT &rVideoFormat,
 
 VideoDecoder::~VideoDecoder()
 {
-    cuvidDestroyDecoder(oDecoder_);
+    CUresult oResult = cuvidDestroyDecoder(oDecoder_);
+    assert(CUDA_SUCCESS == oResult);
 }
 
 cudaVideoCodec

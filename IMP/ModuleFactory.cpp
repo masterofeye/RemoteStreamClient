@@ -1,7 +1,7 @@
 #include "ModuleFactory.hpp"
 #include "Crop\IMP_CropFrames.hpp"
-#include "ConvColor_BGRtoYUV420\IMP_ConvColorFrames.hpp"
-#include "ConvColor_YUV420toRGB\IMP_ConvColorFramesYUV420ToRGB.hpp"
+#include "ConvColor_BGRtoYUV420\IMP_ConvColorFramesBGRToYUV420.hpp"
+#include "ConvColor_NV12toRGB\IMP_ConvColorFramesNV12ToRGB.hpp"
 #include "Merge\IMP_MergeFrames.hpp"
 
 
@@ -32,13 +32,13 @@ namespace RW{
 				if (Module != nullptr)
 					status = tenStatus::nenSuccess;
 				break;
-			case CORE::tenSubModule::nenGraphic_Color:
-				Module = new IMP::COLOR::IMP_ConvColorFrames(m_Logger);
+			case CORE::tenSubModule::nenGraphic_ColorBGRToYUV:
+				Module = new IMP::COLOR_BGRTOYUV::IMP_ConvColorFramesBGRToYUV(m_Logger);
 				if (Module != nullptr)
 					status = tenStatus::nenSuccess;
 				break;
-            case CORE::tenSubModule::nenGraphic_ColorYUV420ToRGB:
-                Module = new IMP::COLOR_YUV420TORGB::IMP_ConvColorFramesYUV420ToRGB(m_Logger);
+            case CORE::tenSubModule::nenGraphic_ColorNV12ToRGB:
+                Module = new IMP::COLOR_NV12TORGB::IMP_ConvColorFramesNV12ToRGB(m_Logger);
                 if (Module != nullptr)
                     status = tenStatus::nenSuccess;
                 break;

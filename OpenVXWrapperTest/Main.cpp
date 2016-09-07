@@ -23,6 +23,7 @@ int main(int argc, char* argv[])
     QApplication app(argc, argv);
     RW::VPL::QT_SIMPLE::VPL_Viewer qViewer;
     qViewer.setParams(1920, 720);
+    qViewer.setImgType(QImage::Format::Format_RGBX8888);
     qViewer.resize(1924, 724);
     qViewer.show();
     params.pViewer = &qViewer;

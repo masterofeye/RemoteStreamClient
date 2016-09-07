@@ -1,7 +1,11 @@
 #include "IMP_CropFrames.hpp"
 #include "opencv2/cudev/common.hpp"
 #include "..\Merge\IMP_MergeFrames.hpp"
-#include "..\ConvColor_BGRtoYUV420\IMP_ConvColorFrames.hpp"
+#include "..\ConvColor_BGRtoYUV420\IMP_ConvColorFramesBGRToYUV420.hpp"
+#if defined (SERVER)
+#include "..\..\ENC\NVENC\ENC_CudaInterop.hpp"
+#include "..\..\ENC\Intel\ENC_Intel.hpp"
+#endif
 
 namespace RW{
 	namespace IMP{
@@ -20,19 +24,65 @@ namespace RW{
 					IMP::MERGE::tstMyControlStruct *data = static_cast<IMP::MERGE::tstMyControlStruct*>(*Data);
 					for (int iIndex = 0; iIndex < data->pvInput->size(); iIndex++)
 					{
-						data->pvInput->at(iIndex)->_pgMat = this->pvOutput->at(iIndex);
+						data->pvInput->at(iIndex)->_pgMat = this->pvOutput->at(iIndex)->_pgMat;
 					}
 					break;
 				}
-				case CORE::tenSubModule::nenGraphic_Color:
+				case CORE::tenSubModule::nenGraphic_ColorBGRToYUV:
 				{
-					IMP::COLOR::tstMyControlStruct *data = static_cast<IMP::COLOR::tstMyControlStruct*>(*Data);
-					data->pInput->_pgMat = this->pvOutput->at(0);
+					IMP::COLOR_BGRTOYUV::tstMyControlStruct *data = static_cast<IMP::COLOR_BGRTOYUV::tstMyControlStruct*>(*Data);
+					data->pInput->_pgMat = this->pvOutput->at(0)->_pgMat;
+                    uint8_t count = 1;
+                    while (this->pvOutput->size() > count){
+                        SAFE_DELETE( this->pvOutput->at(count));
+                        count++;
+                    }
                     break;
 				}
-				default:
+#if defined (SERVER)
+                case CORE::tenSubModule::nenEncode_NVIDIA:
+                {
+                    CUdeviceptr arrYUV;
+                    size_t pitch;
+
+                    cudaError err = cudaMallocPitch((void**)&arrYUV, &pitch, this->pvOutput->at(0)->_pgMat->cols, this->pvOutput->at(0)->_pgMat->rows * 3 / 2);
+                    if (err != CUDA_SUCCESS)
+                        printf("RW::IMP::CROP::stMyControlStruct::UpdateData case CORE::tenSubModule::nenEncode_NVIDIA: cudaMallocPitch failed!");
+
+                    IMP::IMP_Base imp;
+                    tenStatus enStatus = imp.GpuMatToGpuYUV(this->pvOutput->at(0)->_pgMat, &arrYUV);
+                    if (enStatus != tenStatus::nenSuccess)
+                        printf("RW::IMP::CROP::stMyControlStruct::UpdateData case CORE::tenSubModule::nenEncode_NVIDIA: GpuMatToGpuYUV failed!");
+
+                    RW::ENC::NVENC::tstMyControlStruct *data = static_cast<RW::ENC::NVENC::tstMyControlStruct*>(*Data);
+                    this->pvOutput->at(0)->_pcuYUV420 = arrYUV;
+                    data->pcuYUVArray = arrYUV;
+                    SAFE_DELETE(this->pvOutput->at(0)->_pgMat);
+
+                    break;
+                }
+                case CORE::tenSubModule::nenEncode_INTEL:
+                {
+                    uint8_t *pu8Output = new uint8_t[this->pvOutput->at(0)->_pgMat->cols* this->pvOutput->at(0)->_pgMat->rows * 3 / 2];
+
+                    IMP::IMP_Base imp;
+                    tenStatus enStatus = imp.GpuMatToCpuNV12(this->pvOutput->at(0)->_pgMat, pu8Output);
+                    if (enStatus != tenStatus::nenSuccess)
+                    {
+                        printf("RW::IMP::CROP::stMyControlStruct::UpdateData case CORE::tenSubModule::nenEncode_INTEL: GpuMatToCpuYUV failed!");
+                    }
+
+                    RW::ENC::INTEL::tstMyControlStruct *data = static_cast<RW::ENC::INTEL::tstMyControlStruct*>(*Data);
+                    this->pvOutput->at(0)->_pu8Array = pu8Output;
+                    data->pInputArray = pu8Output;
+                    SAFE_DELETE(this->pvOutput->at(0)->_pgMat);
+                    break;
+                }
+#endif
+                default:
 					break;
 				}
+                SAFE_DELETE(this->pInput);
 			}
 			IMP_CropFrames::~IMP_CropFrames()
 			{
@@ -96,7 +146,7 @@ namespace RW{
 					return tenStatus::nenError;
 				}
 
-				cv::cuda::GpuMat *pgMat = data->pvOutput->at(0);
+				cv::cuda::GpuMat *pgMat = data->pvOutput->at(0)->_pgMat;
 				data->pInput->_pgMat = pgMat;
 				if (enStatus != tenStatus::nenSuccess || pgMat == nullptr)
 				{
@@ -119,7 +169,7 @@ namespace RW{
 						if (data->pvOutput->at(iIndex))
 						{
 							cv::cuda::GpuMat outMat = (*pgMat)(m_vRect[iIndex]);
-							*(data->pvOutput->at(iIndex)) = outMat;
+							*(data->pvOutput->at(iIndex)->_pgMat) = outMat;
 						}
 						else
 						{

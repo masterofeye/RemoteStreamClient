@@ -3,6 +3,7 @@
 #include "DEC_Intel.hpp"
 #include "pipeline_decode.h"
 #include "..\..\VPL\QT_simple\VPL_FrameProcessor.hpp"
+#include "..\..\IMP\ConvColor_NV12toRGB\IMP_ConvColorFramesNV12ToRGB.hpp"
 
 namespace RW{
     namespace DEC{
@@ -16,15 +17,20 @@ namespace RW{
                     RW::VPL::QT_SIMPLE::tstMyControlStruct *data = static_cast<RW::VPL::QT_SIMPLE::tstMyControlStruct*>(*Data);
                     data->pstBitStream = this->pOutput;
                     data->stPayload = this->stPayload;
-                    SAFE_DELETE(this->pstEncodedStream);
+                    break;
+                }
+                case RW::CORE::tenSubModule::nenGraphic_ColorNV12ToRGB:
+                {
+                    RW::IMP::COLOR_NV12TORGB::tstMyControlStruct *data = static_cast<RW::IMP::COLOR_NV12TORGB::tstMyControlStruct*>(*Data);
+
+                    data->pInput->_pBitstream = this->pOutput;
                     break;
                 }
                 default:
                     break;
                 }
+                SAFE_DELETE(this->pstEncodedStream);
             }
-
-
 
             DEC_Intel::DEC_Intel(std::shared_ptr<spdlog::logger> Logger) :
                 RW::CORE::AbstractModule(Logger)
@@ -109,13 +115,15 @@ namespace RW{
                     m_Logger->error("DEC_Intel::DoRender: data->pstEncodedStream is empty!");
                     return tenStatus::nenError;
                 }
-                data->pOutput = new tstBitStream;
+                else{
+                    m_pPipeline->SetEncodedData(data->pstEncodedStream);
+                }
 
                 mfxStatus sts = MFX_ERR_NONE; // return value check
 
                 for (;;)
                 {
-                    sts = m_pPipeline->RunDecoding(data->pstEncodedStream, data->pOutput);
+                    sts = m_pPipeline->RunDecoding();
                     if (sts == MFX_ERR_NONE)
                     {
                         RW::tstPayloadMsg *pMsg = m_pPipeline->GetPayloadMsg();
@@ -123,6 +131,11 @@ namespace RW{
                             data->stPayload = *pMsg;
                         else
                             m_Logger->error("DEC_Intel::DoRender: GetPayloadMsg failed!");
+
+                        data->pOutput = m_pPipeline->GetOutput();
+                        if (!data->pOutput)
+                            m_Logger->error("DEC_Intel::DoRender: GetOutput failed!");
+
                         break;
                     }
                     else if (MFX_ERR_INCOMPATIBLE_VIDEO_PARAM == sts || MFX_ERR_DEVICE_LOST == sts || MFX_ERR_DEVICE_FAILED == sts || data->pOutput == nullptr)

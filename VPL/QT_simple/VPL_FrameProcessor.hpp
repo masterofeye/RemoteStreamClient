@@ -38,7 +38,7 @@ namespace RW{
                 virtual tenStatus Deinitialise(CORE::tstDeinitialiseControlStruct *DeinitialiseControlStruct) Q_DECL_OVERRIDE;
 
             signals:
-                void FrameBufferChanged(uchar *pBuffer);
+                void FrameBufferChanged(void *pBuffer);
 
             };
         }
