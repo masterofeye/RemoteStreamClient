@@ -78,10 +78,16 @@ namespace RW
                     enStatus = tenStatus::nenError;
                     return enStatus;
                 }
+                if (data->pPayload)
+                {
+                    if (data->pPayload->pBuffer){
+                        RW::stPayloadMsg *pMsg = (RW::stPayloadMsg *)data->pPayload->pBuffer;
+                        uint32_t u32Timestamp = pMsg->u32Timestamp;
+                        uint32_t u32FrameNbr = pMsg->u32FrameNbr;
 
-                uint32_t u32Timestamp = data->stPayload.u32Timestamp;
-                uint32_t u32FrameNbr = data->stPayload.u32FrameNbr;
-
+                        SAFE_DELETE(data->pPayload);
+                    }
+                }
                 //FILE *pFile;
                 //fopen_s(&pFile, "c:\\dummy\\outFrameProc.raw", "wb");
                 //fwrite(data->pstBitStream->pBuffer, 1, data->pstBitStream->u32Size, pFile);

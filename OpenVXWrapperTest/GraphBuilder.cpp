@@ -108,9 +108,6 @@ namespace RW
                     if (IndexOfParent != -1){
                         CurrentKernelManager->NodeByIndex(IndexOfParent)->SetNextNode(node);
                     }
-                    
-                    if (SubModule == RW::CORE::tenSubModule::nenPlayback_Simple)
-                        node->SetNextVXNode(nullptr);
 
                     kernel->SetCurrentNode(node);
 					if (node->IsInitialized())

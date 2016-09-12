@@ -16,14 +16,15 @@ namespace RW{
                 {
                     RW::VPL::QT_SIMPLE::tstMyControlStruct *data = static_cast<RW::VPL::QT_SIMPLE::tstMyControlStruct*>(*Data);
                     data->pstBitStream = this->pOutput;
-                    data->stPayload = this->stPayload;
+                    data->pPayload = this->pPayload;
                     break;
                 }
                 case RW::CORE::tenSubModule::nenGraphic_ColorNV12ToRGB:
                 {
                     RW::IMP::COLOR_NV12TORGB::tstMyControlStruct *data = static_cast<RW::IMP::COLOR_NV12TORGB::tstMyControlStruct*>(*Data);
 
-                    data->pInput->_pBitstream = this->pOutput;
+                    data->pInput->pBitstream = this->pOutput;
+                    data->pPayload = this->pPayload;
                     break;
                 }
                 default:
@@ -127,8 +128,11 @@ namespace RW{
                     if (sts == MFX_ERR_NONE)
                     {
                         RW::tstPayloadMsg *pMsg = m_pPipeline->GetPayloadMsg();
-                        if (pMsg)
-                            data->stPayload = *pMsg;
+                        if (pMsg){
+                            data->pPayload = new tstBitStream;
+                            data->pPayload->pBuffer = pMsg;
+                            data->pPayload->u32Size = (uint32_t) sizeof(RW::tstPayloadMsg);
+                        }
                         else
                             m_Logger->error("DEC_Intel::DoRender: GetPayloadMsg failed!");
 

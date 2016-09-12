@@ -49,7 +49,8 @@ namespace RW
             void VPL_Viewer::setVideoData(void *buffer)
             {
                 RW::tstBitStream* ptr = (RW::tstBitStream*)buffer;
-                QImage img(ptr->pBuffer, _width, _height, _format);
+                uint8_t* u8Buffer = (uint8_t*)ptr->pBuffer;
+                QImage img(u8Buffer, _width, _height, _format);
 
                 QPixmap pix(QPixmap::fromImage(img));
 
@@ -58,10 +59,10 @@ namespace RW
                 else
                     item->setPixmap(pix);
 
-                //FILE *pFile;
-                //fopen_s(&pFile, "c:\\dummy\\outViewer.raw", "wb");
-                //fwrite(buffer, 1,_width*_height*3, pFile);
-                //fclose(pFile);
+                FILE *pFile;
+                fopen_s(&pFile, "c:\\dummy\\outViewer.raw", "wb");
+                fwrite(u8Buffer, 1, _width*_height * 3, pFile);
+                fclose(pFile);
 
                 //scene->addEllipse(QRect(count, 0, 50, 50), QPen(Qt::red));
                 SAFE_DELETE(ptr);

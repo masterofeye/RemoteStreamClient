@@ -16,7 +16,7 @@ namespace RW{
             typedef struct stMyControlStruct : public CORE::tstControlStruct
             {
                 tstBitStream *pstBitStream;
-                tstPayloadMsg stPayload;
+                tstBitStream *pPayload;
                 REMOTE_API void UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType);
             }tstMyControlStruct;
 

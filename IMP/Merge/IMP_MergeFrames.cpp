@@ -28,14 +28,17 @@ namespace RW{
 				case CORE::tenSubModule::nenGraphic_Crop:
 				{
 					IMP::CROP::tstMyControlStruct *data = static_cast<IMP::CROP::tstMyControlStruct*>(*Data);
-					data->pInput->_pgMat = this->pOutput->_pgMat;
+					data->pInput = this->pOutput;
+                    data->pPayload = this->pPayload;
+                    data->pvOutput = nullptr;
                     break;
 				}
 				case CORE::tenSubModule::nenGraphic_ColorBGRToYUV:
 				{
 					IMP::COLOR_BGRTOYUV::tstMyControlStruct *data = static_cast<IMP::COLOR_BGRTOYUV::tstMyControlStruct*>(*Data);
-					data->pInput->_pgMat = this->pOutput->_pgMat;
-					break;
+					data->pData = this->pOutput;
+                    data->pPayload = this->pPayload;
+                    break;
 				}
 #if defined (SERVER)
                 case CORE::tenSubModule::nenEncode_NVIDIA:
@@ -43,41 +46,53 @@ namespace RW{
                     CUdeviceptr arrYUV;
                     size_t pitch;
 
-                    cudaError err = cudaMallocPitch((void**)&arrYUV, &pitch, this->pOutput->_pgMat->cols, this->pOutput->_pgMat->rows * 3 / 2);
+                    cudaError err = cudaMallocPitch((void**)&arrYUV, &pitch, this->pOutput->cols, this->pOutput->rows * 3 / 2);
                     if (err != CUDA_SUCCESS)
                         printf("RW::IMP::MERGE::stMyControlStruct::UpdateData case CORE::tenSubModule::nenEncode_NVIDIA: cudaMallocPitch failed!");
 
                     IMP::IMP_Base imp;
-                    tenStatus enStatus = imp.GpuMatToGpuYUV(this->pOutput->_pgMat, &arrYUV);
+                    tenStatus enStatus = imp.GpuMatToGpuYUV(this->pOutput, &arrYUV);
                     if (enStatus != tenStatus::nenSuccess)
                         printf("RW::IMP::MERGE::stMyControlStruct::UpdateData case CORE::tenSubModule::nenEncode_NVIDIA: GpuMatToGpuYUV failed!");
 
                     RW::ENC::NVENC::tstMyControlStruct *data = static_cast<RW::ENC::NVENC::tstMyControlStruct*>(*Data);
 
                     data->pcuYUVArray = arrYUV;
-                    SAFE_DELETE(this->pOutput->_pgMat);
+                    data->pPayload = this->pPayload;
 
+                    SAFE_DELETE(this->pOutput);
                     break;
                 }
                 case CORE::tenSubModule::nenEncode_INTEL:
                 {
-                    uint8_t *pu8Output = new uint8_t[this->pOutput->_pgMat->cols* this->pOutput->_pgMat->rows * 3 / 2];
+                    uint32_t u32Size = this->pOutput->cols* this->pOutput->rows * 3 / 2;
+                    uint8_t *pu8Output = new uint8_t[u32Size];
 
                     IMP::IMP_Base imp;
-                    tenStatus enStatus = imp.GpuMatToCpuYUV(this->pOutput->_pgMat, pu8Output);
+                    tenStatus enStatus = imp.GpuMatToCpuYUV(this->pOutput, pu8Output);
                     if (enStatus != tenStatus::nenSuccess)
                         printf("RW::IMP::MERGE::stMyControlStruct::UpdateData case CORE::tenSubModule::nenEncode_INTEL: GpuMatToCpuYUV failed!");
 
                     RW::ENC::INTEL::tstMyControlStruct *data = static_cast<RW::ENC::INTEL::tstMyControlStruct*>(*Data);
 
-                    data->pInputArray = pu8Output;
-                    SAFE_DELETE(this->pOutput->_pgMat);
+                    data->pInput = new RW::tstBitStream;
+                    data->pInput->pBuffer = pu8Output;
+                    data->pInput->u32Size = u32Size;
+
+                    data->pPayload = this->pPayload;
+
+                    SAFE_DELETE(this->pOutput);
                     break;
                 }
 #endif
                 default:
 					break;
 				}
+                uint8_t count = 1;
+                while (this->pvInput->size() > count){
+                    SAFE_DELETE(this->pvInput->at(count));
+                    count++;
+                }
                 SAFE_DELETE(this->pvInput);
 			}
 
@@ -129,36 +144,26 @@ namespace RW{
 					m_Logger->error("DoRender: pvInput is empty!");
 					return tenStatus::nenError;
 				}
-				if (!data->pOutput)
-				{
-					m_Logger->error("DoRender: pOutput is empty!");
-					return tenStatus::nenError;
-				}
 
 				for (int iIndex = 0; iIndex < data->pvInput->size(); iIndex++)
 				{
-					if (data->pOutput->_pgMat == data->pvInput->at(iIndex)->_pgMat)
-					{
-						iIndex++;
-					}
-					cInputBase *pInput = data->pvInput->at(iIndex);
-
-					cv::cuda::GpuMat *pgMat = pInput->_pgMat;
+                    cv::cuda::GpuMat *pgMat = data->pvInput->at(iIndex);
 					
 					if (!data->pOutput)
 					{
-						data->pOutput->_pgMat = pgMat;
+						data->pOutput = pgMat;
 					}
 					else
 					{
-						enStatus = ApplyMerge(data->pOutput->_pgMat, pgMat);
+						enStatus = ApplyMerge(data->pOutput, pgMat);
 					}
-				}
-
-				if (enStatus != tenStatus::nenSuccess || data->pOutput == nullptr)
-				{
-					m_Logger->error("DoRender: Failed!");
-					return enStatus;
+                    if (enStatus != tenStatus::nenSuccess || data->pOutput == nullptr)
+                    {
+                        m_Logger->error("DoRender: Failed!");
+                        return enStatus;
+                    }
+                    //cv::Mat mat;
+                    //data->pOutput->download(mat);
 				}
 
 #ifdef TRACE_PERFORMANCE
@@ -209,7 +214,7 @@ namespace RW{
 				//gMat(rect2) = *pgMat2;
 
 				*pgMat1 = gMat;
-	
+
 				if (pgMat1 == nullptr)
 				{
 					m_Logger->error("ApplyMerge: gMat1 is empty! Apply Merge failed.");

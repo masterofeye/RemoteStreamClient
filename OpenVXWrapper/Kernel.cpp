@@ -241,11 +241,15 @@ namespace RW
             {
                 if (kernel != nullptr)
                 {
-                    kernel->KernelFnc((RW::CORE::tstControlStruct*)controlStruct);
+                    tenStatus err = kernel->KernelFnc((RW::CORE::tstControlStruct*)controlStruct);
+                    if (err != tenStatus::nenSuccess){
+                        kernel->Logger()->critical() << "Kernel::KernelFncCB: kernel->KernelFnc failed!";
+                        status = VX_FAILURE;
+                    }
                 }
                 else
                 {
-                    //TODO log error and specific return value
+                    kernel->Logger()->critical() << "Kernel::KernelFncCB: kernel is NULL!";
                     return VX_FAILURE;
                 }
             }
@@ -276,6 +280,7 @@ namespace RW
 
             vxReleaseParameter(&param[0]);
             vxReleaseParameter(&param[1]);
+
 
             return status;
         }

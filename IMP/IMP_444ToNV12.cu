@@ -1,0 +1,46 @@
+#ifndef IMP_444TO420_CU
+#define IMP_444TO420_CU
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+
+
+__global__ void kernel444ToNV12(uint8_t *pArrayFull, uint8_t *pYUV420, int iWidth, int iHeight, int iPitch)
+{
+	int iPosY = blockIdx.y * blockDim.y + threadIdx.y;
+	int iPosX = blockIdx.x * blockDim.x + threadIdx.x;
+    int iPos = iPosY * iPitch + iPosX;
+
+    int iPosIn = iPosY * 3 * iPitch + 3 * iPosX;
+
+    pYUV420[iPos] = pArrayFull[iPosIn];
+
+    if ((iPosX % 2 == 0) && (iPosY % 2 == 0))
+    {
+        int iOffset = iPitch * iHeight;
+        int iPosX_UV = iPosX;
+        if (iPosY % 2 == 0) {
+            iPosX_UV += (iPosY / 2 * iPitch);
+        }
+        //else {
+        //    iPosX_UV += ((iPosY - 2) / 4 * iPitch) + (iPitch / 2);
+        //}
+
+        pYUV420[iOffset + iPosX_UV] = pArrayFull[iPosIn + 1];
+        pYUV420[iOffset + iPosX_UV + 1] = pArrayFull[iPosIn + 2];
+
+    }
+}
+
+extern "C" void IMP_444ToNV12(uint8_t *pArrayFull, uint8_t *pArrayYUV420, int iWidth, int iHeight, size_t pitchY)
+{
+	dim3 block(32, 16, 1);
+	dim3 grid(iWidth / block.x, iHeight / block.y, 1);
+
+    //plane to plane
+    kernel444ToNV12 << <grid, block >> >(pArrayFull, pArrayYUV420, iWidth, iHeight, (int)pitchY);
+}
+
+#endif

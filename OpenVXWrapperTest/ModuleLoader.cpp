@@ -73,6 +73,7 @@ namespace RW{
                                 Pluginlist->append(module);
                             }
                             break;
+                            case tenModule::enGraphic:
                             {
                                 module = moduleFactory->Module(tenSubModule::nenGraphic_Crop);
                                 if (module == nullptr)
@@ -93,11 +94,10 @@ namespace RW{
                                     Pluginlist->append(module);
                                 }
                             }
-                            case tenModule::enGraphic:
                             {
                                 module = moduleFactory->Module(tenSubModule::nenGraphic_ColorBGRToYUV);
                                 if (module == nullptr)
-                                    m_Logger->error("nenGraphic_Color module coudn't load correct.");
+                                    m_Logger->error("nenGraphic_ColorBGRToYUV module coudn't load correct.");
                                 else
                                 {
                                     m_Logger->debug("nenGraphic_Color loaded");
@@ -107,7 +107,7 @@ namespace RW{
                             {
                                 module = moduleFactory->Module(tenSubModule::nenGraphic_ColorNV12ToRGB);
                                 if (module == nullptr)
-                                    m_Logger->error("nenGraphic_Merge module coudn't load correct.");
+                                    m_Logger->error("nenGraphic_ColorNV12ToRGB module coudn't load correct.");
                                 else
                                 {
                                     m_Logger->debug("nenGraphic_Merge loaded");

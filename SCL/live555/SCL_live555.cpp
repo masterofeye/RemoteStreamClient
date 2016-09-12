@@ -84,7 +84,7 @@ namespace RW
                 }
 
 
-
+                m_iCount = 0;
 
 
 
@@ -112,11 +112,39 @@ namespace RW
                     return enStatus;
                 }
 
+                char* filename = new char[64];
+                sprintf(filename, "c:\\dummy\\Server_NVENC\\SSR_output_%04d.264", m_iCount);
+                FILE *pFile;
+                fopen_s(&pFile, filename, "rb");
+                if (!pFile)
+                {
+                    m_Logger->error("SCL_live555::DoRender: File did not load!");
+                    return tenStatus::nenError;
+                }
+                // obtain file size:
+                fseek(pFile, 0, SEEK_END);
+                // Size of one frame
+                long lSize = ftell(pFile);
+                rewind(pFile);
 
+                m_Logger->info("SCL_live555::DoRender: File size to read in: ") << lSize;
 
+                // allocate memory to contain the whole file:
+                uint8_t *buffer = (uint8_t*)malloc(sizeof(uint8_t)*lSize);
+                // copy the file into the buffer:
+                size_t result = fread(buffer, sizeof(uint8_t), lSize, pFile);
+                if (!buffer)
+                {
+                    m_Logger->error("SCL_live555::DoRender: Empty buffer!");
+                    return tenStatus::nenError;
+                }
+                fclose(pFile);
 
-                data->pstBitStream = data->pstBitStream;
+                data->pstBitStream = new RW::tstBitStream();
+                data->pstBitStream->pBuffer = buffer;
+                data->pstBitStream->u32Size = lSize;
 
+                m_iCount++;
 
 #ifdef TRACE_PERFORMANCE
                 RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();

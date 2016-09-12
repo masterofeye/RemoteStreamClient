@@ -6,7 +6,7 @@ namespace RW
 {
 	namespace IMP
 	{
-		namespace MERGE
+        namespace COLOR_BGRTOYUV
 		{
 			typedef struct stMyInitialiseControlStruct : public CORE::tstInitialiseControlStruct
 			{
@@ -14,9 +14,8 @@ namespace RW
 
 			typedef struct stMyControlStruct : public CORE::tstControlStruct
 			{
-				std::vector<cv::cuda::GpuMat*> *pvInput;
+				cv::cuda::GpuMat *pData;
                 RW::tstBitStream *pPayload;
-                cv::cuda::GpuMat *pOutput;
                 REMOTE_API void UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType);
 
 			}tstMyControlStruct;
@@ -25,7 +24,7 @@ namespace RW
 			{
 			}tstMyDeinitialiseControlStruct;
 
-			class IMP_MergeFrames : public RW::CORE::AbstractModule
+			class IMP_ConvColorFramesBGRToYUV : public RW::CORE::AbstractModule
 			{
 				Q_OBJECT
 
@@ -34,12 +33,10 @@ namespace RW
 				RW::CORE::HighResClock::time_point					m_tStart;
 #endif
 
-				tenStatus ApplyMerge(cv::cuda::GpuMat *pgMat1, cv::cuda::GpuMat *pgMat2);
-
 			public:
 
-				explicit IMP_MergeFrames(std::shared_ptr<spdlog::logger> Logger);
-				~IMP_MergeFrames();
+				explicit IMP_ConvColorFramesBGRToYUV(std::shared_ptr<spdlog::logger> Logger);
+				~IMP_ConvColorFramesBGRToYUV();
 				virtual CORE::tenSubModule SubModulType() Q_DECL_OVERRIDE;
 				virtual CORE::tstModuleVersion ModulVersion() Q_DECL_OVERRIDE;
 				virtual tenStatus Initialise(CORE::tstInitialiseControlStruct * InitialiseControlStruct) Q_DECL_OVERRIDE;

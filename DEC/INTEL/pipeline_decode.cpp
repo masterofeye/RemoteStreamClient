@@ -862,7 +862,7 @@ namespace RW{
                     return MFX_ERR_UNSUPPORTED;
                 }
 
-                m_pOutput->pBuffer = new mfxU8[m_pOutput->u32Size];
+                mfxU8 *pBuffer = new mfxU8[m_pOutput->u32Size];
                 mfxU32 offset = 0;
 
                 switch (frame->Info.FourCC)
@@ -871,18 +871,18 @@ namespace RW{
 
                     for (mfxU32 i = 0; i < frame->Info.CropH; i++)
                     {
-                        memcpy(m_pOutput->pBuffer + offset, frame->Data.Y + (frame->Info.CropY * frame->Data.Pitch + frame->Info.CropX) + i * frame->Data.Pitch, frame->Info.CropW);
+                        memcpy(pBuffer + offset, frame->Data.Y + (frame->Info.CropY * frame->Data.Pitch + frame->Info.CropX) + i * frame->Data.Pitch, frame->Info.CropW);
                         offset += frame->Info.CropW;
                     }
 
                     for (mfxU32 i = 0; i < h; i++)
                     {
-                        memcpy(m_pOutput->pBuffer + offset, (frame->Data.U + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX / 2) + i * frame->Data.Pitch / 2), w);
+                        memcpy(pBuffer + offset, (frame->Data.U + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX / 2) + i * frame->Data.Pitch / 2), w);
                         offset += w;
                     }
                     for (mfxU32 i = 0; i < h; i++)
                     {
-                        memcpy(m_pOutput->pBuffer + offset, (frame->Data.V + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX / 2) + i * frame->Data.Pitch / 2), w);
+                        memcpy(pBuffer + offset, (frame->Data.V + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX / 2) + i * frame->Data.Pitch / 2), w);
                         offset += w;
                     }
                     break;
@@ -891,7 +891,7 @@ namespace RW{
 
                     for (mfxU32 i = 0; i < frame->Info.CropH; i++)
                     {
-                        memcpy(m_pOutput->pBuffer + offset, frame->Data.Y + (frame->Info.CropY * frame->Data.Pitch + frame->Info.CropX) + i * frame->Data.Pitch, frame->Info.CropW);
+                        memcpy(pBuffer + offset, frame->Data.Y + (frame->Info.CropY * frame->Data.Pitch + frame->Info.CropX) + i * frame->Data.Pitch, frame->Info.CropW);
                         offset += frame->Info.CropW;
                     }
 
@@ -899,7 +899,7 @@ namespace RW{
                     {
                         for (mfxU32 j = 0; j < w; j += 2)
                         {
-                            memcpy(m_pOutput->pBuffer + offset, (frame->Data.UV + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX) + i * frame->Data.Pitch + j), 1);
+                            memcpy(pBuffer + offset, (frame->Data.UV + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX) + i * frame->Data.Pitch + j), 1);
                             offset++;
                         }
                     }
@@ -907,7 +907,7 @@ namespace RW{
                     {
                         for (mfxU32 j = 0; j < w; j += 2)
                         {
-                            memcpy(m_pOutput->pBuffer + offset, (frame->Data.UV + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX) + i * frame->Data.Pitch + j), 1);
+                            memcpy(pBuffer + offset, (frame->Data.UV + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX) + i * frame->Data.Pitch + j), 1);
                             offset++;
                         }
                     }
@@ -918,13 +918,13 @@ namespace RW{
 
                     for (mfxU32 i = 0; i < frame->Info.CropH; i++)
                     {
-                        memcpy(m_pOutput->pBuffer + offset, (frame->Data.Y + (frame->Info.CropY * frame->Data.Pitch + frame->Info.CropX) + i * frame->Data.Pitch), 2 * frame->Info.CropW);
+                        memcpy(pBuffer + offset, (frame->Data.Y + (frame->Info.CropY * frame->Data.Pitch + frame->Info.CropX) + i * frame->Data.Pitch), 2 * frame->Info.CropW);
                         offset += 2 * frame->Info.CropW;
                     }
 
                     for (mfxU32 i = 0; i < h; i++)
                     {
-                        memcpy(m_pOutput->pBuffer + offset, (frame->Data.UV + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX) + i * frame->Data.Pitch), 2 * w);
+                        memcpy(pBuffer + offset, (frame->Data.UV + (frame->Info.CropY * frame->Data.Pitch / 2 + frame->Info.CropX) + i * frame->Data.Pitch), 2 * w);
                         offset += 2 * w;
                     }
                     break;
@@ -939,7 +939,7 @@ namespace RW{
 
                     for (mfxU32 i = 0; i < h; i++)
                     {
-                        memcpy(m_pOutput->pBuffer + offset, (ptr + i * frame->Data.Pitch), 4 * w);
+                        memcpy(pBuffer + offset, (ptr + i * frame->Data.Pitch), 4 * w);
                         offset += 4 * w;
                     }
 
@@ -954,6 +954,8 @@ namespace RW{
                 //mfxU32 shouldbesize = 1920 * 720 * 4;
                 //fwrite((uchar*)m_pOutput->pBuffer, 1, m_pOutput->u32Size, pFile1);
                 //fclose(pFile1);
+
+                m_pOutput->pBuffer = pBuffer;
 
                 return MFX_ERR_NONE;
             }

@@ -71,6 +71,11 @@ namespace RW{
             }
 
             enStatus = GpuMatToGpuYUV(pgMat, &arrYUV);
+            if (enStatus != tenStatus::nenSuccess)
+            {
+                printf("IMP_Base::GpuMatToCpuYUV: GpuMatToGpuYUV failed!");
+                return tenStatus::nenError;
+            }
 
             err = cudaMemcpy2D(pOutput, iWidth, (void*)arrYUV, pitch, iWidth, iHeight, cudaMemcpyDeviceToHost);
             if (err != cudaSuccess)
@@ -116,6 +121,10 @@ namespace RW{
                 printf("IMP_444To420: Device synchronize failed! Error = %d\n", err);
                 return tenStatus::nenError;
             }
+
+            //cv::Mat mat(iHeight * 3 / 2, iWidth, CV_8U);
+            //err = cudaMemcpy2D(mat.data, iWidth, arrayYUV420, pitchY, iWidth, iHeight * 3 / 2, cudaMemcpyDeviceToHost);
+            //if (err != cudaSuccess) return tenStatus::nenError;
 
             cudaFree(arrayY);
 

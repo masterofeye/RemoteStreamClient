@@ -30,6 +30,9 @@ namespace RW
             {
                 Q_OBJECT
 
+            private:
+                int m_iCount;
+
             public:
                 explicit SCL_live555(std::shared_ptr<spdlog::logger> Logger);
                 ~SCL_live555();

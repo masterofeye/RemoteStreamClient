@@ -78,7 +78,9 @@ namespace RW
                 case RW::CORE::tenSubModule::nenGraphic_ColorNV12ToRGB:
                 {
                     RW::IMP::COLOR_NV12TORGB::tstMyControlStruct *data = static_cast<RW::IMP::COLOR_NV12TORGB::tstMyControlStruct*>(*Data);
-                    data->pInput->_cuDevice = this->pOutput;
+                    data->pInput = new RW::IMP::tstInputOutput;
+                    data->pInput->cuDevice = this->pOutput;
+                    data->pPayload = this->pPayload;
                     break;
                 }
                 default:
@@ -172,15 +174,14 @@ namespace RW
                 memset(&packet, 0, sizeof(CUVIDSOURCEDATAPACKET));
                 packet.payload_size = data->pstEncodedStream->u32Size;
                 packet.payload = (unsigned char*)data->pstEncodedStream->pBuffer;
-                //RW::tstPayloadMsg *plMsg;
-                //if (data->pPayload)
-                //{
-                //    plMsg = (RW::tstPayloadMsg *)data->pPayload->pBuffer;
-                //}
                 packet.flags = CUVID_PKT_ENDOFSTREAM;
                 CUresult oResult = cuvidParseVideoData(g_pVideoParser->hParser_, &packet);
                 if ((packet.flags & CUVID_PKT_ENDOFSTREAM) || (oResult != CUDA_SUCCESS))
                     g_pFrameQueue->endDecode();
+
+                data->pPayload = new tstBitStream;
+                data->pPayload->pBuffer = (void*)packet.payload;
+                data->pPayload->u32Size = packet.payload_size;
 
                 /////////////////////////////////////////
                 enStatus = (g_pVideoDecoder) ? tenStatus::nenSuccess : tenStatus::nenError;
@@ -190,28 +191,6 @@ namespace RW
                 {
                     renderVideoFrame();
                 }
-
-                //CUresult result;
-                //uint8_t *argbArr;
-                //checkCudaErrors(result = cuMemAllocHost((void **)&argbArr, (g_nVideoWidth * g_nVideoHeight * 3/2)));
-                ////checkCudaErrors(result = cuMemcpyDtoHAsync((void *)(&argbArr), g_pInteropFrame[0], (g_nVideoWidth * g_nVideoHeight * 3/2), g_ReadbackSID));
-                //
-                //CUDA_MEMCPY2D copyParamY;
-                //memset(&copyParamY, 0, sizeof(copyParamY));
-                //copyParamY.dstMemoryType = CU_MEMORYTYPE_HOST;
-                //copyParamY.dstHost = argbArr;
-                //copyParamY.dstPitch = g_nVideoWidth;
-                //copyParamY.srcMemoryType = CU_MEMORYTYPE_DEVICE;
-                //copyParamY.srcDevice = g_pInteropFrame[0];
-                //copyParamY.srcPitch = g_nDecodedPitch;
-                //copyParamY.WidthInBytes = g_nVideoWidth;
-                //copyParamY.Height = g_nVideoHeight*3/2;
-                //result = cuMemcpy2D(&copyParamY);
-                //if (result != CUDA_SUCCESS)
-                //{
-                //    m_Logger->error("CNvDecodeD3D9::DoRender(...) has returned CUDA error ") << result;
-                //    return tenStatus::nenError;
-                //}
 
                 data->pOutput = g_pFrameYUV;
 

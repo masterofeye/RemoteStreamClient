@@ -15,8 +15,9 @@ namespace RW
 
 			typedef struct stMyControlStruct : public CORE::tstControlStruct
 			{
-				cInputBase *pInput;
-				std::vector<cOutputBase*> *pvOutput;
+				cv::cuda::GpuMat *pInput;
+                RW::tstBitStream *pPayload;
+				std::vector<cv::cuda::GpuMat*> *pvOutput;
                 REMOTE_API void UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType);
 
 			}tstMyControlStruct;

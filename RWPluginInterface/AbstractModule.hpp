@@ -13,7 +13,7 @@ namespace RW{
 
     typedef struct stBitStream
     {
-        uint8_t *pBuffer;
+        void *pBuffer;
         uint32_t u32Size;
     }tstBitStream;
 

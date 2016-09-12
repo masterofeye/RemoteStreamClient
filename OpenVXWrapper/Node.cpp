@@ -347,26 +347,29 @@ namespace RW
                         }
 
                         //Update the data of the current controlstruct with the outputs of the current controlstruct
+                        RW::CORE::tenSubModule type = kernelNext->SubModuleType();
                         controlStruct->UpdateData(&controlStructNext, kernelNext->SubModuleType());
 
                         //Commit the changes back to the array
                         vxCommitArrayRange(csArrayNextNode, 0, 1, controlStructNext);
                         vxCommitArrayRange(kArrayNextNode, 0, 1, kernelNext);
-
-
-                        vxReleaseParameter(&paramNext[0]);
-                        vxReleaseParameter(&paramNext[1]);
                     }
                     else
                     {
                         //TODo
                         vxCommitArrayRange(csArrayCurrentNode, 0, 1, controlStruct);
                         vxCommitArrayRange(kArrayCurrentNode, 0, 1, kernelOfCurrentNode);
+
+                        vxReleaseParameter(&paramNext[0]);
+                        vxReleaseParameter(&paramNext[1]);
+
                         return VX_FAILURE;
                     }
                     vxCommitArrayRange(csArrayCurrentNode, 0, 1, controlStruct);
                     vxCommitArrayRange(kArrayCurrentNode, 0, 1, kernelOfCurrentNode);
 
+                    vxReleaseParameter(&paramNext[0]);
+                    vxReleaseParameter(&paramNext[1]);
 
 
                 }
@@ -375,6 +378,10 @@ namespace RW
                     //Todo
                     vxCommitArrayRange(csArrayCurrentNode, 0, 1, controlStruct);
                     vxCommitArrayRange(kArrayCurrentNode, 0, 1, kernelOfCurrentNode);
+
+                    vxReleaseParameter(&param[0]);
+                    vxReleaseParameter(&param[1]);
+
                     return VX_SUCCESS;
                 }
 
