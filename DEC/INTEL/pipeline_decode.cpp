@@ -1023,13 +1023,19 @@ namespace RW{
                     }
                     m_output_count = m_synced_count;
 
-                    mfxStatus res = m_pGeneralAllocator->Lock(m_pGeneralAllocator->pthis, m_pCurrentOutputSurface->surface->frame.Data.MemId, &(m_pCurrentOutputSurface->surface->frame.Data));
-                    if (MFX_ERR_NONE == res) {
-                        res = WriteNextFrameToBuffer(&(m_pCurrentOutputSurface->surface->frame));
-                        sts = m_pGeneralAllocator->Unlock(m_pGeneralAllocator->pthis, m_pCurrentOutputSurface->surface->frame.Data.MemId, &(m_pCurrentOutputSurface->surface->frame.Data));
+                    if (m_bExternalAlloc) {
+                        mfxStatus res = m_pGeneralAllocator->Lock(m_pGeneralAllocator->pthis, m_pCurrentOutputSurface->surface->frame.Data.MemId, &(m_pCurrentOutputSurface->surface->frame.Data));
+                        if (MFX_ERR_NONE == res) {
+                            res = WriteNextFrameToBuffer(&(m_pCurrentOutputSurface->surface->frame));
+                            sts = m_pGeneralAllocator->Unlock(m_pGeneralAllocator->pthis, m_pCurrentOutputSurface->surface->frame.Data.MemId, &(m_pCurrentOutputSurface->surface->frame.Data));
+                        }
+                        if ((MFX_ERR_NONE == res) && (MFX_ERR_NONE != sts)) {
+                            res = sts;
+                        }
                     }
-                    if ((MFX_ERR_NONE == res) && (MFX_ERR_NONE != sts)) {
-                        res = sts;
+                    else
+                    {
+                        sts = WriteNextFrameToBuffer(&(m_pCurrentOutputSurface->surface->frame));
                     }
 
                     if (MFX_ERR_NONE != sts) {
