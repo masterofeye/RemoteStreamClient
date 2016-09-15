@@ -35,7 +35,7 @@ namespace RW{
                 mfxU32  fourcc;           // Default: MFX_FOURCC_RGB4. Output format parameters (MFX_FOURCC_NV12 or MFX_FOURCC_RGB4)
                 sPluginParams pluginParams;
 
-                stInputParams() : videoType(MFX_CODEC_AVC), bLowLat(true), bCalLat(true), bUseHWLib(true), memType(D3D9_MEMORY),
+                stInputParams() : videoType(MFX_CODEC_AVC), bLowLat(true), bCalLat(true), bUseHWLib(true), memType(SYSTEM_MEMORY),
                     nAsyncDepth(4), gpuCopy(MFX_GPUCOPY_OFF), nWidth(0), nHeight(0), fourcc(MFX_FOURCC_NV12)
                 {}
                 ~stInputParams(){}

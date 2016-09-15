@@ -618,17 +618,27 @@ namespace RW{
                     // initating each frame:
                     MSDK_MEMCPY_VAR(m_pSurfaces[i].frame.Info, &(Request.Info), sizeof(mfxFrameInfo));
 
-                    sts = m_pGeneralAllocator->Lock(m_pGeneralAllocator->pthis, m_mfxResponse.mids[i], &(m_pSurfaces[i].frame.Data));
-                    MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
+                    if (m_bExternalAlloc) {
+                        m_pSurfaces[i].frame.Data.MemId = m_mfxResponse.mids[i];
+                    }
+                    else {
+                        sts = m_pGeneralAllocator->Lock(m_pGeneralAllocator->pthis, m_mfxResponse.mids[i], &(m_pSurfaces[i].frame.Data));
+                        MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
+                    }
                 }
 
                 // prepare mfxFrameSurface1 array for VPP
                 for (int i = 0; i < nVppSurfNum; i++) {
                     MSDK_MEMCPY_VAR(m_pVppSurfaces[i].frame.Info, &(VppRequest[1].Info), sizeof(mfxFrameInfo));
 
-                    sts = m_pGeneralAllocator->Lock(m_pGeneralAllocator->pthis, m_mfxVppResponse.mids[i], &(m_pVppSurfaces[i].frame.Data));
-                    if (MFX_ERR_NONE != sts) {
-                        return sts;
+                    if (m_bExternalAlloc) {
+                        m_pVppSurfaces[i].frame.Data.MemId = m_mfxVppResponse.mids[i];
+                    }
+                    else {
+                        sts = m_pGeneralAllocator->Lock(m_pGeneralAllocator->pthis, m_mfxVppResponse.mids[i], &(m_pVppSurfaces[i].frame.Data));
+                        if (MFX_ERR_NONE != sts) {
+                            return sts;
+                        }
                     }
                 }
                 return MFX_ERR_NONE;
@@ -1013,7 +1023,15 @@ namespace RW{
                     }
                     m_output_count = m_synced_count;
 
-                    sts = WriteNextFrameToBuffer(&(m_pCurrentOutputSurface->surface->frame));
+                    mfxStatus res = m_pGeneralAllocator->Lock(m_pGeneralAllocator->pthis, m_pCurrentOutputSurface->surface->frame.Data.MemId, &(m_pCurrentOutputSurface->surface->frame.Data));
+                    if (MFX_ERR_NONE == res) {
+                        res = WriteNextFrameToBuffer(&(m_pCurrentOutputSurface->surface->frame));
+                        sts = m_pGeneralAllocator->Unlock(m_pGeneralAllocator->pthis, m_pCurrentOutputSurface->surface->frame.Data.MemId, &(m_pCurrentOutputSurface->surface->frame.Data));
+                    }
+                    if ((MFX_ERR_NONE == res) && (MFX_ERR_NONE != sts)) {
+                        res = sts;
+                    }
+
                     if (MFX_ERR_NONE != sts) {
                         sts = MFX_ERR_UNKNOWN;
                     }

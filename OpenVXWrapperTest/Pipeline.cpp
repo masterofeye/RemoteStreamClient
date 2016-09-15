@@ -78,7 +78,8 @@ int CPipeline::RunPipeline()
                 decodeInitCtrl.inputParams->nWidth = 1920;
                 decodeInitCtrl.inputParams->bCalLat = false;
                 decodeInitCtrl.inputParams->bLowLat = false;
-                decodeInitCtrl.inputParams->bUseHWLib = false;
+                decodeInitCtrl.inputParams->bUseHWLib = true;
+                //decodeInitCtrl.inputParams->memType = RW::DEC::INTEL::SYSTEM_MEMORY;
                 // ---- Do not use MFX_FOURCC_NV12 and COLOR_NV12TORGB. It does not work properly now. Use MFX_FOURCC_RGB4 instead ----
                 decodeInitCtrl.inputParams->fourcc = MFX_FOURCC_RGB4;  
             }
