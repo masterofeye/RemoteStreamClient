@@ -37,13 +37,8 @@ namespace RW{
                 case CORE::tenSubModule::nenEncode_NVIDIA:
 				{
                     CUdeviceptr arrYUV;
-                    size_t pitch;
                     
                     RW::ENC::NVENC::tstMyControlStruct *data = static_cast<RW::ENC::NVENC::tstMyControlStruct*>(*Data);
-
-                    cudaError err = cudaMallocPitch((void**)&arrYUV, &pitch, this->pData->cols, this->pData->rows * 3 / 2);
-                    if (err != CUDA_SUCCESS)
-                        printf("RW::IMP::COLOR_BGRTOYUV::stMyControlStruct::UpdateData case nenEncode_NVIDIA: cudaMallocPitch failed!\n");
 
                     IMP::IMP_Base imp;
                     tenStatus enStatus = imp.GpuMatToGpuYUV(this->pData, &arrYUV);

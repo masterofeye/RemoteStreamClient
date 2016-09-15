@@ -357,8 +357,26 @@ namespace RW
 
                         // map DirectX texture to CUDA surface
                         //size_t nTexturePitch = 0;
+                        size_t pitch;
+                        CUresult result = cuMemAllocPitch(&g_pFrameYUV, &pitch, g_nVideoWidth, g_nVideoHeight * 3 / 2, 8);
+                        if (result != cudaSuccess)
+                        {
+                            printf("CNvDecodeD3D9::copyDecodedFrameToTexture: cuMemcpyDtoD failed!");
+                            return false;
+                        }
+                        if (g_nDecodedPitch != pitch)
+                        {
+                            printf("CNvDecodeD3D9::copyDecodedFrameToTexture: Pitch from dest array and from decoded array are not equal!");
+                            return false;
+                        }
 
-                        g_pFrameYUV = pDecodedFrame[active_field];
+                        result = cuMemcpyDtoD(g_pFrameYUV, pDecodedFrame[active_field], (g_nDecodedPitch * g_nVideoHeight * 3 / 2));
+                        if (result != cudaSuccess)
+                        {
+                            printf("CNvDecodeD3D9::copyDecodedFrameToTexture: cuMemcpyDtoD failed!");
+                            return false;
+                        }
+                        //g_pFrameYUV = pDecodedFrame[active_field];
 
 #if ENABLE_DEBUG_OUT
                         printf("%s = %02d, PicIndex = %02d, OutputPTS = %08d\n",

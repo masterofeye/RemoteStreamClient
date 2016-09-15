@@ -116,7 +116,13 @@ namespace RW
                 sprintf(filename, "c:\\dummy\\Server_NVENC\\SSR_output_%04d.264", m_iCount);
                 //sprintf(filename, "c:\\dummy\\Server_Intel\\SSR_output_%04d.264", m_iCount);
                 FILE *pFile;
-                fopen_s(&pFile, filename, "rb");
+                errno_t err = fopen_s(&pFile, filename, "rb");
+                if (err)
+                {
+                    m_iCount = 0;
+                    sprintf(filename, "c:\\dummy\\Server_NVENC\\SSR_output_%04d.264", m_iCount);
+                    fopen_s(&pFile, filename, "rb");
+                }
                 if (!pFile)
                 {
                     m_Logger->error("SCL_live555::DoRender: File did not load!");

@@ -92,10 +92,6 @@ namespace RW
                         SAFE_DELETE(data->pPayload);
                     }
                 }
-                //FILE *pFile;
-                //fopen_s(&pFile, "c:\\dummy\\outFrameProc.raw", "wb");
-                //fwrite(data->pstBitStream->pBuffer, 1, data->pstBitStream->u32Size, pFile);
-                //fclose(pFile);
 
                 //// only used for Qt::QueuedConnection since this is enableing assynchronous threads using copies of the parameters
                 //SAFE_DELETE_ARRAY(data->pstBitStream->pBuffer);

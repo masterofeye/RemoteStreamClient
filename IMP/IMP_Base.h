@@ -20,7 +20,8 @@ namespace RW
 			~IMP_Base()
             {
             };
-
+        private:
+            size_t m_sPitch;
 		};
 	}
 }
