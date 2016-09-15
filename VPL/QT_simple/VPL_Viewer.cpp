@@ -15,10 +15,10 @@ namespace RW
             VPL_Viewer::VPL_Viewer()
                 : QWidget(0)
             {
-                item = new QGraphicsPixmapItem;
+                _item = new QGraphicsPixmapItem;
 
-                scene = new QGraphicsScene(this);
-                QGraphicsView *graphicsView = new QGraphicsView(scene);
+                _scene = new QGraphicsScene(this);
+                QGraphicsView *graphicsView = new QGraphicsView(_scene);
                 //graphicsView->scale(1, -1); 
 
                 QBoxLayout *controlLayout = new QHBoxLayout;
@@ -42,29 +42,29 @@ namespace RW
 
             void VPL_Viewer::connectToViewer(VPL_FrameProcessor *frameProc)
             {
-                //To enable asynchronous threads we have to select QueuedConnection. This will create a copy of the parameter. 
                 connect(frameProc, SIGNAL(FrameBufferChanged(void*)), this, SLOT(setVideoData(void*)), Qt::DirectConnection);
             }
 
             void VPL_Viewer::setVideoData(void *buffer)
             {
-                RW::tstBitStream* ptr = (RW::tstBitStream*)buffer;
-                uint8_t* u8Buffer = (uint8_t*)ptr->pBuffer;
-                QImage img(u8Buffer, _width, _height, _format);
+                RW::tstBitStream *ptr = (RW::tstBitStream*)buffer;
+
+                //FILE *pFile;
+                //fopen_s(&pFile, "c:\\dummy\\outViewer.raw", "wb");
+                //fwrite((uint8_t *)ptr->pBuffer, 1, _width*_height * 4, pFile);
+                //fclose(pFile);
+
+                QImage img((uint8_t *)ptr->pBuffer, _width, _height, _format);
 
                 QPixmap pix(QPixmap::fromImage(img));
 
                 if (_count == 0)
-                    item = scene->addPixmap(pix);
+                    _item = _scene->addPixmap(pix);
                 else
-                    item->setPixmap(pix);
+                    _item->setPixmap(pix);
 
-                FILE *pFile;
-                fopen_s(&pFile, "c:\\dummy\\outViewer.raw", "wb");
-                fwrite(u8Buffer, 1, _width*_height * 3, pFile);
-                fclose(pFile);
-
-                //scene->addEllipse(QRect(count, 0, 50, 50), QPen(Qt::red));
+                //_scene->addEllipse(QRect(count, 0, 50, 50), QPen(Qt::red));
+                SAFE_DELETE_ARRAY(ptr->pBuffer);
                 SAFE_DELETE(ptr);
 
                 _count++;

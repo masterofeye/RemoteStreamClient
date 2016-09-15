@@ -67,81 +67,81 @@ int CPipeline::RunPipeline()
                 RW::CORE::tenSubModule::nenReceive_Simple) != RW::tenStatus::nenSuccess)
                 file_logger->error("nenReceive_Simple couldn't build correct");
 
-            //// ---- If you use DEC\Intel set qViewer.setImgType(QImage::Format::Format_RGBX8888) in Main ----
-            //RW::DEC::INTEL::tstMyInitialiseControlStruct decodeInitCtrl;
-            //{
-            //    decodeInitCtrl.inputParams = new RW::DEC::INTEL::tstInputParams();
-
-            //    // Height and Width need to be transported via Connector configuration
-
-            //    decodeInitCtrl.inputParams->Height = 720;
-            //    decodeInitCtrl.inputParams->Width = 1920;
-            //    decodeInitCtrl.inputParams->bCalLat = false;
-            //    decodeInitCtrl.inputParams->bLowLat = false;
-            //    decodeInitCtrl.inputParams->bUseHWLib = false;
-            //    // ---- Do not use MFX_FOURCC_NV12 and COLOR_NV12TORGB. It does not work properly now. Use MFX_FOURCC_RGB4 instead ----
-            //    decodeInitCtrl.inputParams->fourcc = MFX_FOURCC_RGB4;  
-            //}
-            //RW::DEC::INTEL::tstMyControlStruct decodeCtrl;
-            //RW::DEC::INTEL::tstMyDeinitialiseControlStruct decodeDeinitCtrl;
-
-            //if (builder.BuildNode(&kernelManager,
-            //    &decodeInitCtrl,
-            //    iParentIndex++,
-            //    sizeof(RW::DEC::INTEL::tstMyInitialiseControlStruct),
-            //    &decodeCtrl,
-            //    sizeof(RW::DEC::INTEL::tstMyControlStruct),
-            //    &decodeDeinitCtrl,
-            //    sizeof(RW::DEC::INTEL::tstMyDeinitialiseControlStruct),
-            //    RW::CORE::tenSubModule::nenDecoder_INTEL) != RW::tenStatus::nenSuccess)
-            //    file_logger->error("nenDecoder_INTEL couldn't build correct");
-
-            //---- If you use DEC\NVENC set qViewer.setImgType(QImage::Format::Format_RGB888) in Main ----
-            RW::DEC::NVENC::tstMyInitialiseControlStruct decodeInitCtrl;
+            // ---- If you use DEC\Intel set qViewer.setImgType(QImage::Format::Format_RGBX8888) in Main ----
+            RW::DEC::INTEL::tstMyInitialiseControlStruct decodeInitCtrl;
             {
-                decodeInitCtrl.inputParams = new RW::DEC::NVENC::tstInputParams();
+                decodeInitCtrl.inputParams = new RW::DEC::INTEL::tstInputParams();
 
                 // Height and Width need to be transported via Connector configuration
 
                 decodeInitCtrl.inputParams->nHeight = 720;
-                //    videoGrabberInitialiseControlStruct.nFrameHeight;
                 decodeInitCtrl.inputParams->nWidth = 1920;
-                //    videoGrabberInitialiseControlStruct.nFrameWidth;
+                decodeInitCtrl.inputParams->bCalLat = false;
+                decodeInitCtrl.inputParams->bLowLat = false;
+                decodeInitCtrl.inputParams->bUseHWLib = false;
+                // ---- Do not use MFX_FOURCC_NV12 and COLOR_NV12TORGB. It does not work properly now. Use MFX_FOURCC_RGB4 instead ----
+                decodeInitCtrl.inputParams->fourcc = MFX_FOURCC_RGB4;  
             }
-            RW::DEC::NVENC::tstMyControlStruct decodeCtrl;
-            RW::DEC::NVENC::tstMyDeinitialiseControlStruct decodeDeinitCtrl;
+            RW::DEC::INTEL::tstMyControlStruct decodeCtrl;
+            RW::DEC::INTEL::tstMyDeinitialiseControlStruct decodeDeinitCtrl;
 
             if (builder.BuildNode(&kernelManager,
                 &decodeInitCtrl,
                 iParentIndex++,
-                sizeof(RW::DEC::NVENC::tstMyInitialiseControlStruct),
+                sizeof(RW::DEC::INTEL::tstMyInitialiseControlStruct),
                 &decodeCtrl,
-                sizeof(RW::DEC::NVENC::tstMyControlStruct),
+                sizeof(RW::DEC::INTEL::tstMyControlStruct),
                 &decodeDeinitCtrl,
-                sizeof(RW::DEC::NVENC::tstMyDeinitialiseControlStruct),
-                RW::CORE::tenSubModule::nenDecoder_NVIDIA) != RW::tenStatus::nenSuccess)
-                file_logger->error("nenDecoder_NVIDIA couldn't build correct");
+                sizeof(RW::DEC::INTEL::tstMyDeinitialiseControlStruct),
+                RW::CORE::tenSubModule::nenDecoder_INTEL) != RW::tenStatus::nenSuccess)
+                file_logger->error("nenDecoder_INTEL couldn't build correct");
+
+            ////---- If you use DEC\NVENC set qViewer.setImgType(QImage::Format::Format_RGB888) in Main ----
+            //RW::DEC::NVENC::tstMyInitialiseControlStruct decodeInitCtrl;
+            //{
+            //    decodeInitCtrl.inputParams = new RW::DEC::NVENC::tstInputParams();
+
+            //    // Height and Width need to be transported via Connector configuration
+
+            //    decodeInitCtrl.inputParams->nHeight = 720;
+            //    //    videoGrabberInitialiseControlStruct.nFrameHeight;
+            //    decodeInitCtrl.inputParams->nWidth = 1920;
+            //    //    videoGrabberInitialiseControlStruct.nFrameWidth;
+            //}
+            //RW::DEC::NVENC::tstMyControlStruct decodeCtrl;
+            //RW::DEC::NVENC::tstMyDeinitialiseControlStruct decodeDeinitCtrl;
+
+            //if (builder.BuildNode(&kernelManager,
+            //    &decodeInitCtrl,
+            //    iParentIndex++,
+            //    sizeof(RW::DEC::NVENC::tstMyInitialiseControlStruct),
+            //    &decodeCtrl,
+            //    sizeof(RW::DEC::NVENC::tstMyControlStruct),
+            //    &decodeDeinitCtrl,
+            //    sizeof(RW::DEC::NVENC::tstMyDeinitialiseControlStruct),
+            //    RW::CORE::tenSubModule::nenDecoder_NVIDIA) != RW::tenStatus::nenSuccess)
+            //    file_logger->error("nenDecoder_NVIDIA couldn't build correct");
 
 
-            //---- Use COLOR_NV12TORGB to convert the DEC\NVENC output into RGB ----
-            RW::IMP::COLOR_NV12TORGB::tstMyInitialiseControlStruct impColor420InitialiseControlStruct;
-            {
-                impColor420InitialiseControlStruct.nHeight = decodeInitCtrl.inputParams->nHeight;
-                impColor420InitialiseControlStruct.nWidth = decodeInitCtrl.inputParams->nWidth;
-            }
-            RW::IMP::COLOR_NV12TORGB::tstMyControlStruct impColor420ControlStruct;
-            RW::IMP::COLOR_NV12TORGB::tstMyDeinitialiseControlStruct impColor420DeinitialiseControlStruct;
+            ////---- Use COLOR_NV12TORGB to convert the DEC\NVENC output into RGB ----
+            //RW::IMP::COLOR_NV12TORGB::tstMyInitialiseControlStruct impColor420InitialiseControlStruct;
+            //{
+            //    impColor420InitialiseControlStruct.nHeight = decodeInitCtrl.inputParams->nHeight;
+            //    impColor420InitialiseControlStruct.nWidth = decodeInitCtrl.inputParams->nWidth;
+            //}
+            //RW::IMP::COLOR_NV12TORGB::tstMyControlStruct impColor420ControlStruct;
+            //RW::IMP::COLOR_NV12TORGB::tstMyDeinitialiseControlStruct impColor420DeinitialiseControlStruct;
 
-            if (builder.BuildNode(&kernelManager,
-                &impColor420InitialiseControlStruct,
-                iParentIndex++,
-                sizeof(RW::IMP::COLOR_NV12TORGB::tstMyInitialiseControlStruct),
-                &impColor420ControlStruct,
-                sizeof(RW::IMP::COLOR_NV12TORGB::tstMyControlStruct),
-                &impColor420DeinitialiseControlStruct,
-                sizeof(RW::IMP::COLOR_NV12TORGB::tstMyDeinitialiseControlStruct),
-                RW::CORE::tenSubModule::nenGraphic_ColorNV12ToRGB) != RW::tenStatus::nenSuccess)
-                file_logger->error("nenGraphic_ColorYUV420ToRGB couldn't build correct");
+            //if (builder.BuildNode(&kernelManager,
+            //    &impColor420InitialiseControlStruct,
+            //    iParentIndex++,
+            //    sizeof(RW::IMP::COLOR_NV12TORGB::tstMyInitialiseControlStruct),
+            //    &impColor420ControlStruct,
+            //    sizeof(RW::IMP::COLOR_NV12TORGB::tstMyControlStruct),
+            //    &impColor420DeinitialiseControlStruct,
+            //    sizeof(RW::IMP::COLOR_NV12TORGB::tstMyDeinitialiseControlStruct),
+            //    RW::CORE::tenSubModule::nenGraphic_ColorNV12ToRGB) != RW::tenStatus::nenSuccess)
+            //    file_logger->error("nenGraphic_ColorYUV420ToRGB couldn't build correct");
 
             RW::VPL::QT_SIMPLE::tstMyInitialiseControlStruct playerInitCtrl;
             {
@@ -165,6 +165,9 @@ int CPipeline::RunPipeline()
             RW::tenStatus res = RW::tenStatus::nenSuccess;
             if (graph.VerifyGraph() == RW::tenStatus::nenSuccess)
             {
+#ifdef TRACE_PERFORMANCE
+                RW::CORE::HighResClock::time_point  tAfterInit = RW::CORE::HighResClock::now();
+#endif
                 for (uint16_t u16Index = 0; u16Index < 464; u16Index++)
                 {
                     res = graph.ScheduleGraph();
@@ -173,6 +176,7 @@ int CPipeline::RunPipeline()
 
                         file_logger->debug("******************");
                         file_logger->debug("*Graph excecution*");
+                        file_logger->debug() << "Process Frame #" << count;
                         file_logger->debug("******************");
                     }
 #ifdef TRACE_PERFORMANCE
@@ -184,17 +188,16 @@ int CPipeline::RunPipeline()
 #ifdef TRACE_PERFORMANCE
                     t2 = RW::CORE::HighResClock::now();
                     file_logger->trace() << "Graph execution: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << " ms.";
-                    file_logger->trace() << "Process Frame #" << count;
 #endif
                     count++;
                 }
+#ifdef TRACE_PERFORMANCE
+                RW::CORE::HighResClock::time_point tAfterAllDoRenders = RW::CORE::HighResClock::now();
+                file_logger->trace() << "DoRender for " << count << " frames took " << RW::CORE::HighResClock::diffMilli(tAfterInit, tAfterAllDoRenders).count() << "ms.";
+                file_logger->trace() << "This is an average fps of " << (float)count / ((float)RW::CORE::HighResClock::diffMilli(tAfterInit, tAfterAllDoRenders).count() / 1000.0);
+                t1 = RW::CORE::HighResClock::now();
+#endif
             }
-
-            /*********Check if payload is correctly*******/
-            //tstPayloadMsg *pMsg = (tstPayloadMsg*)(decodeCtrl.pPayload->pBuffer);
-            //uint32_t u32FrameNbr = pMsg->u32FrameNbr;
-            //uint32_t u32Timestamp = pMsg->u32Timestamp;
-            /*********************************************/
 
             /*******Cleanup. Whatever has been created here has to be destroyed here. Modules do not do that. ******/
 

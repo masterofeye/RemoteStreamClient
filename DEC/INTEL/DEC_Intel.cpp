@@ -23,6 +23,8 @@ namespace RW{
                 {
                     RW::IMP::COLOR_NV12TORGB::tstMyControlStruct *data = static_cast<RW::IMP::COLOR_NV12TORGB::tstMyControlStruct*>(*Data);
 
+                    data->pInput = new IMP::tstInputOutput;
+                    data->pInput->cuDevice = 0;
                     data->pInput->pBitstream = this->pOutput;
                     data->pPayload = this->pPayload;
                     break;
@@ -30,7 +32,10 @@ namespace RW{
                 default:
                     break;
                 }
+                SAFE_DELETE_ARRAY(this->pstEncodedStream->pBuffer);
                 SAFE_DELETE(this->pstEncodedStream);
+                //this->pOutput = nullptr;
+                //this->pPayload = nullptr;
             }
 
             DEC_Intel::DEC_Intel(std::shared_ptr<spdlog::logger> Logger) :

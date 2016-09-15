@@ -27,8 +27,8 @@ namespace RW
                 Q_OBJECT
 
             private:
-                QGraphicsScene      *scene;
-                QGraphicsPixmapItem *item;
+                QGraphicsScene      *_scene;
+                QGraphicsPixmapItem *_item;
                 quint16             _width;
                 quint16             _height;
                 quint32             _count;

@@ -78,6 +78,9 @@ namespace RW
                     enStatus = tenStatus::nenError;
                     return enStatus;
                 }
+
+                emit FrameBufferChanged(data->pstBitStream);
+
                 if (data->pPayload)
                 {
                     if (data->pPayload->pBuffer){
@@ -85,6 +88,7 @@ namespace RW
                         uint32_t u32Timestamp = pMsg->u32Timestamp;
                         uint32_t u32FrameNbr = pMsg->u32FrameNbr;
 
+                        SAFE_DELETE_ARRAY(data->pPayload->pBuffer);
                         SAFE_DELETE(data->pPayload);
                     }
                 }
@@ -93,13 +97,14 @@ namespace RW
                 //fwrite(data->pstBitStream->pBuffer, 1, data->pstBitStream->u32Size, pFile);
                 //fclose(pFile);
 
-                emit FrameBufferChanged((void*)data->pstBitStream);
+                //// only used for Qt::QueuedConnection since this is enableing assynchronous threads using copies of the parameters
+                //SAFE_DELETE_ARRAY(data->pstBitStream->pBuffer);
+                //SAFE_DELETE(data->pstBitStream);
 
 #ifdef TRACE_PERFORMANCE
                 RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
                 m_Logger->trace() << "Time to DoRender for nenPlayback_Simple module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
-                //SAFE_DELETE(data->pstBitStream);
                 return enStatus;
             }
 

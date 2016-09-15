@@ -114,6 +114,7 @@ namespace RW
 
                 char* filename = new char[64];
                 sprintf(filename, "c:\\dummy\\Server_NVENC\\SSR_output_%04d.264", m_iCount);
+                //sprintf(filename, "c:\\dummy\\Server_Intel\\SSR_output_%04d.264", m_iCount);
                 FILE *pFile;
                 fopen_s(&pFile, filename, "rb");
                 if (!pFile)
@@ -130,7 +131,7 @@ namespace RW
                 m_Logger->info("SCL_live555::DoRender: File size to read in: ") << lSize;
 
                 // allocate memory to contain the whole file:
-                uint8_t *buffer = (uint8_t*)malloc(sizeof(uint8_t)*lSize);
+                uint8_t *buffer = new uint8_t[lSize];
                 // copy the file into the buffer:
                 size_t result = fread(buffer, sizeof(uint8_t), lSize, pFile);
                 if (!buffer)
@@ -139,6 +140,8 @@ namespace RW
                     return tenStatus::nenError;
                 }
                 fclose(pFile);
+
+                delete[] filename;
 
                 data->pstBitStream = new RW::tstBitStream();
                 data->pstBitStream->pBuffer = buffer;

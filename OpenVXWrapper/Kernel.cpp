@@ -288,6 +288,7 @@ namespace RW
         tenStatus Kernel::KernelFnc(void* ControlStruct)
         {
             tenStatus status = tenStatus::nenError;
+            tstControlStruct *dummy = (tstControlStruct*)ControlStruct;
             status = m_AbstractModule->DoRender((tstControlStruct*)ControlStruct);
             return status;
         }

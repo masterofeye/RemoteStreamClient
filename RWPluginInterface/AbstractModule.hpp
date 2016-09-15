@@ -9,12 +9,19 @@
 #define SAFE_DELETE(P) {if (P) {delete P; P = nullptr;}}
 #endif // SAFE_DELETE
 
+#ifndef SAFE_DELETE_ARRAY
+#define SAFE_DELETE_ARRAY(P){if (P) delete[] P; P = nullptr;}
+#endif // SAFE_DELETE_ARRAY
+
 namespace RW{
 
     typedef struct stBitStream
     {
         void *pBuffer;
         uint32_t u32Size;
+        stBitStream(){
+            pBuffer = nullptr;
+        }
     }tstBitStream;
 
     typedef struct stPayloadMsg

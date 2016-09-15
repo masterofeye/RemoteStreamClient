@@ -38,7 +38,6 @@ namespace RW{
                 default:
                     break;
                 }
-                cudaFree((void*)this->pInput->cuDevice);
                 SAFE_DELETE(this->pInput);
             }
 
@@ -119,37 +118,48 @@ namespace RW{
                 cudaError err = cudaMallocPitch((void**)&arrayY, &pitchY, m_u32Width, m_u32Height * 3/2);
                 if (err != cudaSuccess) return tenStatus::nenError;
 
-                if (data->pInput->cuDevice){
-                    err = cudaMemcpy2D(arrayY, pitchY, (void*)data->pInput->cuDevice, pitchY, m_u32Width, m_u32Height * 3 / 2, cudaMemcpyDeviceToDevice);
-                    if (err != cudaSuccess) return tenStatus::nenError;
-
-                    IMP_NV12To444(arrayY, gMat444.data, m_u32Width, m_u32Height, pitchY);
-                }
-                else if (data->pInput->pBitstream){
+                if (data->pInput->pBitstream){
                     // --------- not working correctly yet. For DEC\Intel use fourcc MFX_FOURCC_RGB4 instead. ------------
-                    printf("IMP_420To444: ConvColorFramesNV12ToRGB not resulting in correct output for DEC_Intel yet. Use fourcc MFX_FOURCC_RGB4 instead.");
 
                     err = cudaMemcpy2D(arrayY, pitchY, (void*)data->pInput->pBitstream->pBuffer, m_u32Width, m_u32Width, m_u32Height * 3 / 2, cudaMemcpyHostToDevice);
-                    if (err != cudaSuccess) return tenStatus::nenError;
+                    if (err != cudaSuccess) {
+                        m_Logger->error("ConvColorFramesNV12ToRGB::DoRender: cudaMemcpy2D failed!");
+                        return tenStatus::nenError;
+                    }
 
                     IMP_NV12To444(arrayY, gMat444.data, m_u32Width, m_u32Height, pitchY);
+
+                    SAFE_DELETE_ARRAY(data->pInput->pBitstream->pBuffer);
+                    SAFE_DELETE(data->pInput->pBitstream)
+
+                }
+                else if (data->pInput->cuDevice){
+                    err = cudaMemcpy2D(arrayY, pitchY, (void*)data->pInput->cuDevice, pitchY, m_u32Width, m_u32Height * 3 / 2, cudaMemcpyDeviceToDevice);
+                    if (err != cudaSuccess) {
+                        m_Logger->error("ConvColorFramesNV12ToRGB::DoRender: cudaMemcpy2D failed!");
+                        return tenStatus::nenError;
+                    }
+
+                    IMP_NV12To444(arrayY, gMat444.data, m_u32Width, m_u32Height, pitchY);
+
+                    cudaFree((void*)data->pInput->cuDevice);
                 }
                 else
                 {
-                    printf("IMP_420To444: ConvColorFramesNV12ToRGB is not supporting that format!");
+                    m_Logger->error("ConvColorFramesNV12ToRGB::DoRender: Format not supported!");
                     return tenStatus::nenError;
                 }
 
                 err = cudaDeviceSynchronize();
                 if (err != cudaSuccess)
                 {
-                    printf("IMP_420To444: Device synchronize failed! Error = %d\n", err);
+                    m_Logger->error("IMP_420To444: Device synchronize failed! Error = ") << err;
                     return tenStatus::nenError;
                 }
                 err = cudaGetLastError();
                 if (err != cudaSuccess)
                 {
-                    printf("IMP_420To444: kernel() failed to launch error = %d\n", err);
+                    m_Logger->error("IMP_420To444: kernel() failed to launch error = ") << err;
                     return tenStatus::nenError;
                 }
 
@@ -162,14 +172,15 @@ namespace RW{
 
                 cv::cuda::cvtColor(gMat444, gMat444, cv::COLOR_YUV2RGB);
 
-                cv::Mat *pMat = new cv::Mat(m_u32Height, m_u32Width, CV_8UC3);
-                gMat444.download(*pMat);
+                cv::Mat mat(m_u32Height, m_u32Width, CV_8UC3);
+                gMat444.download(mat);
 
                 cudaFree(arrayY);
 
                 data->pOutput = new RW::tstBitStream;
-                data->pOutput->pBuffer = pMat->data;
-                data->pOutput->u32Size = (uint32_t)(pMat->total() * pMat->channels());
+                data->pOutput->u32Size = (uint32_t)(mat.total() * mat.channels());
+                data->pOutput->pBuffer = new uint8_t[data->pOutput->u32Size];
+                memcpy(data->pOutput->pBuffer, mat.data, data->pOutput->u32Size);
 
                 if (enStatus != tenStatus::nenSuccess || !data->pOutput)
                 {

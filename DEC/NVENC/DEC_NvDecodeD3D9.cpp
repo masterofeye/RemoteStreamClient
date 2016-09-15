@@ -80,13 +80,17 @@ namespace RW
                     RW::IMP::COLOR_NV12TORGB::tstMyControlStruct *data = static_cast<RW::IMP::COLOR_NV12TORGB::tstMyControlStruct*>(*Data);
                     data->pInput = new RW::IMP::tstInputOutput;
                     data->pInput->cuDevice = this->pOutput;
+                    data->pInput->pBitstream = nullptr;
                     data->pPayload = this->pPayload;
                     break;
                 }
                 default:
                     break;
                 }
+                SAFE_DELETE_ARRAY(this->pstEncodedStream->pBuffer);
                 SAFE_DELETE(this->pstEncodedStream);
+                this->pOutput = 0;
+                this->pPayload = nullptr;
             }
 
             CORE::tstModuleVersion CNvDecodeD3D9::ModulVersion() {
@@ -163,9 +167,14 @@ namespace RW
                     m_Logger->error("DEC_CudaInterop::DoRender: Data of stMyControlStruct is empty!");
                     return tenStatus::nenError;
                 }
-                if (!data->pOutput)
+                if (!data->pstEncodedStream)
                 {
-                    m_Logger->error("DEC_CudaInterop::DoRender: pOutput of stMyControlStruct is empty!");
+                    m_Logger->error("DEC_CudaInterop::DoRender: pstEncodedStream of stMyControlStruct is empty!");
+                    return tenStatus::nenError;
+                }
+                if (!data->pstEncodedStream->pBuffer)
+                {
+                    m_Logger->error("DEC_CudaInterop::DoRender: pstEncodedStream->pBuffer of stMyControlStruct is empty!");
                     return tenStatus::nenError;
                 }
 
@@ -180,8 +189,9 @@ namespace RW
                     g_pFrameQueue->endDecode();
 
                 data->pPayload = new tstBitStream;
-                data->pPayload->pBuffer = (void*)packet.payload;
                 data->pPayload->u32Size = packet.payload_size;
+                data->pPayload->pBuffer = new uint8[data->pPayload->u32Size];
+                memcpy(data->pPayload->pBuffer, packet.payload, data->pPayload->u32Size);
 
                 /////////////////////////////////////////
                 enStatus = (g_pVideoDecoder) ? tenStatus::nenSuccess : tenStatus::nenError;
@@ -342,13 +352,8 @@ namespace RW
                         oVideoProcessingParameters.top_field_first = oDisplayInfo.top_field_first;
                         oVideoProcessingParameters.unpaired_field = (distinct_fields == 1);
 
-                        unsigned int nWidth = 0;
-                        unsigned int nHeight = 0;
-
                         // map decoded video frame to CUDA surfae
                         g_pVideoDecoder->mapFrame(oDisplayInfo.picture_index, &pDecodedFrame[active_field], &g_nDecodedPitch, &oVideoProcessingParameters);
-                        nWidth = g_pVideoDecoder->targetWidth();
-                        nHeight = g_pVideoDecoder->targetHeight();
 
                         // map DirectX texture to CUDA surface
                         //size_t nTexturePitch = 0;
