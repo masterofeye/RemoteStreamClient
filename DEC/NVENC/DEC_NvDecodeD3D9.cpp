@@ -356,7 +356,6 @@ namespace RW
                         g_pVideoDecoder->mapFrame(oDisplayInfo.picture_index, &pDecodedFrame[active_field], &g_nDecodedPitch, &oVideoProcessingParameters);
 
                         // map DirectX texture to CUDA surface
-                        //size_t nTexturePitch = 0;
                         size_t pitch;
                         CUresult result = cuMemAllocPitch(&g_pFrameYUV, &pitch, g_nVideoWidth, g_nVideoHeight * 3 / 2, 8);
                         if (result != cudaSuccess)

@@ -1032,6 +1032,7 @@ namespace RW{
                         if ((MFX_ERR_NONE == res) && (MFX_ERR_NONE != sts)) {
                             res = sts;
                         }
+                        sts = res;
                     }
                     else
                     {
@@ -1388,7 +1389,6 @@ namespace RW{
                     {
                         pPayload = new stPayloadMsg[dec_payload.BufSize];
                         memcpy(pPayload, dec_payload.Data, dec_payload.BufSize);
-                        //memcpy(&stPayload, dec_payload.Data, dec_payload.BufSize);
                     }
                     else
                     {

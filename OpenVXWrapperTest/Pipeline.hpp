@@ -10,6 +10,7 @@
 
 /*Modules*/
 #include "GraphBuilder.h"
+#include "Pipeline_Config.h"
 
 #include "live555\SCL_live555.hpp"
 #include "INTEL\DEC_Intel.hpp"

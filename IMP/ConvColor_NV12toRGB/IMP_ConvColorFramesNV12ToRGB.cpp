@@ -164,14 +164,15 @@ namespace RW{
 
                 cv::cuda::cvtColor(gMat444, gMat444, cv::COLOR_YUV2RGB);
 
-                cv::Mat *pMat = new cv::Mat(m_u32Height, m_u32Width, CV_8UC3);
-                gMat444.download(*pMat);
+                cv::Mat mat(m_u32Height, m_u32Width, CV_8UC3);
+                gMat444.download(mat);
 
                 cudaFree((void*)arrayNV12);
 
                 data->pOutput = new RW::tstBitStream;
-                data->pOutput->pBuffer = pMat->data;
-                data->pOutput->u32Size = (uint32_t)(pMat->total() * pMat->channels());
+                data->pOutput->u32Size = (uint32_t)(mat.total() * mat.channels());
+                data->pOutput->pBuffer = new uint8_t[data->pOutput->u32Size];
+                memcpy(data->pOutput->pBuffer, mat.data, data->pOutput->u32Size);
 
                 if (enStatus != tenStatus::nenSuccess || !data->pOutput)
                 {

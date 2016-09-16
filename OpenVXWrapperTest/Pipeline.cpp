@@ -67,6 +67,7 @@ int CPipeline::RunPipeline()
                 RW::CORE::tenSubModule::nenReceive_Simple) != RW::tenStatus::nenSuccess)
                 file_logger->error("nenReceive_Simple couldn't build correct");
 
+#ifdef DEC_INTEL
             // ---- If you use DEC\Intel set qViewer.setImgType(QImage::Format::Format_RGBX8888) in Main ----
             RW::DEC::INTEL::tstMyInitialiseControlStruct decodeInitCtrl;
             {
@@ -78,9 +79,10 @@ int CPipeline::RunPipeline()
                 decodeInitCtrl.inputParams->nWidth = 1920;
                 decodeInitCtrl.inputParams->bCalLat = false;
                 decodeInitCtrl.inputParams->bLowLat = false;
-                decodeInitCtrl.inputParams->bUseHWLib = true;
-                //decodeInitCtrl.inputParams->memType = RW::DEC::INTEL::SYSTEM_MEMORY;
-                // ---- Do not use MFX_FOURCC_NV12 and COLOR_NV12TORGB. It does not work properly now. Use MFX_FOURCC_RGB4 instead ----
+                decodeInitCtrl.inputParams->bUseHWLib = false;
+                //decodeInitCtrl.inputParams->memType = RW::DEC::INTEL::D3D9_MEMORY;
+
+                // ---- Do not use MFX_FOURCC_NV12 and IMP::COLOR_NV12TORGB. It does not work properly now. Use MFX_FOURCC_RGB4 instead ----
                 decodeInitCtrl.inputParams->fourcc = MFX_FOURCC_RGB4;  
             }
             RW::DEC::INTEL::tstMyControlStruct decodeCtrl;
@@ -96,53 +98,54 @@ int CPipeline::RunPipeline()
                 sizeof(RW::DEC::INTEL::tstMyDeinitialiseControlStruct),
                 RW::CORE::tenSubModule::nenDecoder_INTEL) != RW::tenStatus::nenSuccess)
                 file_logger->error("nenDecoder_INTEL couldn't build correct");
+#endif
+#ifdef DEC_NVENC
+            //---- If you use DEC\NVENC set qViewer.setImgType(QImage::Format::Format_RGB888) in Main ----
+            RW::DEC::NVENC::tstMyInitialiseControlStruct decodeInitCtrl;
+            {
+                decodeInitCtrl.inputParams = new RW::DEC::NVENC::tstInputParams();
 
-            ////---- If you use DEC\NVENC set qViewer.setImgType(QImage::Format::Format_RGB888) in Main ----
-            //RW::DEC::NVENC::tstMyInitialiseControlStruct decodeInitCtrl;
-            //{
-            //    decodeInitCtrl.inputParams = new RW::DEC::NVENC::tstInputParams();
+                // Height and Width need to be transported via Connector configuration
 
-            //    // Height and Width need to be transported via Connector configuration
+                decodeInitCtrl.inputParams->nHeight = 720;
+                //    videoGrabberInitialiseControlStruct.nFrameHeight;
+                decodeInitCtrl.inputParams->nWidth = 1920;
+                //    videoGrabberInitialiseControlStruct.nFrameWidth;
+            }
+            RW::DEC::NVENC::tstMyControlStruct decodeCtrl;
+            RW::DEC::NVENC::tstMyDeinitialiseControlStruct decodeDeinitCtrl;
 
-            //    decodeInitCtrl.inputParams->nHeight = 720;
-            //    //    videoGrabberInitialiseControlStruct.nFrameHeight;
-            //    decodeInitCtrl.inputParams->nWidth = 1920;
-            //    //    videoGrabberInitialiseControlStruct.nFrameWidth;
-            //}
-            //RW::DEC::NVENC::tstMyControlStruct decodeCtrl;
-            //RW::DEC::NVENC::tstMyDeinitialiseControlStruct decodeDeinitCtrl;
-
-            //if (builder.BuildNode(&kernelManager,
-            //    &decodeInitCtrl,
-            //    iParentIndex++,
-            //    sizeof(RW::DEC::NVENC::tstMyInitialiseControlStruct),
-            //    &decodeCtrl,
-            //    sizeof(RW::DEC::NVENC::tstMyControlStruct),
-            //    &decodeDeinitCtrl,
-            //    sizeof(RW::DEC::NVENC::tstMyDeinitialiseControlStruct),
-            //    RW::CORE::tenSubModule::nenDecoder_NVIDIA) != RW::tenStatus::nenSuccess)
-            //    file_logger->error("nenDecoder_NVIDIA couldn't build correct");
+            if (builder.BuildNode(&kernelManager,
+                &decodeInitCtrl,
+                iParentIndex++,
+                sizeof(RW::DEC::NVENC::tstMyInitialiseControlStruct),
+                &decodeCtrl,
+                sizeof(RW::DEC::NVENC::tstMyControlStruct),
+                &decodeDeinitCtrl,
+                sizeof(RW::DEC::NVENC::tstMyDeinitialiseControlStruct),
+                RW::CORE::tenSubModule::nenDecoder_NVIDIA) != RW::tenStatus::nenSuccess)
+                file_logger->error("nenDecoder_NVIDIA couldn't build correct");
 
 
-            ////---- Use COLOR_NV12TORGB to convert the DEC\NVENC output into RGB ----
-            //RW::IMP::COLOR_NV12TORGB::tstMyInitialiseControlStruct impColor420InitialiseControlStruct;
-            //{
-            //    impColor420InitialiseControlStruct.nHeight = decodeInitCtrl.inputParams->nHeight;
-            //    impColor420InitialiseControlStruct.nWidth = decodeInitCtrl.inputParams->nWidth;
-            //}
-            //RW::IMP::COLOR_NV12TORGB::tstMyControlStruct impColor420ControlStruct;
-            //RW::IMP::COLOR_NV12TORGB::tstMyDeinitialiseControlStruct impColor420DeinitialiseControlStruct;
+            //---- Use COLOR_NV12TORGB to convert the DEC\NVENC output into RGB ----
+            RW::IMP::COLOR_NV12TORGB::tstMyInitialiseControlStruct impColor420InitialiseControlStruct;
+            {
+                impColor420InitialiseControlStruct.nHeight = decodeInitCtrl.inputParams->nHeight;
+                impColor420InitialiseControlStruct.nWidth = decodeInitCtrl.inputParams->nWidth;
+            }
+            RW::IMP::COLOR_NV12TORGB::tstMyControlStruct impColor420ControlStruct;
+            RW::IMP::COLOR_NV12TORGB::tstMyDeinitialiseControlStruct impColor420DeinitialiseControlStruct;
 
-            //if (builder.BuildNode(&kernelManager,
-            //    &impColor420InitialiseControlStruct,
-            //    iParentIndex++,
-            //    sizeof(RW::IMP::COLOR_NV12TORGB::tstMyInitialiseControlStruct),
-            //    &impColor420ControlStruct,
-            //    sizeof(RW::IMP::COLOR_NV12TORGB::tstMyControlStruct),
-            //    &impColor420DeinitialiseControlStruct,
-            //    sizeof(RW::IMP::COLOR_NV12TORGB::tstMyDeinitialiseControlStruct),
-            //    RW::CORE::tenSubModule::nenGraphic_ColorNV12ToRGB) != RW::tenStatus::nenSuccess)
-            //    file_logger->error("nenGraphic_ColorYUV420ToRGB couldn't build correct");
+            if (builder.BuildNode(&kernelManager,
+                &impColor420InitialiseControlStruct,
+                iParentIndex++,
+                sizeof(RW::IMP::COLOR_NV12TORGB::tstMyInitialiseControlStruct),
+                &impColor420ControlStruct,
+                sizeof(RW::IMP::COLOR_NV12TORGB::tstMyControlStruct),
+                &impColor420DeinitialiseControlStruct,
+                sizeof(RW::IMP::COLOR_NV12TORGB::tstMyDeinitialiseControlStruct),
+                RW::CORE::tenSubModule::nenGraphic_ColorNV12ToRGB) != RW::tenStatus::nenSuccess)
+                file_logger->error("nenGraphic_ColorYUV420ToRGB couldn't build correct");
 
             RW::VPL::QT_SIMPLE::tstMyInitialiseControlStruct playerInitCtrl;
             {
@@ -161,6 +164,7 @@ int CPipeline::RunPipeline()
                 sizeof(RW::VPL::QT_SIMPLE::tstMyDeinitialiseControlStruct),
                 RW::CORE::tenSubModule::nenPlayback_Simple) != RW::tenStatus::nenSuccess)
                 file_logger->error("nenPlayback_Simple couldn't build correct");
+#endif
 
             uint32_t count = 0;
             RW::tenStatus res = RW::tenStatus::nenSuccess;
@@ -169,7 +173,7 @@ int CPipeline::RunPipeline()
 #ifdef TRACE_PERFORMANCE
                 RW::CORE::HighResClock::time_point  tAfterInit = RW::CORE::HighResClock::now();
 #endif
-                for (uint16_t u16Index = 0; u16Index < 464; u16Index++)
+                for (uint16_t u16Index = 0; u16Index < 2000; u16Index++)
                 {
                     res = graph.ScheduleGraph();
                     if (res == RW::tenStatus::nenSuccess)
@@ -189,6 +193,19 @@ int CPipeline::RunPipeline()
 #ifdef TRACE_PERFORMANCE
                     t2 = RW::CORE::HighResClock::now();
                     file_logger->trace() << "Graph execution: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << " ms.";
+
+                    MEMORYSTATUSEX statex;
+                    statex.dwLength = sizeof(statex);
+                    GlobalMemoryStatusEx(&statex);
+                    long lDIV = 1048576;
+                    file_logger->trace() << "There are Memory load Mbytes: " << statex.dwMemoryLoad / lDIV;
+                    file_logger->trace() << "There are total Mbytes of physical memory: " << statex.ullTotalPhys / lDIV;
+                    file_logger->trace() << "There are total Mbytes of virtual memory: " << statex.ullTotalVirtual / lDIV;
+                    file_logger->trace() << "There are available Mbytes of physical memory: " << statex.ullAvailPhys / lDIV;
+                    file_logger->trace() << "There are available Mbytes of virtual memory: " << statex.ullAvailVirtual / lDIV;
+                    file_logger->trace() << "There are occupied Mbytes of physical memory: " << (statex.ullTotalPhys - statex.ullAvailPhys) / lDIV;
+                    file_logger->trace() << "There are occupied Mbytes of virtual memory: " << (statex.ullTotalVirtual - statex.ullAvailVirtual) / lDIV;
+
 #endif
                     count++;
                 }
