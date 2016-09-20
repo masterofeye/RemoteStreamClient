@@ -464,8 +464,47 @@ namespace RW{
                 return MFX_ERR_NONE;
             }
 
-            mfxStatus CDecodingPipeline::CreateHWDevice()
-            {
+			std::vector <IDXGIAdapter*> EnumerateAdapters(void)
+			{
+				IDXGIAdapter * pAdapter;
+				std::vector <IDXGIAdapter*> vAdapters;
+				IDXGIFactory* pFactory = NULL;
+
+
+				// Create a DXGIFactory object.
+				if (FAILED(CreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&pFactory)))
+				{
+					return vAdapters;
+				}
+
+
+				for (UINT i = 0;
+					pFactory->EnumAdapters(i, &pAdapter) != DXGI_ERROR_NOT_FOUND;
+					++i)
+				{
+					vAdapters.push_back(pAdapter);
+				}
+
+
+				if (pFactory)
+				{
+					pFactory->Release();
+				}
+
+				return vAdapters;
+
+			}
+
+			mfxStatus CDecodingPipeline::CreateHWDevice()
+			{
+				for (IDXGIAdapter* pAdapter : EnumerateAdapters())
+				{
+					DXGI_ADAPTER_DESC desc;
+					pAdapter->GetDesc(&desc);
+					//m_Logger->trace(desc.Description);
+					OutputDebugStringW(desc.Description);
+				}
+
 #if D3D_SURFACES_SUPPORT
                 mfxStatus sts = MFX_ERR_NONE;
 
