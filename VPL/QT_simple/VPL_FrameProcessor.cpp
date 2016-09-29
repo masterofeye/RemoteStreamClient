@@ -89,8 +89,8 @@ namespace RW
                         uint32_t u32FrameNbr = pMsg->u32FrameNbr;
 
                         SAFE_DELETE_ARRAY(data->pPayload->pBuffer);
-                        SAFE_DELETE(data->pPayload);
                     }
+                    SAFE_DELETE(data->pPayload);
                 }
 
                 //// only used for Qt::QueuedConnection since this is enableing assynchronous threads using copies of the parameters

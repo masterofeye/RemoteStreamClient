@@ -41,7 +41,7 @@ namespace RW{
                 virtual tenStatus Deinitialise(CORE::tstDeinitialiseControlStruct *DeinitialiseControlStruct) Q_DECL_OVERRIDE;
 
             private:
-                CDecodingPipeline   *m_pPipeline; // pipeline for decoding
+				std::unique_ptr<CDecodingPipeline> m_pPipeline; // pipeline for decoding
 
             };
         }

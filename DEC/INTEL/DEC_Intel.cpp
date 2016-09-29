@@ -39,18 +39,13 @@ namespace RW{
             }
 
             DEC_Intel::DEC_Intel(std::shared_ptr<spdlog::logger> Logger) :
-                RW::CORE::AbstractModule(Logger)
-            {
-                m_pPipeline = new CDecodingPipeline(Logger);
+                RW::CORE::AbstractModule(Logger),
+				m_pPipeline(new CDecodingPipeline(Logger))
+			{
             }
 
             DEC_Intel::~DEC_Intel()
             {
-                if (m_pPipeline)
-                {
-                    delete m_pPipeline;
-                    m_pPipeline = nullptr;
-                }
             }
 
             CORE::tstModuleVersion DEC_Intel::ModulVersion() {

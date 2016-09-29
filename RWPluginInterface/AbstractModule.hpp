@@ -14,7 +14,7 @@
 #endif // SAFE_DELETE_ARRAY
 
 namespace RW{
-
+	// TODO: typedef std::vector<unsigned char> verwenden?
     typedef struct stBitStream
     {
         void *pBuffer;
