@@ -1,8 +1,11 @@
 #include "Pipeline.hpp"
+#include <io.h>
+#include <fcntl.h>
 
 
 int main(int argc, char* argv[])
 {
+	_setmode(_fileno(stdout), _O_BINARY);
     auto file_logger = spdlog::stdout_logger_mt("file_logger");
     //auto file_logger = spdlog::rotating_logger_mt("file_logger", (qApp->applicationDirPath() + "/logfile.log").toStdString(), 1048576 * 5, 3);
     file_logger->debug("******************");
