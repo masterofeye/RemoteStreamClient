@@ -538,6 +538,7 @@ namespace RW{
             {
                 if (m_hwdev)
                     return m_hwdev->Reset();
+				return MFX_ERR_NULL_PTR;
             }
 
             mfxStatus CDecodingPipeline::AllocFrames()
