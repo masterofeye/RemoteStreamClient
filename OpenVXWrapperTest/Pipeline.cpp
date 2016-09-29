@@ -75,9 +75,11 @@ int CPipeline::RunPipeline()
 
                 // Height and Width need to be transported via Connector configuration
 
-                decodeInitCtrl.inputParams->nHeight = 720;
-                decodeInitCtrl.inputParams->nWidth = 1920;
-                decodeInitCtrl.inputParams->bCalLat = false;
+				//decodeInitCtrl.inputParams->nWidth = 1920;
+				//decodeInitCtrl.inputParams->nHeight = 720;
+				decodeInitCtrl.inputParams->nWidth = 640;
+				decodeInitCtrl.inputParams->nHeight = 480;
+				decodeInitCtrl.inputParams->bCalLat = false;
                 decodeInitCtrl.inputParams->bLowLat = false;
                 decodeInitCtrl.inputParams->bUseHWLib = false;
                 //decodeInitCtrl.inputParams->memType = RW::DEC::INTEL::D3D9_MEMORY;
@@ -146,6 +148,7 @@ int CPipeline::RunPipeline()
                 sizeof(RW::IMP::COLOR_NV12TORGB::tstMyDeinitialiseControlStruct),
                 RW::CORE::tenSubModule::nenGraphic_ColorNV12ToRGB) != RW::tenStatus::nenSuccess)
                 file_logger->error("nenGraphic_ColorYUV420ToRGB couldn't build correct");
+#endif
 
             RW::VPL::QT_SIMPLE::tstMyInitialiseControlStruct playerInitCtrl;
             {
@@ -164,7 +167,6 @@ int CPipeline::RunPipeline()
                 sizeof(RW::VPL::QT_SIMPLE::tstMyDeinitialiseControlStruct),
                 RW::CORE::tenSubModule::nenPlayback_Simple) != RW::tenStatus::nenSuccess)
                 file_logger->error("nenPlayback_Simple couldn't build correct");
-#endif
 
             uint32_t count = 0;
             RW::tenStatus res = RW::tenStatus::nenSuccess;
@@ -173,7 +175,7 @@ int CPipeline::RunPipeline()
 #ifdef TRACE_PERFORMANCE
                 RW::CORE::HighResClock::time_point  tAfterInit = RW::CORE::HighResClock::now();
 #endif
-                for (uint16_t u16Index = 0; u16Index < 2000; u16Index++)
+                for (uint16_t u16Index = 0; u16Index < 500; u16Index++)
                 {
                     res = graph.ScheduleGraph();
                     if (res == RW::tenStatus::nenSuccess)
@@ -198,7 +200,7 @@ int CPipeline::RunPipeline()
                     statex.dwLength = sizeof(statex);
                     GlobalMemoryStatusEx(&statex);
                     long lDIV = 1048576;
-                    file_logger->trace() << "There are Memory load Mbytes: " << statex.dwMemoryLoad / lDIV;
+                    file_logger->trace() << "There are Memory load Mbytes: " << statex.dwMemoryLoad << "%";
                     file_logger->trace() << "There are total Mbytes of physical memory: " << statex.ullTotalPhys / lDIV;
                     file_logger->trace() << "There are total Mbytes of virtual memory: " << statex.ullTotalVirtual / lDIV;
                     file_logger->trace() << "There are available Mbytes of physical memory: " << statex.ullAvailPhys / lDIV;

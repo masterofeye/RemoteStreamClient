@@ -497,6 +497,7 @@ namespace RW{
 
 			mfxStatus CDecodingPipeline::CreateHWDevice()
 			{
+#ifdef _DEBUG
 				for (IDXGIAdapter* pAdapter : EnumerateAdapters())
 				{
 					DXGI_ADAPTER_DESC desc;
@@ -504,6 +505,7 @@ namespace RW{
 					//m_Logger->trace(desc.Description);
 					OutputDebugStringW(desc.Description);
 				}
+#endif
 
 #if D3D_SURFACES_SUPPORT
                 mfxStatus sts = MFX_ERR_NONE;
@@ -999,11 +1001,19 @@ namespace RW{
                     return MFX_ERR_UNSUPPORTED;
                 }
 
-                //FILE *pFile1;
-                //pFile1 = fopen("c:\\dummy\\dummy.raw", "wb+");
-                //mfxU32 shouldbesize = 1920 * 720 * 4;
-                //fwrite((uchar*)m_pOutput->pBuffer, 1, m_pOutput->u32Size, pFile1);
-                //fclose(pFile1);
+#if 1
+				if (FILE *pFile = fopen("c:\\dummy\\dummy_frame.raw", "wb"))
+				{
+					const void* ptr = MSDK_MIN(MSDK_MIN(frame->Data.R, frame->Data.G), frame->Data.B);
+					fwrite(ptr, frame->Info.Height, frame->Data.Pitch, pFile);
+					fclose(pFile);
+				}
+				if (FILE *pFile = fopen("c:\\dummy\\dummy_copy.raw", "wb"))
+				{
+					fwrite(m_pOutput->pBuffer, 1, m_pOutput->u32Size, pFile);
+					fclose(pFile);
+				}
+#endif
 
                 return MFX_ERR_NONE;
             }
@@ -1438,12 +1448,16 @@ namespace RW{
                 return pPayload;
             }
 
-            void CDecodingPipeline::PrintInfo()
-            {
-                mfxFrameInfo Info = m_mfxVideoParams.mfx.FrameInfo;
-                mfxF64 dFrameRate = CalculateFrameRate(Info.FrameRateExtN, Info.FrameRateExtD);
-                const char* sMemType = m_memType == D3D9_MEMORY ? "d3d"
-                    : (m_memType == D3D11_MEMORY ? "d3d11" : "system");
+			void CDecodingPipeline::PrintInfo()
+			{
+				mfxFrameInfo Info = m_mfxVideoParams.mfx.FrameInfo;
+				mfxF64 dFrameRate = CalculateFrameRate(Info.FrameRateExtN, Info.FrameRateExtD);
+				const char* sMemType = m_memType == D3D9_MEMORY ? "d3d"
+					: (m_memType == D3D11_MEMORY ? "d3d11" : "system");
+
+				char inFormat[5] = "", outFormat[5] = "";
+				memcpy(inFormat, &m_mfxVideoParams.mfx.CodecId, 4);
+				memcpy(outFormat, &m_mfxVideoParams.mfx.FrameInfo.FourCC, 4);
 
                 mfxIMPL impl;
                 m_mfxSession.QueryIMPL(&impl);
@@ -1455,8 +1469,8 @@ namespace RW{
                     : (MFX_IMPL_HARDWARE & m_impl) ? "hw" : "sw";
 
                 m_Logger->debug("CDecodingPipeline::PrintInfo ") \
-                    << "\n Input video CodecID  = " << m_mfxVideoParams.mfx.CodecId \
-                    << "\n Output format        = " << m_mfxVideoParams.mfx.FrameInfo.FourCC \
+					<< "\n Input video CodecID  = " << m_mfxVideoParams.mfx.CodecId << " (" << inFormat << ")" \
+                    << "\n Output format        = " << m_mfxVideoParams.mfx.FrameInfo.FourCC << " (" << outFormat << ")" \
                     << "\n Resolution           = " << Info.Width << " x " << Info.Height \
                     << "\n Crop X,Y,W,H         = " << Info.CropX << ", " << Info.CropY << ", " << Info.CropW << ", " << Info.CropH \
                     << "\n Frame rate           = " << dFrameRate \

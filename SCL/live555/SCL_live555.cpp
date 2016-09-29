@@ -112,17 +112,21 @@ namespace RW
                     return enStatus;
                 }
 
-                char* filename = new char[64];
-                sprintf(filename, "c:\\dummy\\Server_NVENC\\SSR_output_%04d.264", m_iCount);
-                //sprintf(filename, "c:\\dummy\\Server_Intel\\SSR_output_%04d.264", m_iCount);
-                FILE *pFile;
-                errno_t err = fopen_s(&pFile, filename, "rb");
-                if (err)
+				//const char *pattern = "c:\\dummy\\Server_NVENC\\SSR_output_%04d.264";
+				//const char *pattern = "c:\\dummy\\Server_Intel\\SSR_output_%04d.264";
+				const char *pattern = "c:\\dummy\\SSR_output_%04d.264";
+
+				QString filename;
+				filename.sprintf(pattern, m_iCount++);
+				FILE *pFile = nullptr;
+				if (fopen_s(&pFile, filename.toLocal8Bit(), "rb"))
                 {
+					// Restart...
                     m_iCount = 0;
-                    sprintf(filename, "c:\\dummy\\Server_NVENC\\SSR_output_%04d.264", m_iCount);
-                    fopen_s(&pFile, filename, "rb");
-                }
+					filename.sprintf(pattern, m_iCount++);
+					fopen_s(&pFile, filename.toLocal8Bit(), "rb");
+				}
+
                 if (!pFile)
                 {
                     m_Logger->error("SCL_live555::DoRender: File did not load!");
@@ -146,8 +150,6 @@ namespace RW
                     return tenStatus::nenError;
                 }
                 fclose(pFile);
-
-                delete[] filename;
 
                 data->pstBitStream = new RW::tstBitStream();
                 data->pstBitStream->pBuffer = buffer;

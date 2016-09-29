@@ -49,10 +49,12 @@ namespace RW
             {
                 RW::tstBitStream *ptr = (RW::tstBitStream*)buffer;
 
-                //FILE *pFile;
-                //fopen_s(&pFile, "c:\\dummy\\outViewer.raw", "wb");
-                //fwrite((uint8_t *)ptr->pBuffer, 1, _width*_height * 4, pFile);
-                //fclose(pFile);
+#if 1
+                FILE *pFile;
+                fopen_s(&pFile, "c:\\dummy\\outViewer.raw", "wb");
+                fwrite((uint8_t *)ptr->pBuffer, 1, _width*_height * 4, pFile);
+                fclose(pFile);
+#endif
 
                 QImage img((uint8_t *)ptr->pBuffer, _width, _height, _format);
 
