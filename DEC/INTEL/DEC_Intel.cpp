@@ -140,7 +140,10 @@ namespace RW{
                         if (!data->pOutput)
                             m_Logger->error("DEC_Intel::DoRender: GetOutput failed!");
 
-                        break;
+						static int counter;
+						WriteBufferToFile(data->pOutput->pBuffer, data->pOutput->u32Size, "DEC", counter);
+
+						break;
                     }
                     else if (MFX_ERR_INCOMPATIBLE_VIDEO_PARAM == sts || MFX_ERR_DEVICE_LOST == sts || MFX_ERR_DEVICE_FAILED == sts || data->pOutput == nullptr)
                     {

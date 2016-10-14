@@ -51,7 +51,9 @@ namespace RW
 
 #if 1
                 FILE *pFile;
-                fopen_s(&pFile, "c:\\dummy\\outViewer.raw", "wb");
+                char* filename = new char[64];
+                sprintf(filename, "c:\\dummy\\VPL_output_%04d.raw", _count);
+                fopen_s(&pFile, filename, "wb");
                 fwrite((uint8_t *)ptr->pBuffer, 1, _width*_height * 4, pFile);
                 fclose(pFile);
 #endif

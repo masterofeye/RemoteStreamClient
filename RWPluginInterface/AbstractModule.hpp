@@ -4,6 +4,7 @@
 #include <QtPlugin>
 #include <Utils.h>
 #include "spdlog\spdlog.h"
+#include "../OpenVXWrapperTest/Pipeline_Config.h"
 
 #ifndef SAFE_DELETE
 #define SAFE_DELETE(P) {if (P) {delete P; P = nullptr;}}
@@ -32,6 +33,22 @@ namespace RW{
         uint8_t  u8CANSignal2;
         uint8_t  u8CANSignal3;
     }tstPayloadMsg;
+
+
+	inline void WriteBufferToFile(const void* pBuf, size_t size, const char* prefix, int& counter)
+	{
+#ifdef TEST
+		QString filename;
+		FILE *pFile;
+		filename.sprintf("c:\\dummy\\%s_%04d.raw", prefix, counter);
+		if (fopen_s(&pFile, filename.toLocal8Bit(), "wb") == 0)
+		{
+			fwrite(pBuf, size, 1, pFile);
+			fclose(pFile);
+		}
+		counter++;
+#endif
+	}
 
     namespace CORE{
 		

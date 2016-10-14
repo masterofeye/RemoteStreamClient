@@ -497,6 +497,7 @@ namespace RW{
 
 			mfxStatus CDecodingPipeline::CreateHWDevice()
 			{
+#if 0
 #ifdef _DEBUG
 				for (IDXGIAdapter* pAdapter : EnumerateAdapters())
 				{
@@ -506,7 +507,7 @@ namespace RW{
 					OutputDebugStringW(desc.Description);
 				}
 #endif
-
+#endif
 #if D3D_SURFACES_SUPPORT
                 mfxStatus sts = MFX_ERR_NONE;
 
@@ -1001,7 +1002,7 @@ namespace RW{
                     return MFX_ERR_UNSUPPORTED;
                 }
 
-#if 1
+#if 0
 				if (FILE *pFile = fopen("c:\\dummy\\dummy_frame.raw", "wb"))
 				{
 					const void* ptr = MSDK_MIN(MSDK_MIN(frame->Data.R, frame->Data.G), frame->Data.B);

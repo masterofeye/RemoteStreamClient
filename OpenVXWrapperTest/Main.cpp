@@ -25,8 +25,8 @@ int main(int argc, char* argv[])
 
     QApplication app(argc, argv);
     RW::VPL::QT_SIMPLE::VPL_Viewer qViewer;
-	//qViewer.setParams(1920, 720);
-	qViewer.setParams(640, 480);
+	qViewer.setParams(1920, 720);
+	//qViewer.setParams(640, 480);
     QImage::Format format;
 #ifdef DEC_INTEL
     format = QImage::Format::Format_RGBX8888;

@@ -75,10 +75,10 @@ int CPipeline::RunPipeline()
 
                 // Height and Width need to be transported via Connector configuration
 
-				//decodeInitCtrl.inputParams->nWidth = 1920;
-				//decodeInitCtrl.inputParams->nHeight = 720;
-				decodeInitCtrl.inputParams->nWidth = 640;
-				decodeInitCtrl.inputParams->nHeight = 480;
+				decodeInitCtrl.inputParams->nWidth = 1920;
+				decodeInitCtrl.inputParams->nHeight = 720;
+				//decodeInitCtrl.inputParams->nWidth = 640;
+				//decodeInitCtrl.inputParams->nHeight = 480;
 				decodeInitCtrl.inputParams->bCalLat = false;
                 decodeInitCtrl.inputParams->bLowLat = false;
                 decodeInitCtrl.inputParams->bUseHWLib = false;
@@ -175,7 +175,7 @@ int CPipeline::RunPipeline()
 #ifdef TRACE_PERFORMANCE
                 RW::CORE::HighResClock::time_point  tAfterInit = RW::CORE::HighResClock::now();
 #endif
-                for (uint16_t u16Index = 0; u16Index < 500; u16Index++)
+                for (uint16_t u16Index = 0; u16Index < 50; u16Index++)
                 {
                     res = graph.ScheduleGraph();
                     if (res == RW::tenStatus::nenSuccess)
