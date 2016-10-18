@@ -117,13 +117,13 @@ namespace RW
 				const char *pattern = "c:\\dummy\\SSR_output_%04d.264";
 
 				QString filename;
-				filename.sprintf(pattern, m_iCount++);
+				filename.sprintf(pattern, m_iCount);
 				FILE *pFile = nullptr;
 				if (fopen_s(&pFile, filename.toLocal8Bit(), "rb"))
                 {
 					// Restart...
                     m_iCount = 0;
-					filename.sprintf(pattern, m_iCount++);
+					filename.sprintf(pattern, m_iCount);
 					fopen_s(&pFile, filename.toLocal8Bit(), "rb");
 				}
 
@@ -132,6 +132,11 @@ namespace RW
                     m_Logger->error("SCL_live555::DoRender: File did not load!");
                     return tenStatus::nenError;
                 }
+				else
+				{
+					m_Logger->debug() << "SCL_live555::DoRender: File loaded: " << filename.toLocal8Bit().data();
+				}
+
                 // obtain file size:
                 fseek(pFile, 0, SEEK_END);
                 // Size of one frame

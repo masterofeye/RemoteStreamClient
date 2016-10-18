@@ -1,5 +1,8 @@
 #pragma once
 
 #define CLIENT
+
 #define DEC_INTEL
-//#define TEST
+//#define DEC_NVENC
+
+#define TEST
