@@ -183,7 +183,7 @@ namespace RW
                 memset(&packet, 0, sizeof(CUVIDSOURCEDATAPACKET));
                 packet.payload_size = data->pstEncodedStream->u32Size;
                 packet.payload = (unsigned char*)data->pstEncodedStream->pBuffer;
-                packet.flags = CUVID_PKT_ENDOFSTREAM;
+                //packet.flags = CUVID_PKT_ENDOFSTREAM;
                 CUresult oResult = cuvidParseVideoData(g_pVideoParser->hParser_, &packet);
                 if ((packet.flags & CUVID_PKT_ENDOFSTREAM) || (oResult != CUDA_SUCCESS))
                     g_pFrameQueue->endDecode();
@@ -200,9 +200,9 @@ namespace RW
                 while (!g_pFrameQueue->isEmpty())
                 {
                     renderVideoFrame();
-                }
+					data->pOutput = g_pFrameYUV;
+				}
 
-                data->pOutput = g_pFrameYUV;
 
                 //FILE *pFile;
                 //pFile = fopen("c:\\dummy\\decoded.raw", "wb");
@@ -398,6 +398,12 @@ namespace RW
                         g_pFrameQueue->releaseFrame(&oDisplayInfo);
                         g_DecodeFrameCount++;
 
+#ifdef TEST
+						static int counter;
+						std::vector<char> mem(g_nDecodedPitch * g_nVideoHeight * 3 / 2);
+						result = cuMemcpyDtoH(mem.data(), g_pFrameYUV, mem.size());
+						WriteBufferToFile(mem.data(), mem.size(), "DEC", counter);
+#endif
                     }
 
                     // Detach from the Current thread
