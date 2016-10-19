@@ -12,8 +12,8 @@
     <ClCompile Include="ConvColor_NV12toRGB\IMP_ConvColorFramesNV12ToRGB.cpp">
       <Filter>ConvColor_NV12toRGB</Filter>
     </ClCompile>
-    <ClCompile Include="ConvColor_BGRtoYUV420\IMP_ConvColorFramesBGRToYUV420.cpp">
-      <Filter>ConvColor_BGRtoYUV420</Filter>
+    <ClCompile Include="ConvColor_BGRtoNV12\IMP_ConvColorFramesBGRToNV12.cpp">
+      <Filter>ConvColor_BGRtoNV12</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -29,8 +29,8 @@
     <ClInclude Include="ConvColor_NV12toRGB\IMP_ConvColorFramesNV12ToRGB.hpp">
       <Filter>ConvColor_NV12toRGB</Filter>
     </ClInclude>
-    <ClInclude Include="ConvColor_BGRtoYUV420\IMP_ConvColorFramesBGRToYUV420.hpp">
-      <Filter>ConvColor_BGRtoYUV420</Filter>
+    <ClInclude Include="ConvColor_BGRtoNV12\IMP_ConvColorFramesBGRToNV12.hpp">
+      <Filter>ConvColor_BGRtoNV12</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -43,7 +43,7 @@
     <Filter Include="ConvColor_NV12toRGB">
       <UniqueIdentifier>{191b1a4b-7349-4f64-abc5-06f4089f1b53}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ConvColor_BGRtoYUV420">
+    <Filter Include="ConvColor_BGRtoNV12">
       <UniqueIdentifier>{3356903a-22fe-4e2f-a16b-68e7f6d65769}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -54,7 +54,8 @@
     <CudaCompile Include="ConvColor_NV12toRGB\IMP_NV12To444.cu">
       <Filter>ConvColor_NV12toRGB</Filter>
     </CudaCompile>
-    <CudaCompile Include="IMP_444To420.cu" />
-    <CudaCompile Include="IMP_444ToNV12.cu" />
+    <CudaCompile Include="ConvColor_BGRtoNV12\IMP_444ToNV12.cu">
+      <Filter>ConvColor_BGRtoNV12</Filter>
+    </CudaCompile>
   </ItemGroup>
 </Project>

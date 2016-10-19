@@ -1,4 +1,4 @@
-#include "..\ConvColor_BGRtoYUV420\IMP_ConvColorFramesBGRToYUV420.hpp"
+#include "..\ConvColor_BGRtoNV12\IMP_ConvColorFramesBGRToNV12.hpp"
 #include "..\Crop\IMP_CropFrames.hpp"
 #include "opencv2\opencv.hpp"
 #include "opencv2\cudev\common.hpp"
@@ -10,15 +10,15 @@
 
 namespace RW{
 	namespace IMP{
-		namespace COLOR_BGRTOYUV
+		namespace COLOR_BGRTONV12
 		{
-			IMP_ConvColorFramesBGRToYUV::IMP_ConvColorFramesBGRToYUV(std::shared_ptr<spdlog::logger> Logger) :
+			IMP_ConvColorFramesBGRToNV12::IMP_ConvColorFramesBGRToNV12(std::shared_ptr<spdlog::logger> Logger) :
 				RW::CORE::AbstractModule(Logger)
 			{
 			}
 
 
-			IMP_ConvColorFramesBGRToYUV::~IMP_ConvColorFramesBGRToYUV()
+			IMP_ConvColorFramesBGRToNV12::~IMP_ConvColorFramesBGRToNV12()
 			{
 			}
 
@@ -85,17 +85,17 @@ namespace RW{
 				}
             }
 
-			CORE::tstModuleVersion IMP_ConvColorFramesBGRToYUV::ModulVersion() {
+			CORE::tstModuleVersion IMP_ConvColorFramesBGRToNV12::ModulVersion() {
 				CORE::tstModuleVersion version = { 0, 1 };
 				return version;
 			}
 
-			CORE::tenSubModule IMP_ConvColorFramesBGRToYUV::SubModulType()
+			CORE::tenSubModule IMP_ConvColorFramesBGRToNV12::SubModulType()
 			{
-                return CORE::tenSubModule::nenGraphic_ColorBGRToYUV;
+                return CORE::tenSubModule::nenGraphic_ColorBGRToNV12;
 			}
 
-			tenStatus IMP_ConvColorFramesBGRToYUV::Initialise(CORE::tstInitialiseControlStruct * InitialiseControlStruct)
+			tenStatus IMP_ConvColorFramesBGRToNV12::Initialise(CORE::tstInitialiseControlStruct * InitialiseControlStruct)
 			{
 				m_Logger->debug("Initialise nenGraphic_Color");
 #ifdef TRACE_PERFORMANCE
@@ -109,7 +109,7 @@ namespace RW{
 				return tenStatus::nenSuccess;
 			}
 
-			tenStatus IMP_ConvColorFramesBGRToYUV::DoRender(CORE::tstControlStruct * ControlStruct)
+			tenStatus IMP_ConvColorFramesBGRToNV12::DoRender(CORE::tstControlStruct * ControlStruct)
 			{
 				tenStatus enStatus = tenStatus::nenSuccess;
 
@@ -143,9 +143,9 @@ namespace RW{
 				return enStatus;
 			}
 
-			tenStatus IMP_ConvColorFramesBGRToYUV::Deinitialise(CORE::tstDeinitialiseControlStruct *DeinitialiseControlStruct)
+			tenStatus IMP_ConvColorFramesBGRToNV12::Deinitialise(CORE::tstDeinitialiseControlStruct *DeinitialiseControlStruct)
 			{
-				m_Logger->debug("Deinitialise nenGraphic_ColorBGRToYUV");
+				m_Logger->debug("Deinitialise nenGraphic_ColorBGRToNV12");
 #ifdef TRACE_PERFORMANCE
 				RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
 #endif

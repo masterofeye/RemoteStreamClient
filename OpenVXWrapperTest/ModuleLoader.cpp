@@ -95,7 +95,7 @@ namespace RW{
                                 }
                             }
                             {
-                                module = moduleFactory->Module(tenSubModule::nenGraphic_ColorBGRToYUV);
+                                module = moduleFactory->Module(tenSubModule::nenGraphic_ColorBGRToNV12);
                                 if (module == nullptr)
                                     m_Logger->error("nenGraphic_ColorBGRToYUV module coudn't load correct.");
                                 else

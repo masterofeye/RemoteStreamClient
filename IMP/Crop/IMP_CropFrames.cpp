@@ -1,7 +1,7 @@
 #include "IMP_CropFrames.hpp"
 #include "opencv2/cudev/common.hpp"
 #include "..\Merge\IMP_MergeFrames.hpp"
-#include "..\ConvColor_BGRtoYUV420\IMP_ConvColorFramesBGRToYUV420.hpp"
+#include "..\ConvColor_BGRtoNV12\IMP_ConvColorFramesBGRToNV12.hpp"
 #if defined (SERVER)
 #include "..\..\ENC\NVENC\ENC_CudaInterop.hpp"
 #include "..\..\ENC\Intel\ENC_Intel.hpp"
@@ -28,9 +28,9 @@ namespace RW{
                     data->pOutput = nullptr;
 					break;
 				}
-				case CORE::tenSubModule::nenGraphic_ColorBGRToYUV:
+				case CORE::tenSubModule::nenGraphic_ColorBGRToNV12:
 				{
-					IMP::COLOR_BGRTOYUV::tstMyControlStruct *data = static_cast<IMP::COLOR_BGRTOYUV::tstMyControlStruct*>(*Data);
+					auto* data = static_cast<IMP::COLOR_BGRTONV12::tstMyControlStruct*>(*Data);
                     data->pData = this->pvOutput->at(0);
 
                     uint8_t count = 0;
@@ -53,7 +53,7 @@ namespace RW{
                         printf("RW::IMP::CROP::stMyControlStruct::UpdateData case CORE::tenSubModule::nenEncode_NVIDIA: cudaMallocPitch failed!");
 
                     IMP::IMP_Base imp;
-                    tenStatus enStatus = imp.GpuMatToGpuYUV(this->pvOutput->at(0), &arrYUV);
+                    tenStatus enStatus = imp.GpuMatToGpuNV12(this->pvOutput->at(0), &arrYUV);
                     if (enStatus != tenStatus::nenSuccess)
                         printf("RW::IMP::CROP::stMyControlStruct::UpdateData case CORE::tenSubModule::nenEncode_NVIDIA: GpuMatToGpuYUV failed!");
 

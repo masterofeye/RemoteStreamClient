@@ -130,20 +130,20 @@ int CPipeline::RunPipeline()
 #endif
 #endif
 
-            RW::IMP::COLOR_BGRTOYUV::tstMyInitialiseControlStruct impColorInitialiseControlStruct;
-            RW::IMP::COLOR_BGRTOYUV::tstMyControlStruct impColorControlStruct;
-            RW::IMP::COLOR_BGRTOYUV::tstMyDeinitialiseControlStruct impColorDeinitialiseControlStruct;
+            RW::IMP::COLOR_BGRTONV12::tstMyInitialiseControlStruct impColorInitialiseControlStruct;
+            RW::IMP::COLOR_BGRTONV12::tstMyControlStruct impColorControlStruct;
+            RW::IMP::COLOR_BGRTONV12::tstMyDeinitialiseControlStruct impColorDeinitialiseControlStruct;
 
             if (builder.BuildNode(&kernelManager,
                 &impColorInitialiseControlStruct,
                 iParentIndex++,
-                sizeof(RW::IMP::COLOR_BGRTOYUV::tstMyInitialiseControlStruct),
+                sizeof(RW::IMP::COLOR_BGRTONV12::tstMyInitialiseControlStruct),
                 &impColorControlStruct,
-                sizeof(RW::IMP::COLOR_BGRTOYUV::tstMyControlStruct),
+				sizeof(RW::IMP::COLOR_BGRTONV12::tstMyControlStruct),
                 &impColorDeinitialiseControlStruct,
-                sizeof(RW::IMP::COLOR_BGRTOYUV::tstMyDeinitialiseControlStruct),
-                RW::CORE::tenSubModule::nenGraphic_ColorBGRToYUV) != RW::tenStatus::nenSuccess)
-                file_logger->error("nenGraphic_ColorBGRToYUV couldn't build correct");
+				sizeof(RW::IMP::COLOR_BGRTONV12::tstMyDeinitialiseControlStruct),
+                RW::CORE::tenSubModule::nenGraphic_ColorBGRToNV12) != RW::tenStatus::nenSuccess)
+                file_logger->error("nenGraphic_ColorBGRToNV12 couldn't build correct");
 
             long lHeight = 0, lWidth = 0;
             {

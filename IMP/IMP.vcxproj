@@ -198,7 +198,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ConvColor_BGRtoYUV420\IMP_ConvColorFramesBGRToYUV420.cpp" />
+    <ClCompile Include="ConvColor_BGRtoNV12\IMP_ConvColorFramesBGRToNV12.cpp" />
     <ClCompile Include="ConvColor_NV12toRGB\IMP_ConvColorFramesNV12ToRGB.cpp" />
     <ClCompile Include="Crop\IMP_CropFrames.cpp" />
     <ClCompile Include="IMP_Base.cpp" />
@@ -206,7 +206,7 @@
     <ClCompile Include="ModuleFactory.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ConvColor_BGRtoYUV420\IMP_ConvColorFramesBGRToYUV420.hpp" />
+    <ClInclude Include="ConvColor_BGRtoNV12\IMP_ConvColorFramesBGRToNV12.hpp" />
     <ClInclude Include="ConvColor_NV12toRGB\IMP_ConvColorFramesNV12ToRGB.hpp" />
     <ClInclude Include="Crop\IMP_CropFrames.hpp" />
     <ClInclude Include="IMP.h" />
@@ -218,9 +218,8 @@
     <None Include="IMP.json" />
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="ConvColor_BGRtoNV12\IMP_444ToNV12.cu" />
     <CudaCompile Include="ConvColor_NV12toRGB\IMP_NV12To444.cu" />
-    <CudaCompile Include="IMP_444To420.cu" />
-    <CudaCompile Include="IMP_444ToNV12.cu" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

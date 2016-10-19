@@ -20,7 +20,7 @@
 #include "Simu\VideoGrabberSimu.hpp"
 #include "Crop\IMP_CropFrames.hpp"
 #include "Merge\IMP_MergeFrames.hpp"
-#include "ConvColor_BGRtoYUV420\IMP_ConvColorFramesBGRToYUV420.hpp"
+#include "ConvColor_BGRtoNV12\IMP_ConvColorFramesBGRToNV12.hpp"
 #include "NVENC\ENC_CudaInterop.hpp"
 #include "Intel\ENC_Intel.hpp"
 #include "Intel\ENC_Intel_input.h"

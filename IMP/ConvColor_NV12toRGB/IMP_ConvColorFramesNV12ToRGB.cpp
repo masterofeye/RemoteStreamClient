@@ -10,7 +10,7 @@
 #endif
 
 // CUDA kernel
-extern "C" void IMP_NV12To444(uint8_t *pYUV420Array, uint8_t *pArrayFull, int iWidth, int iHeight, size_t pitchY);
+extern "C" void IMP_NV12To444(uint8_t *pNV12Array, uint8_t *pArrayFull, int iWidth, int iHeight, size_t pitchY);
 
 namespace RW{
     namespace IMP{

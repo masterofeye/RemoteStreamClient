@@ -6,7 +6,7 @@ namespace RW
 {
 	namespace IMP
 	{
-        namespace COLOR_BGRTOYUV
+        namespace COLOR_BGRTONV12
 		{
 			typedef struct stMyInitialiseControlStruct : public CORE::tstInitialiseControlStruct
 			{
@@ -24,7 +24,7 @@ namespace RW
 			{
 			}tstMyDeinitialiseControlStruct;
 
-			class IMP_ConvColorFramesBGRToYUV : public RW::CORE::AbstractModule
+			class IMP_ConvColorFramesBGRToNV12 : public RW::CORE::AbstractModule
 			{
 				Q_OBJECT
 
@@ -35,8 +35,8 @@ namespace RW
 
 			public:
 
-				explicit IMP_ConvColorFramesBGRToYUV(std::shared_ptr<spdlog::logger> Logger);
-				~IMP_ConvColorFramesBGRToYUV();
+				explicit IMP_ConvColorFramesBGRToNV12(std::shared_ptr<spdlog::logger> Logger);
+				~IMP_ConvColorFramesBGRToNV12();
 				virtual CORE::tenSubModule SubModulType() Q_DECL_OVERRIDE;
 				virtual CORE::tstModuleVersion ModulVersion() Q_DECL_OVERRIDE;
 				virtual tenStatus Initialise(CORE::tstInitialiseControlStruct * InitialiseControlStruct) Q_DECL_OVERRIDE;

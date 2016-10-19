@@ -2,7 +2,7 @@
 
 #include <opencv2\videoio.hpp>
 #include "opencv2\opencv.hpp"
-#include "..\IMP\ConvColor_BGRtoYUV420\IMP_ConvColorFramesBGRToYUV420.hpp"
+#include "..\IMP\ConvColor_BGRtoNV12\IMP_ConvColorFramesBGRToNV12.hpp"
 #include "..\IMP\Crop\IMP_CropFrames.hpp"
 #include "..\IMP\Merge\IMP_MergeFrames.hpp"
 #include "cuda_runtime_api.h"
@@ -47,11 +47,10 @@ namespace RW
                     data->pPayload = pPayload;
                     break;
                 }
-                case CORE::tenSubModule::nenGraphic_ColorBGRToYUV :
+                case CORE::tenSubModule::nenGraphic_ColorBGRToNV12:
                 {
-                    RW::IMP::COLOR_BGRTOYUV::tstMyControlStruct *data = static_cast<RW::IMP::COLOR_BGRTOYUV::tstMyControlStruct*>(*Data);
-                    data->pData = this->Output;
-
+                    auto* data = static_cast<RW::IMP::COLOR_BGRTONV12::tstMyControlStruct*>(*Data);
+                    data->pData = Output;
                     data->pPayload = pPayload;
                     break;
                 }
