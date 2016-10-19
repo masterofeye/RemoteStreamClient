@@ -11,10 +11,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ModuleFactory.cpp" />
-    <ClCompile Include="moc_ModuleFactory.cpp" />
-    <ClCompile Include="Simu\moc_VideoGrabberSimu.cpp">
-      <Filter>Simu</Filter>
-    </ClCompile>
     <ClCompile Include="Simu\VideoGrabberSimu.cpp">
       <Filter>Simu</Filter>
     </ClCompile>

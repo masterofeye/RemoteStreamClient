@@ -138,12 +138,9 @@
     <ClCompile Include="..\..\RemoteUtil\thirdparty\Common_NVENC\src\cudaModuleMgr.cpp" />
     <ClCompile Include="..\..\RemoteUtil\thirdparty\Common_NVENC\src\dynlink_cuda.cpp" />
     <ClCompile Include="Intel\ENC_Intel.cpp" />
-    <ClCompile Include="Intel\moc_ENC_Intel.cpp" />
     <ClCompile Include="Intel\pipeline_encode.cpp" />
-    <ClCompile Include="moc_ModuleFactory.cpp" />
     <ClCompile Include="ModuleFactory.cpp" />
     <ClCompile Include="NVENC\ENC_CudaInterop.cpp" />
-    <ClCompile Include="NVENC\moc_ENC_CudaInterop.cpp" />
     <ClCompile Include="NVENC\NvHWEncoder.cpp" />
   </ItemGroup>
   <ItemGroup>

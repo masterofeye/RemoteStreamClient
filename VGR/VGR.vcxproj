@@ -97,9 +97,7 @@
     <ClInclude Include="Simu\VideoGrabberSimu.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="moc_ModuleFactory.cpp" />
     <ClCompile Include="ModuleFactory.cpp" />
-    <ClCompile Include="Simu\moc_VideoGrabberSimu.cpp" />
     <ClCompile Include="Simu\VideoGrabberSimu.cpp" />
   </ItemGroup>
   <ItemGroup>

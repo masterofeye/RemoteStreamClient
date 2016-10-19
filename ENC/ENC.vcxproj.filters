@@ -17,18 +17,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ModuleFactory.cpp" />
-    <ClCompile Include="moc_ModuleFactory.cpp" />
     <ClCompile Include="NVENC\ENC_CudaInterop.cpp">
-      <Filter>NVENC</Filter>
-    </ClCompile>
-    <ClCompile Include="NVENC\moc_ENC_CudaInterop.cpp">
       <Filter>NVENC</Filter>
     </ClCompile>
     <ClCompile Include="NVENC\NvHWEncoder.cpp">
       <Filter>NVENC</Filter>
-    </ClCompile>
-    <ClCompile Include="Intel\moc_ENC_Intel.cpp">
-      <Filter>Intel</Filter>
     </ClCompile>
     <ClCompile Include="Intel\pipeline_encode.cpp">
       <Filter>Intel</Filter>
