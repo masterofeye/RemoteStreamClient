@@ -4,7 +4,7 @@
 #include <QtPlugin>
 #include <Utils.h>
 #include "spdlog\spdlog.h"
-#include "../OpenVXWrapperTest/Pipeline_Config.h"
+#include "Config.h"
 
 #ifndef SAFE_DELETE
 #define SAFE_DELETE(P) {if (P) {delete P; P = nullptr;}}
@@ -14,8 +14,9 @@
 #define SAFE_DELETE_ARRAY(P){if (P) delete[] P; P = nullptr;}
 #endif // SAFE_DELETE_ARRAY
 
+
 namespace RW{
-	// TODO: typedef std::vector<unsigned char> verwenden?
+
     typedef struct stBitStream
     {
         void *pBuffer;

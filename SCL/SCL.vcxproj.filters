@@ -9,10 +9,16 @@
     <ClCompile Include="live555\SCL_live555.cpp">
       <Filter>live555</Filter>
     </ClCompile>
+    <ClCompile Include="DummySink.cpp">
+      <Filter>live555</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ModuleFactory.hpp" />
     <ClInclude Include="live555\SCL_live555.hpp">
+      <Filter>live555</Filter>
+    </ClInclude>
+    <ClInclude Include="DummySink.h">
       <Filter>live555</Filter>
     </ClInclude>
   </ItemGroup>

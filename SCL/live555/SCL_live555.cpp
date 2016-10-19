@@ -12,13 +12,15 @@
 #include <liveMedia.hh>
 #include <BasicUsageEnvironment.hh>
 
+#include "C:\Projekte\RemoteStreamClient\SCL\DummySink.h"
+
 #pragma comment (lib, "Ws2_32.lib")
 #pragma comment (lib, "Mswsock.lib")
 #pragma comment (lib, "AdvApi32.lib")
 
-#ifdef TRACE_PERFORMANCE
-#include "HighResolution\HighResClock.h"
-#endif
+//#ifdef TRACE_PERFORMANCE
+//#include "HighResolution\HighResClock.h"
+//#endif
 
 namespace RW
 {
@@ -26,6 +28,10 @@ namespace RW
     {
         namespace LIVE555
         {
+			RW::CORE::HighResClock::time_point t1;
+
+			SCL_live555* SCL_live555::m_instance;
+
             void stMyControlStruct::UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType)
             {
                 switch (SubModuleType)
@@ -50,7 +56,7 @@ namespace RW
             SCL_live555::SCL_live555(std::shared_ptr<spdlog::logger> Logger)
                 : RW::CORE::AbstractModule(Logger)
             {
-
+				SCL_live555::m_instance = this;
             }
 
             SCL_live555::~SCL_live555()
@@ -82,12 +88,8 @@ namespace RW
                     enStatus = tenStatus::nenError;
                     return enStatus;
                 }
-
-
-                m_iCount = 0;
-
-
-
+				if (!m_bIsInitialised)
+					InitialiseSession();
 
 #ifdef TRACE_PERFORMANCE
                 RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
@@ -96,78 +98,114 @@ namespace RW
                 return enStatus;
             }
 
+			void SCL_live555::InitialiseSession()
+			{
+				InitialiseGroupsocks();
+				sessionState.source = H264VideoRTPSource::createNew(*m_pEnv, sessionState.m_pRtpGroupsock, 96);
+				const unsigned estimatedSessionBandwidth = 500;
+				const unsigned maxCNAMElen = 100;
+				unsigned char CNAME[maxCNAMElen + 1];
+				gethostname((char*)CNAME, maxCNAMElen);
+				CNAME[maxCNAMElen] = '\0';
+				sessionState.rtcpInstance
+					= RTCPInstance::createNew(*m_pEnv, sessionState.m_pRtcpGroupsock,
+					estimatedSessionBandwidth, CNAME,
+					NULL /* we're a client */, sessionState.source);
+				sessionState.sink = DummySink::createNew(*m_pEnv, &SCL_live555::GetDataFromSink, this);
+				m_bIsInitialised = true;
+			}
+
+			void SCL_live555::InitialiseGroupsocks()
+			{
+				TaskScheduler* scheduler = BasicTaskScheduler::createNew();
+				m_pEnv = BasicUsageEnvironment::createNew(*scheduler);
+				char const* sessionAddressStr = "232.255.42.42";
+				const unsigned short rtpPortNum = 8888;
+				const unsigned short rtcpPortNum = rtpPortNum + 1;
+				struct in_addr sessionAddress;
+				sessionAddress.s_addr = our_inet_addr(sessionAddressStr);
+				const Port rtpPort(rtpPortNum);
+				const Port rtcpPort(rtcpPortNum);
+				char* sourceAddressStr = "aaa.bbb.ccc.ddd";
+				struct in_addr sourceFilterAddress;
+				sourceFilterAddress.s_addr = our_inet_addr(sourceAddressStr);
+				sessionState.m_pRtpGroupsock = new Groupsock(*m_pEnv, sessionAddress, sourceFilterAddress, rtpPort); //todo: fix memory leaks
+				sessionState.m_pRtcpGroupsock = new  Groupsock(*m_pEnv, sessionAddress, sourceFilterAddress, rtcpPort);
+				sessionState.m_pRtcpGroupsock->changeDestinationParameters(sourceFilterAddress, 0, ~0);
+			}
+
             tenStatus SCL_live555::DoRender(CORE::tstControlStruct * ControlStruct)
             {
                 tenStatus enStatus = tenStatus::nenSuccess;
                 m_Logger->debug("DoRender nenReceive_Simple");
 #ifdef TRACE_PERFORMANCE
-                RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
+                t1 = RW::CORE::HighResClock::now();
 #endif
 
-                stMyControlStruct* data = static_cast<stMyControlStruct*>(ControlStruct);
-                if (data == nullptr)
+				dataControlStruct = static_cast<stMyControlStruct*>(ControlStruct);
+				if (dataControlStruct == nullptr)
                 {
                     m_Logger->error("DoRender: Data of stMyControlStruct is empty!");
                     enStatus = tenStatus::nenError;
                     return enStatus;
                 }
-
-				//const char *pattern = "c:\\dummy\\Server_NVENC\\SSR_output_%04d.264";
-				//const char *pattern = "c:\\dummy\\Server_Intel\\SSR_output_%04d.264";
-				const char *pattern = "c:\\dummy\\SSR_output_%04d.264";
-
-				QString filename;
-				filename.sprintf(pattern, m_iCount);
-				FILE *pFile = nullptr;
-				if (fopen_s(&pFile, filename.toLocal8Bit(), "rb"))
-                {
-					// Restart...
-                    m_iCount = 0;
-					filename.sprintf(pattern, m_iCount);
-					fopen_s(&pFile, filename.toLocal8Bit(), "rb");
-				}
-
-                if (!pFile)
-                {
-                    m_Logger->error("SCL_live555::DoRender: File did not load!");
-                    return tenStatus::nenError;
-                }
-				else
+				if (!dataControlStruct->pstBitStream)
+					dataControlStruct->pstBitStream = new RW::tstBitStream;  //todo: fix a memory leak
+				
+				bool res = StartReceiving();
+				if (res == false)
 				{
-					m_Logger->debug() << "SCL_live555::DoRender: File loaded: " << filename.toLocal8Bit().data();
+					m_Logger->error("DoRender: startPlaying failed!");
+					return tenStatus::nenError;
 				}
 
-                // obtain file size:
-                fseek(pFile, 0, SEEK_END);
-                // Size of one frame
-                long lSize = ftell(pFile);
-                rewind(pFile);
+				m_cEventLoopBreaker = 0;
+				m_pEnv->taskScheduler().doEventLoop(&m_cEventLoopBreaker);
 
-                m_Logger->info("SCL_live555::DoRender: File size to read in: ") << lSize;
-
-                // allocate memory to contain the whole file:
-                uint8_t *buffer = new uint8_t[lSize];
-                // copy the file into the buffer:
-                size_t result = fread(buffer, sizeof(uint8_t), lSize, pFile);
-                if (!buffer)
-                {
-                    m_Logger->error("SCL_live555::DoRender: Empty buffer!");
-                    return tenStatus::nenError;
-                }
-                fclose(pFile);
-
-                data->pstBitStream = new RW::tstBitStream();
-                data->pstBitStream->pBuffer = buffer;
-                data->pstBitStream->u32Size = lSize;
-
-                m_iCount++;
+				if (dataControlStruct->pstBitStream->pBuffer == NULL)
+				{
+					m_Logger->error("DoRender: buffer is empty!");
+					return tenStatus::nenError;
+				}
 
 #ifdef TRACE_PERFORMANCE
                 RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
                 m_Logger->trace() << "Time to DoRender for nenReceive_Simple module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
 #endif
+
                 return enStatus;
             }
+
+			bool SCL_live555::StartReceiving()
+			{
+				unsigned *size = &(dataControlStruct->pstBitStream->u32Size);
+				//sessionState.sink = DummySink::createNew(*m_pEnv, &SCL_live555::GetDataFromSink, this);
+				bool res = sessionState.sink->startPlaying(*sessionState.source, afterPlaying, dataControlStruct->pstBitStream->pBuffer);
+				return res;
+			}
+
+			void SCL_live555::GetDataFromSink(void* clientData, u_int8_t* buffer, unsigned size)
+			{
+				((SCL_live555*)clientData)->GetDataFromSink(buffer, size);
+			}
+
+			void SCL_live555::GetDataFromSink(u_int8_t* buffer, unsigned size)
+			{
+				dataControlStruct->pstBitStream->pBuffer = (uint8_t*)buffer;
+				dataControlStruct->pstBitStream->u32Size = size;
+				m_cEventLoopBreaker = ~0;
+				sessionState.sink->stopPlaying();
+			}
+
+			void SCL_live555::afterPlaying(void *clientData)
+			{
+				
+				int clientIndex = (int)clientData;
+				auto instance = m_instance;
+				Medium::close(instance->sessionState.sink);
+				instance->m_cEventLoopBreaker = ~0;
+				
+			}
 
             tenStatus SCL_live555::Deinitialise(CORE::tstDeinitialiseControlStruct *DeinitialiseControlStruct)
             {
@@ -177,11 +215,13 @@ namespace RW
 #endif
 
 
+				Medium::close(sessionState.rtcpInstance);
+				//Medium::close(sessionState.source);
 
 
-
-
-
+				sessionState.m_pRtpGroupsock->removeAllDestinations();
+				delete sessionState.m_pRtpGroupsock;
+				delete sessionState.m_pRtcpGroupsock;
 #ifdef TRACE_PERFORMANCE
                 RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
                 m_Logger->trace() << "Time to Deinitialise for nenReceive_Simple module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";

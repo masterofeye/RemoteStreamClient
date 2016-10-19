@@ -87,6 +87,7 @@
   <ItemGroup>
     <ClInclude Include="AbstractModuleFactory.hpp" />
     <ClInclude Include="AbstractModule.hpp" />
+    <ClInclude Include="Config.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="moc_AbstractModule.cpp" />

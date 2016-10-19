@@ -187,7 +187,7 @@ namespace RW{
 						m_Logger->error("DoRender: Invalid frame size parameters!");
 						return tenStatus::nenError;
 					}
-					else if (m_vRect[iIndex].width < pgMat->cols || m_vRect[iIndex].height < pgMat->rows)
+					else //if (m_vRect[iIndex].width < pgMat->cols || m_vRect[iIndex].height < pgMat->rows)
 					{
                         cv::cuda::GpuMat* pOutput = new cv::cuda::GpuMat();
                         *pOutput = (*pgMat)(m_vRect[iIndex]);

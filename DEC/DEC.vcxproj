@@ -35,12 +35,12 @@
     <Import Project="..\..\RemoteUtil\VS_Properties\Moc.props" />
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
-    <Import Project="..\Intel_common\props\winsdk_x64.props" />
+    <Import Project="..\..\RemoteUtil\thirdparty\Intel_common\props\winsdk_x64.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="..\..\RemoteUtil\VS_Properties\Moc.props" />
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <!--<Import Project="..\Intel_common\props\winsdk_x64.props" />-->
+    <!--<Import Project="..\..\RemoteUtil\thirdparty\Intel_common\props\winsdk_x64.props" />-->
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
@@ -96,7 +96,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(INTELMEDIASDKROOT)\include;$(ProjectDir)\..\Intel_common\include;$(INTELMEDIASDKROOT)\igfx_s3dcontrol\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(INTELMEDIASDKROOT)\include;$(ProjectDir)\..\..\RemoteUtil\thirdparty\Intel_common\include;$(INTELMEDIASDKROOT)\igfx_s3dcontrol\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_WINDOWS;UNICODE;WIN32;WIN64;QT_PLUGIN;QT_GUI_LIB;QT_CORE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -124,7 +124,7 @@
       <TargetEnvironment>X64</TargetEnvironment>
     </Midl>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(INTELMEDIASDKROOT)\include;$(ProjectDir)\..\Intel_common\include;$(INTELMEDIASDKROOT)\igfx_s3dcontrol\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(INTELMEDIASDKROOT)\include;$(ProjectDir)\..\..\RemoteUtil\thirdparty\Intel_common\include;$(INTELMEDIASDKROOT)\igfx_s3dcontrol\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN64;NDEBUG;_CONSOLE;SAVE_RECON;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>

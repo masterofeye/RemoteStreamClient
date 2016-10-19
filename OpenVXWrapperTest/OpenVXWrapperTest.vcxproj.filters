@@ -50,8 +50,5 @@
     <ClInclude Include="Pipeline.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Pipeline_Config.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

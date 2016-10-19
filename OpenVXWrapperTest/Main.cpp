@@ -24,6 +24,7 @@ int main(int argc, char* argv[])
     params.file_logger = file_logger;
 
     QApplication app(argc, argv);
+#ifdef CLIENT
     RW::VPL::QT_SIMPLE::VPL_Viewer qViewer;
 	qViewer.setParams(1920, 720);
 	//qViewer.setParams(640, 480);
@@ -38,7 +39,7 @@ int main(int argc, char* argv[])
     qViewer.resize(1924, 724);
     qViewer.show();
     params.pViewer = &qViewer;
-
+#endif
     CPipeline pipe(&params);
     CPipethread thread;
 

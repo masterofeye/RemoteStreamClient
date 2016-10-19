@@ -1,6 +1,7 @@
 #pragma once
 
 #include "..\IMP_Base.h"
+#include "..\..\CSR\Config.h"
 
 namespace RW
 {

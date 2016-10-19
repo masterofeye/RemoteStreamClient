@@ -24,6 +24,13 @@ namespace RW{
 
 			void stMyControlStruct::UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType)
 			{
+#ifdef TEST
+				cv::Mat dummy(pData->rows, pData->cols, pData->type());
+				pData->download(dummy);
+				static int count;
+				WriteBufferToFile(dummy.data, dummy.total() * dummy.channels(), "Server_IMP_YUV444", count);
+#endif
+
 				switch (SubModuleType)
 				{
 				case CORE::tenSubModule::nenGraphic_Crop:
@@ -36,17 +43,14 @@ namespace RW{
 #if defined (SERVER)
                 case CORE::tenSubModule::nenEncode_NVIDIA:
 				{
-                    CUdeviceptr arrYUV;
-                    
-                    RW::ENC::NVENC::tstMyControlStruct *data = static_cast<RW::ENC::NVENC::tstMyControlStruct*>(*Data);
-
+					RW::ENC::NVENC::tstMyControlStruct *data = static_cast<RW::ENC::NVENC::tstMyControlStruct*>(*Data);
+					CUdeviceptr arrYUV;
                     IMP::IMP_Base imp;
-                    tenStatus enStatus = imp.GpuMatToGpuYUV(this->pData, &arrYUV);
+                    tenStatus enStatus = imp.GpuMatToGpuNV12(this->pData, &arrYUV);
                     if (enStatus != tenStatus::nenSuccess)
                         printf("RW::IMP::COLOR_BGRTOYUV::stMyControlStruct::UpdateData case nenEncode_NVIDIA: GpuMatToGpuYUV failed!\n");
 
                     data->pcuYUVArray = arrYUV;
-
                     data->pPayload = this->pPayload;
 
                     SAFE_DELETE(this->pData);
@@ -63,7 +67,7 @@ namespace RW{
                     {
                         printf("RW::IMP::COLOR_BGRTOYUV::stMyControlStruct::UpdateData case nenEncode_INTEL: GpuMatToCpuYUV failed!\n");
                     }
-
+					
                     RW::ENC::INTEL::tstMyControlStruct *data = static_cast<RW::ENC::INTEL::tstMyControlStruct*>(*Data);
 
                     data->pInput = new RW::tstBitStream; 

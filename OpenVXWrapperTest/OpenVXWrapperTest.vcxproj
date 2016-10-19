@@ -1,6 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug_Client|x64">
+      <Configuration>Debug_Client</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug_Server|x64">
+      <Configuration>Debug_Server</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
@@ -30,6 +38,18 @@
     <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Server|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Client|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
@@ -37,12 +57,20 @@
     <Import Project="..\..\RemoteUtil\VS_Properties\Moc.props" />
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
-    <Import Project="..\Intel_common\props\winsdk_x64.props" />
+    <!-- <Import Project="..\..\RemoteUtil\thirdparty\Intel_common\props\winsdk_x64.props" /> -->
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="..\..\RemoteUtil\VS_Properties\Moc.props" />
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <!--<Import Project="..\Intel_common\props\winsdk_x64.props" />-->
+    <!--<Import Project="..\..\RemoteUtil\thirdparty\Intel_common\props\winsdk_x64.props" />-->
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Server|x64'" Label="PropertySheets">
+    <Import Project="..\..\RemoteUtil\VS_Properties\Moc.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Client|x64'" Label="PropertySheets">
+    <Import Project="..\..\RemoteUtil\VS_Properties\Moc.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -50,13 +78,29 @@
     <IncludePath>C:\tool\RemotePkg\OpenVX\include;$(QTDIR)\mkspecs\winrt-x64-msvc2013;$(QTDIR)\include\QtCore;$(QTDIR)\include;..\RWPluginInterface;$(IncludePath)</IncludePath>
     <LibraryPath>$(QTDIR)\lib;..\build\x64\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Server|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>C:\tool\RemotePkg\OpenVX\include;$(QTDIR)\mkspecs\winrt-x64-msvc2013;$(QTDIR)\include\QtCore;$(QTDIR)\include;..\RWPluginInterface;$(IncludePath)</IncludePath>
+    <LibraryPath>$(QTDIR)\lib;..\build\x64\Debug;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)build\$(Platform)\Debug\</OutDir>
+    <IntDir>$(Platform)\Debug</IntDir>
+    <TargetName>RemoteStreamServer</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Client|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>C:\tool\RemotePkg\OpenVX\include;$(QTDIR)\mkspecs\winrt-x64-msvc2013;$(QTDIR)\include\QtCore;$(QTDIR)\include;..\RWPluginInterface;$(IncludePath)</IncludePath>
+    <LibraryPath>$(QTDIR)\lib;..\build\x64\Debug;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)build\$(Platform)\Debug\</OutDir>
+    <IntDir>$(Platform)\Debug</IntDir>
+    <TargetName>RemoteStreamClient</TargetName>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(DXSDK_DIR)\Include;..\OpenVXWrapper;..\IMP;..\SCL;..\DEC;..\VPL;C:\tool\RemotePkg\CUDA\CUDAToolkit\include;$(INTELMEDIASDKROOT)\include;$(INTELMEDIASDKROOT)\igfx_s3dcontrol\include;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtMultimediaWidgets;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtMultimedia;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtWidgets;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtGui;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtANGLE;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtNetwork;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtCore;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\mkspecs\win32-msvc2013;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Tool\RemotePkg\OpenVX\include;..\OpenVXWrapper;..\VGR;..\IMP;..\ENC;..\SSR;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtMultimediaWidgets;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtMultimedia;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtGui;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtANGLE;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtNetwork;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\mkspecs\win32-msvc2013;$(DXSDK_DIR)\Include;..\OpenVXWrapper;..\IMP;..\SCL;..\DEC;..\VPL;C:\tool\RemotePkg\CUDA\CUDAToolkit\include;$(INTELMEDIASDKROOT)\include;$(INTELMEDIASDKROOT)\igfx_s3dcontrol\include;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtMultimediaWidgets;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtMultimedia;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtWidgets;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtGui;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtANGLE;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtNetwork;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtCore;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\mkspecs\win32-msvc2013;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_MBCS;INIT_CUDA_D3D9;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -65,7 +109,41 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>d3d9.lib;d3dx9d.lib;Qt5Cored.lib;Qt5Widgetsd.lib;Qt5Multimediad.lib;Qt5MultimediaWidgetsd.lib;Qt5Guid.lib;Qt5Networkd.lib;qtmaind.lib;shell32.lib;OpenVXWrapper.lib;HighResolution.lib;opencv_core310d.lib;opencv_cudaarithm310d.lib;opencv_cudafilters310d.lib;opencv_cudaimgproc310d.lib;opencv_highgui310d.lib;opencv_imgcodecs310d.lib;opencv_imgproc310d.lib;opencv_videoio310d.lib;libmfx.lib;igfx_s3dcontrol.lib;dxgi.lib;d3d11.lib;dxva2.lib;dwmapi.lib;comsuppw.lib;VPL.lib;IMP.lib;DEC.lib;SCL.lib;cudart.lib;nppc.lib;nppi.lib;npps.lib;cublas.lib;cufft.lib;-LC:/tool/RemotePkg/CUDA/CUDAToolkit/lib/x64;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>IMP.lib;ENC.lib;VGR.lib;SSR.lib;libmfx_d.lib;dxva2.lib;d3d9.lib;d3d11.lib;dxgi.lib;RWPluginInterface.lib;HighResolution.lib;Qt5Cored.lib;Qt5Widgetsd.lib;Qt5Guid.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;glu32.lib;opengl32.lib;cudart.lib;nppc.lib;nppi.lib;npps.lib;cublas.lib;cufft.lib;d3dx9d.lib;Qt5Multimediad.lib;Qt5MultimediaWidgetsd.lib;Qt5Networkd.lib;qtmaind.lib;OpenVXWrapper.lib;opencv_core310d.lib;opencv_cudaarithm310d.lib;opencv_cudafilters310d.lib;opencv_cudaimgproc310d.lib;opencv_highgui310d.lib;opencv_imgcodecs310d.lib;opencv_imgproc310d.lib;opencv_videoio310d.lib;igfx_s3dcontrol.lib;dwmapi.lib;comsuppw.lib;-LC:/tool/RemotePkg/CUDA/CUDAToolkit/lib/x64;libliveMedia.lib;libgroupsock.lib;libBasicUsageEnvironment.lib;libUsageEnvironment.lib;d3d9.lib;d3dx9d.lib;Qt5Cored.lib;Qt5Widgetsd.lib;Qt5Multimediad.lib;Qt5MultimediaWidgetsd.lib;Qt5Guid.lib;Qt5Networkd.lib;qtmaind.lib;shell32.lib;OpenVXWrapper.lib;HighResolution.lib;opencv_core310d.lib;opencv_cudaarithm310d.lib;opencv_cudafilters310d.lib;opencv_cudaimgproc310d.lib;opencv_highgui310d.lib;opencv_imgcodecs310d.lib;opencv_imgproc310d.lib;opencv_videoio310d.lib;libmfx.lib;igfx_s3dcontrol.lib;dxgi.lib;d3d11.lib;dxva2.lib;dwmapi.lib;comsuppw.lib;VPL.lib;IMP.lib;DEC.lib;SCL.lib;cudart.lib;nppc.lib;nppi.lib;npps.lib;cublas.lib;cufft.lib;-LC:/tool/RemotePkg/CUDA/CUDAToolkit/lib/x64;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\build\x64\Debug;C:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Server|x64'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>C:\Tool\RemotePkg\OpenVX\include;..\OpenVXWrapper;..\VGR;..\IMP;..\ENC;..\SSR;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtMultimediaWidgets;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtMultimedia;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtGui;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtANGLE;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtNetwork;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\mkspecs\win32-msvc2013;$(DXSDK_DIR)\Include;..\OpenVXWrapper;..\IMP;..\SCL;..\DEC;..\VPL;C:\tool\RemotePkg\CUDA\CUDAToolkit\include;$(INTELMEDIASDKROOT)\include;$(INTELMEDIASDKROOT)\igfx_s3dcontrol\include;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtMultimediaWidgets;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtMultimedia;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtWidgets;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtGui;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtANGLE;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtNetwork;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtCore;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\mkspecs\win32-msvc2013;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>SERVER;_MBCS;INIT_CUDA_D3D9;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <AdditionalDependencies>IMP.lib;ENC.lib;VGR.lib;SSR.lib;libmfx_d.lib;dxva2.lib;d3d9.lib;d3d11.lib;dxgi.lib;RWPluginInterface.lib;HighResolution.lib;Qt5Cored.lib;Qt5Widgetsd.lib;Qt5Guid.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;glu32.lib;opengl32.lib;cudart.lib;nppc.lib;nppi.lib;npps.lib;cublas.lib;cufft.lib;d3dx9d.lib;Qt5Multimediad.lib;Qt5MultimediaWidgetsd.lib;Qt5Networkd.lib;qtmaind.lib;OpenVXWrapper.lib;opencv_core310d.lib;opencv_cudaarithm310d.lib;opencv_cudafilters310d.lib;opencv_cudaimgproc310d.lib;opencv_highgui310d.lib;opencv_imgcodecs310d.lib;opencv_imgproc310d.lib;opencv_videoio310d.lib;igfx_s3dcontrol.lib;dwmapi.lib;comsuppw.lib;-LC:/tool/RemotePkg/CUDA/CUDAToolkit/lib/x64;libliveMedia.lib;libgroupsock.lib;libBasicUsageEnvironment.lib;libUsageEnvironment.lib;d3d9.lib;d3dx9d.lib;Qt5Cored.lib;Qt5Widgetsd.lib;Qt5Multimediad.lib;Qt5MultimediaWidgetsd.lib;Qt5Guid.lib;Qt5Networkd.lib;qtmaind.lib;shell32.lib;OpenVXWrapper.lib;HighResolution.lib;opencv_core310d.lib;opencv_cudaarithm310d.lib;opencv_cudafilters310d.lib;opencv_cudaimgproc310d.lib;opencv_highgui310d.lib;opencv_imgcodecs310d.lib;opencv_imgproc310d.lib;opencv_videoio310d.lib;libmfx.lib;igfx_s3dcontrol.lib;dxgi.lib;d3d11.lib;dxva2.lib;dwmapi.lib;comsuppw.lib;VPL.lib;IMP.lib;DEC.lib;SCL.lib;cudart.lib;nppc.lib;nppi.lib;npps.lib;cublas.lib;cufft.lib;-LC:/tool/RemotePkg/CUDA/CUDAToolkit/lib/x64;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\build\x64\Debug;C:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Client|x64'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>C:\Tool\RemotePkg\OpenVX\include;..\OpenVXWrapper;..\VGR;..\IMP;..\ENC;..\SSR;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtMultimediaWidgets;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtMultimedia;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtGui;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtANGLE;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtNetwork;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\mkspecs\win32-msvc2013;$(DXSDK_DIR)\Include;..\OpenVXWrapper;..\IMP;..\SCL;..\DEC;..\VPL;C:\tool\RemotePkg\CUDA\CUDAToolkit\include;$(INTELMEDIASDKROOT)\include;$(INTELMEDIASDKROOT)\igfx_s3dcontrol\include;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtMultimediaWidgets;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtMultimedia;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtWidgets;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtGui;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtANGLE;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtNetwork;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include\QtCore;c:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\mkspecs\win32-msvc2013;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>CLIENT;_MBCS;INIT_CUDA_D3D9;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <AdditionalDependencies>IMP.lib;ENC.lib;VGR.lib;SSR.lib;libmfx_d.lib;dxva2.lib;d3d9.lib;d3d11.lib;dxgi.lib;RWPluginInterface.lib;HighResolution.lib;Qt5Cored.lib;Qt5Widgetsd.lib;Qt5Guid.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;glu32.lib;opengl32.lib;cudart.lib;nppc.lib;nppi.lib;npps.lib;cublas.lib;cufft.lib;d3dx9d.lib;Qt5Multimediad.lib;Qt5MultimediaWidgetsd.lib;Qt5Networkd.lib;qtmaind.lib;OpenVXWrapper.lib;opencv_core310d.lib;opencv_cudaarithm310d.lib;opencv_cudafilters310d.lib;opencv_cudaimgproc310d.lib;opencv_highgui310d.lib;opencv_imgcodecs310d.lib;opencv_imgproc310d.lib;opencv_videoio310d.lib;igfx_s3dcontrol.lib;dwmapi.lib;comsuppw.lib;-LC:/tool/RemotePkg/CUDA/CUDAToolkit/lib/x64;libliveMedia.lib;libgroupsock.lib;libBasicUsageEnvironment.lib;libUsageEnvironment.lib;libmfx.lib;VPL.lib;DEC.lib;SCL.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\build\x64\Debug;C:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
@@ -98,6 +176,9 @@
     <ClCompile Include="Pipeline.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\RemoteUtil\thirdparty\Intel_common\Intel_common.vcxproj">
+      <Project>{db71b91d-16d8-4339-9621-d81798e46e8f}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\OpenVXWrapper\OpenVXWrapper.vcxproj">
       <Project>{f008cad3-843c-4659-8c1d-fde606f99c3f}</Project>
     </ProjectReference>
@@ -107,7 +188,6 @@
     <ClInclude Include="ModuleLoader.hpp" />
     <ClInclude Include="NodeBuilder.h" />
     <ClInclude Include="Pipeline.hpp" />
-    <ClInclude Include="Pipeline_Config.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

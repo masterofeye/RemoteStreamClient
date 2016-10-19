@@ -1,47 +1,31 @@
-#ifndef IMP_444TO420_CU
-#define IMP_444TO420_CU
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <stdint.h>
 
-
-__global__ void kernel444To420(uint8_t *pArrayFull, uint8_t *pYUV420, int iWidth, int iHeight, int iPitch)
+__global__ void kernel444To420(uint8_t *pArrayFull, uint8_t *pYUV420, int iWidth, int iHeight, int iPitchSrc, int iPitchDest)
 {
-	int iPosY = blockIdx.y * blockDim.y + threadIdx.y;
 	int iPosX = blockIdx.x * blockDim.x + threadIdx.x;
-    int iPos = iPosY * iPitch + iPosX;
-
-    int iPosIn = iPosY * 3 * iPitch + 3 * iPosX;
+	int iPosY = blockIdx.y * blockDim.y + threadIdx.y;
+	int iPosIn = iPosY * iPitchSrc + 3 * iPosX;
+	int iPos = iPosY * iPitchDest + iPosX;
 
     pYUV420[iPos] = pArrayFull[iPosIn];
 
     if ((iPosX % 2 == 0) && (iPosY % 2 == 0))
     {
-        int iOffsetU = iPitch * iHeight;
-        int iOffsetV = iPitch * iHeight * 5 / 4;
-        int iPosX_UV = (iPosX / 2);
-        if (iPosY % 4 == 0) {
-            iPosX_UV += (iPosY / 4 * iPitch);
-        }
-        else {
-            iPosX_UV += ((iPosY - 2) / 4 * iPitch) + (iPitch / 2);
-        }
-
-        pYUV420[iOffsetU + iPosX_UV] = pArrayFull[iPosIn + 1];
-        pYUV420[iOffsetV + iPosX_UV] = pArrayFull[iPosIn + 2];
-
+		int iOffsetU = iPitchDest * iHeight;
+		int iOffsetV = iPitchDest / 4 * iHeight * 5;
+		int iPosX_UV = (iPosX / 2);
+		int iPosY_UV = (iPosY / 2) / 2;
+		int iPosUV = iPosY_UV * iPitchDest + iPosX_UV + ((iPosY / 2) % 2) * iWidth / 2;
+		pYUV420[iOffsetU + iPosUV] = pArrayFull[iPosIn + 1];
+        pYUV420[iOffsetV + iPosUV] = pArrayFull[iPosIn + 2];
     }
 }
 
-extern "C" void IMP_444To420(uint8_t *pArrayFull, uint8_t *pArrayYUV420, int iWidth, int iHeight, size_t pitchY)
+extern "C" void IMP_444To420(uint8_t *pArrayFull, uint8_t *pArrayYUV420, int iWidth, int iHeight, size_t iPitchSrc, size_t iPitchDest)
 {
 	dim3 block(16, 16, 1);
 	dim3 grid(iWidth / block.x, iHeight / block.y, 1);
 
     //plane to plane
-    kernel444To420 << <grid, block >> >(pArrayFull, pArrayYUV420, iWidth, iHeight, (int)pitchY);
+	kernel444To420 << <grid, block >> >(pArrayFull, pArrayYUV420, iWidth, iHeight, (int)iPitchSrc, (int)iPitchDest);
 }
-
-#endif

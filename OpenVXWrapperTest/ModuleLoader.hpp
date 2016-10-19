@@ -17,6 +17,5 @@ namespace RW{
 			void LoadPlugins(QList<AbstractModule *> *Pluginlist);
 		};
 	}
-
 }
 

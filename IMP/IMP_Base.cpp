@@ -3,8 +3,8 @@
 #include "opencv2/cudev/common.hpp"
 
 // CUDA kernel
-extern "C" void IMP_444To420(uint8_t *pArrayFull, uint8_t *pArrayYUV420, int iWidth, int iHeight, size_t pitchY);
-extern "C" void IMP_444ToNV12(uint8_t *pArrayFull, uint8_t *pArrayYUV420, int iWidth, int iHeight, size_t pitchY);
+extern "C" void IMP_444To420(uint8_t *pArrayFull, uint8_t *pArrayYUV420, int iWidth, int iHeight, size_t iPitchSrc, size_t iPitchDest);
+extern "C" void IMP_444ToNV12(uint8_t *pArrayFull, uint8_t *pArrayYUV420, int iWidth, int iHeight, size_t iPitchSrc, size_t iPitchDest);
 
 namespace RW{
 	namespace IMP{
@@ -16,28 +16,15 @@ namespace RW{
 			int iWidth = pgMat->cols;
 			int iHeight = pgMat->rows;
 
-            cudaError err = cudaMallocPitch((void**)pOutput, &m_sPitch, iWidth, iHeight * 3 / 2);
-            if (err != cudaSuccess)
-            {
-                printf("IMP_Base::GpuMatToCpuYUV: cudaMallocPitch failed!");
-                return tenStatus::nenError;
-            }
-            CUdeviceptr cuInput;
-            err = cudaMallocPitch((void**)&cuInput, &m_sPitch, iWidth, iHeight * 3);
-            if (err != cudaSuccess)
-            {
-                printf("IMP_Base::GpuMatToCpuYUV: cudaMallocPitch failed!");
-                return tenStatus::nenError;
-            }
-            err = cudaMemcpy2D((void*)cuInput, m_sPitch, pgMat->data, iWidth, iWidth, iHeight * 3, cudaMemcpyDeviceToDevice);
-            if (err != cudaSuccess)
-            {
-                printf("IMP_Base::GpuMatToCpuYUV: cudaMemcpy2D failed!");
-                return tenStatus::nenError;
-            }
+			size_t sPitchOut;
+			cudaError err = cudaMallocPitch((void**)pOutput, &sPitchOut, iWidth, iHeight * 3 / 2);
+			if (err != cudaSuccess)
+			{
+				printf("IMP_Base::GpuMatToCpuYUV: cudaMallocPitch failed!");
+				return tenStatus::nenError;
+			}
 
-
-            IMP_444To420((uint8_t*)cuInput, (uint8_t*)*pOutput, iWidth, iHeight, m_sPitch);
+			IMP_444To420((uint8_t*)pgMat->data, (uint8_t*)*pOutput, iWidth, iHeight, pgMat->step, sPitchOut);
 
             err = cudaDeviceSynchronize();
             if (err)
@@ -51,7 +38,12 @@ namespace RW{
                 printf("IMP_444To420: kernel() failed to launch error = %d\n", err);
                 return tenStatus::nenError;
             }
-            cudaFree((void*)cuInput);
+
+#ifdef TEST
+			static int count;
+			cv::Mat dummy(*pgMat);
+			WriteBufferToFile(dummy.ptr(), dummy.total() * dummy.elemSize(), "Server_GpuMatToGpuYUV", count);
+#endif
 
 			return enStatus;
 		}
@@ -90,47 +82,45 @@ namespace RW{
 
         tenStatus IMP_Base::GpuMatToGpuNV12(cv::cuda::GpuMat *pgMat, CUdeviceptr *pOutput)
         {
-            tenStatus enStatus = tenStatus::nenSuccess;
-            if (!pOutput)
-            {
-                printf("IMP_Base::GpuMatToGpuYUV: Output is empty!");
-                return tenStatus::nenError;
-            }
+			tenStatus enStatus = tenStatus::nenSuccess;
 
-            int iWidth = pgMat->cols;
-            int iHeight = pgMat->rows;
+			int iWidth = pgMat->cols;
+			int iHeight = pgMat->rows;
 
-            size_t pitchY;
-            uint8_t* arrayY;
-            uint8_t* arrayYUV420 = (uint8_t *)*pOutput;
+			size_t sPitchOut;
+			cudaError err = cudaMallocPitch((void**)pOutput, &sPitchOut, iWidth, iHeight * 3 / 2);
+			if (err != cudaSuccess)
+			{
+				printf("IMP_Base::GpuMatToCpuNV12: cudaMallocPitch failed!");
+				return tenStatus::nenError;
+			}
 
-            cudaError err = cudaMallocPitch((void**)&arrayY, &pitchY, iWidth, 1);
-            if (err != cudaSuccess) return tenStatus::nenError;
+			IMP_444ToNV12((uint8_t*)pgMat->data, (uint8_t*)*pOutput, iWidth, iHeight, pgMat->step, sPitchOut);
 
-            IMP_444ToNV12(pgMat->data, arrayYUV420, iWidth, iHeight, pitchY);
-            err = cudaGetLastError();
-            if (err != cudaSuccess)
-            {
-                printf("IMP_444To420: kernel() failed to launch error = %d\n", err);
-                return tenStatus::nenError;
-            }
-            err = cudaDeviceSynchronize();
-            if (err != cudaSuccess)
-            {
-                printf("IMP_444To420: Device synchronize failed! Error = %d\n", err);
-                return tenStatus::nenError;
-            }
+			err = cudaDeviceSynchronize();
+			if (err)
+			{
+				printf("IMP_444ToNV12: Device synchronize failed! Error = %d\n", err);
+				return tenStatus::nenError;
+			}
+			err = cudaGetLastError();
+			if (err)
+			{
+				printf("IMP_444ToNV12: kernel() failed to launch error = %d\n", err);
+				return tenStatus::nenError;
+			}
 
-            //cv::Mat mat(iHeight * 3 / 2, iWidth, CV_8U);
-            //err = cudaMemcpy2D(mat.data, iWidth, arrayYUV420, pitchY, iWidth, iHeight * 3 / 2, cudaMemcpyDeviceToHost);
-            //if (err != cudaSuccess) return tenStatus::nenError;
+#ifdef TEST
+			size_t sSize = (size_t)(pgMat->cols * pgMat->rows * 3 / 2);
+			uint8_t *pBuffer = new uint8_t[sSize];
+			err = cudaMemcpy2D(pBuffer, pgMat->cols, (void*)*pOutput, sPitchOut, pgMat->cols, pgMat->rows * 3 / 2, cudaMemcpyDeviceToHost);
+			static int count;
+			WriteBufferToFile(pBuffer, sSize, "Server_GpuMatToGpuNV12", count);
+			delete[] pBuffer;
+#endif
 
-            cudaFree(arrayY);
-
-            *pOutput = (CUdeviceptr)arrayYUV420;
-
-            return enStatus;
-        }
+			return enStatus;
+		}
         tenStatus IMP_Base::GpuMatToCpuNV12(cv::cuda::GpuMat *pgMat, uint8_t *pOutput)
         {
             tenStatus enStatus = tenStatus::nenSuccess;

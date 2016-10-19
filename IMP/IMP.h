@@ -10,8 +10,6 @@
 #include "Utils.h"
 #include "dynlink_cuda.h"
 
-#include "..\OpenVXWrapperTest\Pipeline_Config.h"
-
 #ifdef TRACE_PERFORMANCE
 #include "HighResolution\HighResClock.h"
 #endif

@@ -39,6 +39,8 @@ namespace RW{
                 default:
                     break;
                 }
+                cudaFree((void*)this->pInput->cuDevice);
+                SAFE_DELETE(this->pInput);
             }
 
             CORE::tstModuleVersion IMP_ConvColorFramesNV12ToRGB::ModulVersion() {
@@ -79,10 +81,6 @@ namespace RW{
                 m_u32Width = data->nWidth;
                 m_u32Height = data->nHeight;
 
-                //Initialize the Cuda Context
-                cv::cuda::GpuMat test;
-                test.create(1, 1, CV_8U);
-
 #ifdef TRACE_PERFORMANCE
                 RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
                 m_Logger->trace() << "Time to Initialise for nenGraphic_ColorNV12ToRGB module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";
@@ -115,39 +113,34 @@ namespace RW{
                         return tenStatus::nenError;
 
                 size_t pitchY;
+                uint8_t *arrayY;
 
-                CUdeviceptr arrayNV12;
+                cv::cuda::GpuMat gMat444(m_u32Height, m_u32Width, CV_8UC3);
 
-                cudaError err = cudaMallocPitch((void**)&arrayNV12, &pitchY, m_u32Width, m_u32Height * 3 / 2);
+                cudaError err = cudaMallocPitch((void**)&arrayY, &pitchY, m_u32Width, m_u32Height * 3/2);
                 if (err != cudaSuccess) return tenStatus::nenError;
 
                 if (data->pInput->cuDevice){
-
-                    err = cudaMemcpy2D((void*)arrayNV12, pitchY, (void*)data->pInput->cuDevice, pitchY, m_u32Width, m_u32Height * 3 / 2, cudaMemcpyDeviceToDevice);
+                    err = cudaMemcpy2D(arrayY, pitchY, (void*)data->pInput->cuDevice, pitchY, m_u32Width, m_u32Height * 3 / 2, cudaMemcpyDeviceToDevice);
                     if (err != cudaSuccess) return tenStatus::nenError;
 
-                    cudaFree((void*)data->pInput->cuDevice);
-                    SAFE_DELETE(data->pInput);
+                    IMP_NV12To444(arrayY, gMat444.data, m_u32Width, m_u32Height, pitchY);
                 }
                 else if (data->pInput->pBitstream){
                     // --------- not working correctly yet. For DEC\Intel use fourcc MFX_FOURCC_RGB4 instead. ------------
                     printf("IMP_420To444: ConvColorFramesNV12ToRGB not implemented yet for  data->pInput->pBitstream (e.g. Output from DEC_Intel. Use fourcc MFX_FOURCC_RGB4 instead.)");
+                    return tenStatus::nenError;
 
-                    err = cudaMemcpy2D((void*)arrayNV12, pitchY, (void*)data->pInput->pBitstream->pBuffer, m_u32Width, m_u32Width, m_u32Height * 3 / 2, cudaMemcpyHostToDevice);
-                    if (err != cudaSuccess) return tenStatus::nenError;
+                    //err = cudaMemcpy2D(arrayY, pitchY, (void*)data->pInput->pBitstream->pBuffer, m_u32Width, m_u32Width, m_u32Height * 3 / 2, cudaMemcpyHostToDevice);
+                    //if (err != cudaSuccess) return tenStatus::nenError;
 
-                    SAFE_DELETE_ARRAY(data->pInput->pBitstream->pBuffer);
-                    SAFE_DELETE(data->pInput->pBitstream);
-                    SAFE_DELETE(data->pInput);
+                    //IMP_NV12To444(arrayY, gMat444.data, m_u32Width, m_u32Height, pitchY);
                 }
                 else
                 {
                     printf("IMP_420To444: ConvColorFramesNV12ToRGB is not supporting that format!");
                     return tenStatus::nenError;
                 }
-
-                cv::cuda::GpuMat gMat444(m_u32Height, m_u32Width, CV_8UC3);
-                IMP_NV12To444((uint8_t*)arrayNV12, (uint8_t*)gMat444.data, m_u32Width, m_u32Height, pitchY);
 
                 err = cudaDeviceSynchronize();
                 if (err != cudaSuccess)
@@ -162,17 +155,22 @@ namespace RW{
                     return tenStatus::nenError;
                 }
 
+                // ------------ Uncomment for checking with Image Watch ---------------------
+                //cv::cuda::GpuMat Matrix1(m_u32Height * 3 / 2, m_u32Width, CV_8U, arrayY);
+                //cv::Mat matrix1(m_u32Height * 3 / 2, m_u32Width, CV_8U);
+                //Matrix1.download(matrix1);
+                //cv::Mat matrix2(m_u32Height, m_u32Width, CV_8UC3);
+                //gMat444.download(matrix2);
+
                 cv::cuda::cvtColor(gMat444, gMat444, cv::COLOR_YUV2RGB);
 
-                cv::Mat mat(m_u32Height, m_u32Width, CV_8UC3);
-                gMat444.download(mat);
+                cv::Mat *pMat = new cv::Mat(m_u32Height, m_u32Width, CV_8UC3);
+                gMat444.download(*pMat);
 
-                cudaFree((void*)arrayNV12);
+                cudaFree(arrayY);
 
-                data->pOutput = new RW::tstBitStream;
-                data->pOutput->u32Size = (uint32_t)(mat.total() * mat.channels());
-                data->pOutput->pBuffer = new uint8_t[data->pOutput->u32Size];
-                memcpy(data->pOutput->pBuffer, mat.data, data->pOutput->u32Size);
+                data->pOutput->pBuffer = pMat->data;
+                data->pOutput->u32Size = (uint32_t)(pMat->total() * pMat->channels());
 
                 if (enStatus != tenStatus::nenSuccess || !data->pOutput)
                 {
