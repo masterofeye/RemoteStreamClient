@@ -55,10 +55,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ModuleFactory.cpp" />
-    <ClCompile Include="moc_ModuleFactory.cpp" />
-    <ClCompile Include="INTEL\moc_DEC_Intel.cpp">
-      <Filter>Intel</Filter>
-    </ClCompile>
     <ClCompile Include="INTEL\pipeline_decode.cpp">
       <Filter>Intel</Filter>
     </ClCompile>
@@ -78,9 +74,6 @@
       <Filter>NVENC</Filter>
     </ClCompile>
     <ClCompile Include="NVENC\ImageDX.cpp">
-      <Filter>NVENC</Filter>
-    </ClCompile>
-    <ClCompile Include="NVENC\moc_DEC_NvDecodeD3D9.cpp">
       <Filter>NVENC</Filter>
     </ClCompile>
     <ClCompile Include="NVENC\VideoDecoder.cpp">

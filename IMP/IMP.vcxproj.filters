@@ -2,28 +2,15 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="IMP_Base.cpp" />
-    <ClCompile Include="moc_ModuleFactory.cpp" />
     <ClCompile Include="ModuleFactory.cpp" />
     <ClCompile Include="Merge\IMP_MergeFrames.cpp">
-      <Filter>Merge</Filter>
-    </ClCompile>
-    <ClCompile Include="Merge\moc_IMP_MergeFrames.cpp">
       <Filter>Merge</Filter>
     </ClCompile>
     <ClCompile Include="Crop\IMP_CropFrames.cpp">
       <Filter>Crop</Filter>
     </ClCompile>
-    <ClCompile Include="Crop\moc_IMP_CropFrames.cpp">
-      <Filter>Crop</Filter>
-    </ClCompile>
-    <ClCompile Include="ConvColor_NV12toRGB\moc_IMP_ConvColorFramesNV12ToRGB.cpp">
-      <Filter>ConvColor_NV12toRGB</Filter>
-    </ClCompile>
     <ClCompile Include="ConvColor_NV12toRGB\IMP_ConvColorFramesNV12ToRGB.cpp">
       <Filter>ConvColor_NV12toRGB</Filter>
-    </ClCompile>
-    <ClCompile Include="ConvColor_BGRtoYUV420\moc_IMP_ConvColorFramesBGRToYUV420.cpp">
-      <Filter>ConvColor_BGRtoYUV420</Filter>
     </ClCompile>
     <ClCompile Include="ConvColor_BGRtoYUV420\IMP_ConvColorFramesBGRToYUV420.cpp">
       <Filter>ConvColor_BGRtoYUV420</Filter>

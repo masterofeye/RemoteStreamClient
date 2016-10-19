@@ -199,15 +199,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ConvColor_BGRtoYUV420\IMP_ConvColorFramesBGRToYUV420.cpp" />
-    <ClCompile Include="ConvColor_BGRtoYUV420\moc_IMP_ConvColorFramesBGRToYUV420.cpp" />
     <ClCompile Include="ConvColor_NV12toRGB\IMP_ConvColorFramesNV12ToRGB.cpp" />
-    <ClCompile Include="ConvColor_NV12toRGB\moc_IMP_ConvColorFramesNV12ToRGB.cpp" />
     <ClCompile Include="Crop\IMP_CropFrames.cpp" />
-    <ClCompile Include="Crop\moc_IMP_CropFrames.cpp" />
     <ClCompile Include="IMP_Base.cpp" />
     <ClCompile Include="Merge\IMP_MergeFrames.cpp" />
-    <ClCompile Include="Merge\moc_IMP_MergeFrames.cpp" />
-    <ClCompile Include="moc_ModuleFactory.cpp" />
     <ClCompile Include="ModuleFactory.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -90,13 +90,12 @@
     <ClInclude Include="Config.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="moc_AbstractModule.cpp" />
-    <ClCompile Include="moc_AbstractModuleFactory.cpp" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\OpenVXWrapper\OpenVXWrapper.vcxproj">
       <Project>{f008cad3-843c-4659-8c1d-fde606f99c3f}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

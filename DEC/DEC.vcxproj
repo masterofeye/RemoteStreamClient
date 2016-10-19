@@ -180,15 +180,12 @@
     <ClCompile Include="..\..\RemoteUtil\thirdparty\Common_NVENC\src\dynlink_cuda.cpp" />
     <ClCompile Include="..\..\RemoteUtil\thirdparty\Common_NVENC\src\dynlink_nvcuvid.cpp" />
     <ClCompile Include="INTEL\DEC_Intel.cpp" />
-    <ClCompile Include="INTEL\moc_DEC_Intel.cpp" />
     <ClCompile Include="INTEL\pipeline_decode.cpp" />
-    <ClCompile Include="moc_ModuleFactory.cpp" />
     <ClCompile Include="ModuleFactory.cpp" />
     <ClCompile Include="NVENC\cudaProcessFrame.cpp" />
     <ClCompile Include="NVENC\DEC_NvDecodeD3D9.cpp" />
     <ClCompile Include="NVENC\FrameQueue.cpp" />
     <ClCompile Include="NVENC\ImageDX.cpp" />
-    <ClCompile Include="NVENC\moc_DEC_NvDecodeD3D9.cpp" />
     <ClCompile Include="NVENC\VideoDecoder.cpp" />
     <ClCompile Include="NVENC\VideoParser.cpp" />
   </ItemGroup>

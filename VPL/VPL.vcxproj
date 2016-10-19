@@ -147,10 +147,7 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="moc_ModuleFactory.cpp" />
     <ClCompile Include="ModuleFactory.cpp" />
-    <ClCompile Include="QT_simple\moc_VPL_FrameProcessor.cpp" />
-    <ClCompile Include="QT_simple\moc_VPL_Viewer.cpp" />
     <ClCompile Include="QT_simple\VPL_FrameProcessor.cpp" />
     <ClCompile Include="QT_simple\VPL_Viewer.cpp" />
   </ItemGroup>

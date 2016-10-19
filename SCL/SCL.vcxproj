@@ -152,9 +152,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DummySink.cpp" />
-    <ClCompile Include="live555\moc_SCL_live555.cpp" />
     <ClCompile Include="live555\SCL_live555.cpp" />
-    <ClCompile Include="moc_ModuleFactory.cpp" />
     <ClCompile Include="ModuleFactory.cpp" />
   </ItemGroup>
   <ItemGroup>

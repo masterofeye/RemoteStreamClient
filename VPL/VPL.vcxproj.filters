@@ -7,14 +7,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ModuleFactory.cpp" />
-    <ClCompile Include="moc_ModuleFactory.cpp" />
     <ClCompile Include="QT_simple\VPL_Viewer.cpp">
-      <Filter>QT_simple</Filter>
-    </ClCompile>
-    <ClCompile Include="QT_simple\moc_VPL_FrameProcessor.cpp">
-      <Filter>QT_simple</Filter>
-    </ClCompile>
-    <ClCompile Include="QT_simple\moc_VPL_Viewer.cpp">
       <Filter>QT_simple</Filter>
     </ClCompile>
     <ClCompile Include="QT_simple\VPL_FrameProcessor.cpp">

@@ -21,9 +21,6 @@
     <ClCompile Include="ModuleLoader.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="moc_ModuleLoader.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="GraphBuilder.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -31,9 +28,6 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="Pipeline.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="moc_Pipeline.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
