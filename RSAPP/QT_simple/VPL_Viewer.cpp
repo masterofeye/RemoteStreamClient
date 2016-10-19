@@ -3,7 +3,8 @@
 #include <QGraphicsItem>
 #include <QGraphicsView>
 #include <QBoxLayout>
-#include "opencv2/opencv.hpp"
+#include <QtWidgets/QWidget>
+#include "opencv2\opencv.hpp"
 
 namespace RW
 {
@@ -48,14 +49,10 @@ namespace RW
             {
                 RW::tstBitStream *ptr = (RW::tstBitStream*)buffer;
 
-#if 1
-                FILE *pFile;
-                char* filename = new char[64];
-                sprintf(filename, "c:\\dummy\\VPL_output_%04d.raw", _count);
-                fopen_s(&pFile, filename, "wb");
-                fwrite((uint8_t *)ptr->pBuffer, 1, _width*_height * 4, pFile);
-                fclose(pFile);
-#endif
+                //FILE *pFile;
+                //fopen_s(&pFile, "c:\\dummy\\outViewer.raw", "wb");
+                //fwrite((uint8_t *)ptr->pBuffer, 1, _width*_height * 4, pFile);
+                //fclose(pFile);
 
                 QImage img((uint8_t *)ptr->pBuffer, _width, _height, _format);
 
