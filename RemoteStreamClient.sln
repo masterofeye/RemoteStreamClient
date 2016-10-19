@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.40629.0
+VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenVXWrapper", "OpenVXWrapper\OpenVXWrapper.vcxproj", "{F008CAD3-843C-4659-8C1D-FDE606F99C3F}"
 EndProject
@@ -34,6 +34,11 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Intel_common", "..\RemoteUtil\thirdparty\Intel_common\Intel_common.vcxproj", "{DB71B91D-16D8-4339-9621-D81798E46E8F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{B2C5ABD9-625A-4050-ABD0-ED81FE038901}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RSAPP", "RSAPP\RSAPP.vcxproj", "{4FCC6C5D-3C8A-3009-8419-E4DD5A22DE31}"
+	ProjectSection(ProjectDependencies) = postProject
+		{ED3ABCA4-9FED-3F47-A258-F1A95D446720} = {ED3ABCA4-9FED-3F47-A258-F1A95D446720}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -103,6 +108,12 @@ Global
 		{DB71B91D-16D8-4339-9621-D81798E46E8F}.Debug|x64.Build.0 = Debug|x64
 		{DB71B91D-16D8-4339-9621-D81798E46E8F}.Release|x64.ActiveCfg = Release|x64
 		{DB71B91D-16D8-4339-9621-D81798E46E8F}.Release|x64.Build.0 = Release|x64
+		{4FCC6C5D-3C8A-3009-8419-E4DD5A22DE31}.Debug_WithDebugAPI|x64.ActiveCfg = Debug|x64
+		{4FCC6C5D-3C8A-3009-8419-E4DD5A22DE31}.Debug_WithDebugAPI|x64.Build.0 = Debug|x64
+		{4FCC6C5D-3C8A-3009-8419-E4DD5A22DE31}.Debug|x64.ActiveCfg = Debug|x64
+		{4FCC6C5D-3C8A-3009-8419-E4DD5A22DE31}.Debug|x64.Build.0 = Debug|x64
+		{4FCC6C5D-3C8A-3009-8419-E4DD5A22DE31}.Release|x64.ActiveCfg = Release|x64
+		{4FCC6C5D-3C8A-3009-8419-E4DD5A22DE31}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

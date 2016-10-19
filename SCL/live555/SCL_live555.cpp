@@ -7,10 +7,10 @@
 #include <Windows.h>
 #include <WinSock2.h>
 #include <Ws2tcpip.h>
-
-#include "GroupsockHelper.hh"
-#include <liveMedia.hh>
-#include <BasicUsageEnvironment.hh>
+//
+//#include "GroupsockHelper.hh"
+//#include <liveMedia.hh>
+//#include <BasicUsageEnvironment.hh>
 
 #pragma comment (lib, "Ws2_32.lib")
 #pragma comment (lib, "Mswsock.lib")

@@ -1,6 +1,5 @@
 #include "VPL_Viewer.hpp"
 #include "VPL_FrameProcessor.hpp"
-//#include <QtWidgets>
 #include <QGraphicsItem>
 #include <QGraphicsView>
 #include <QBoxLayout>
