@@ -54,7 +54,7 @@
       <AdditionalIncludeDirectories>C:\tool\RemotePkg\Qt\Qt5.6.0\5.6\msvc2013_64\include;c:\tool\remotepkg\opencv\build\install\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>Qt5Cored.lib;Qt5Widgetsd.lib;Qt5Guid.lib;Qt5Multimediad.lib;Qt5MultimediaWidgetsd.lib;Qt5Networkd.lib;qtmaind.lib;RWPluginInterface.lib;HighResolution.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>OpenVXWrapperTest.lib;Qt5Cored.lib;Qt5Widgetsd.lib;Qt5Guid.lib;Qt5Multimediad.lib;Qt5MultimediaWidgetsd.lib;Qt5Networkd.lib;qtmaind.lib;RWPluginInterface.lib;HighResolution.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
