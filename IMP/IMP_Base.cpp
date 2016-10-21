@@ -3,7 +3,7 @@
 #include "opencv2/cudev/common.hpp"
 
 // CUDA kernel
-extern "C" void IMP_444ToNV12(uint8_t *pArrayFull, uint8_t *pArrayNV12, int iWidth, int iHeight, size_t iPitchSrc, size_t iPitchDest);
+extern "C" void IMP_444ToNV12(const uint8_t *pArrayFull, uint8_t *pArrayNV12, int iWidth, int iHeight, size_t iPitchSrc, size_t iPitchDest);
 
 namespace RW{
 	namespace IMP{
