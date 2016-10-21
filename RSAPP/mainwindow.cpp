@@ -90,11 +90,11 @@ void MainWindow::on_connectButton_clicked()
                 file_logger->debug("*Applicationstart*");
                 file_logger->debug("******************");
 
-                tstPipelineParams params;
-                params.file_logger = file_logger;
-                params.pViewer = m_pViewer;
+                tstPipelineParams pipeparams;
+				pipeparams.file_logger = file_logger;
+				pipeparams.pViewer = m_pViewer;
 
-                CPipeline pipe(&params);
+				CPipeline pipe(&pipeparams);
                 CPipethread thread;
 
                 QObject::connect(&thread, SIGNAL(started()), &pipe, SLOT(RunPipeline()), Qt::DirectConnection);

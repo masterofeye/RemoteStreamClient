@@ -6,6 +6,7 @@
 #include "appservice.h"
 
 #include "..\VPL\QT_simple\VPL_Viewer.hpp"
+#include "..\CCL\Config.h"
 
 namespace Ui {
 class MainWindow;

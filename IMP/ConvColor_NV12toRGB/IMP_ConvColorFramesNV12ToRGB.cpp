@@ -5,7 +5,7 @@
 #include "opencv2/cudev/common.hpp"
 #include "opencv2/cudaimgproc.hpp"
 
-#if defined (CLIENT)
+#if defined (RS_CLIENT)
 #include "..\VPL\QT_simple\VPL_FrameProcessor.hpp"
 #endif
 
@@ -20,7 +20,7 @@ namespace RW{
             {
                 switch (SubModuleType)
                 {
-#if defined (CLIENT)
+#if defined (RS_CLIENT)
                 case CORE::tenSubModule::nenPlayback_Simple:
                 {
                     VPL::QT_SIMPLE::tstMyControlStruct *data = static_cast<VPL::QT_SIMPLE::tstMyControlStruct*>(*Data);

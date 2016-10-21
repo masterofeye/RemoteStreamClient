@@ -64,7 +64,7 @@ int CPipeline::RunPipeline()
             RW::CORE::GraphBuilder builder(&list, file_logger, &graph, &context);
             int iParentIndex = -1;
 
-#ifdef SERVER
+#ifdef RS_SERVER
             RW::VGR::SIMU::tstVideoGrabberInitialiseControlStruct videoGrabberInitialiseControlStruct;
             {
                 videoGrabberInitialiseControlStruct.nFPS = 30;
@@ -221,7 +221,6 @@ int CPipeline::RunPipeline()
                 RW::CORE::tenSubModule::nenEncode_NVIDIA) != RW::tenStatus::nenSuccess)
                 file_logger->error("nenEncode_NVIDIA couldn't build correct");
 #endif
-#if 0
             RW::SSR::LIVE555::tstMyInitialiseControlStruct streamInitialiseControlStruct;
             RW::SSR::LIVE555::tstMyControlStruct streamControlStruct;
             RW::SSR::LIVE555::tstMyDeinitialiseControlStruct streamDeinitialiseControlStruct;
@@ -237,10 +236,8 @@ int CPipeline::RunPipeline()
                 RW::CORE::tenSubModule::nenStream_Simple) != RW::tenStatus::nenSuccess)
                 file_logger->error("nenStream_Simple couldn't build correct");
 #endif
-#endif
 
-#ifdef CLIENT
-#if 0
+#ifdef RS_CLIENT
             RW::SCL::LIVE555::tstMyInitialiseControlStruct receiveInitCtrl;
             RW::SCL::LIVE555::tstMyControlStruct receiveCtrl;
             RW::SCL::LIVE555::tstMyDeinitialiseControlStruct receiveDeinitCtrl;
@@ -255,7 +252,6 @@ int CPipeline::RunPipeline()
                 sizeof(RW::SCL::LIVE555::tstMyDeinitialiseControlStruct),
                 RW::CORE::tenSubModule::nenReceive_Simple) != RW::tenStatus::nenSuccess)
                 file_logger->error("nenReceive_Simple couldn't build correct");
-#endif
 #ifdef DEC_INTEL
             // ---- If you use DEC\Intel set qViewer.setImgType(QImage::Format::Format_RGBX8888) in Main ----
             RW::DEC::INTEL::tstMyInitialiseControlStruct decodeInitCtrl;
@@ -412,11 +408,11 @@ int CPipeline::RunPipeline()
             }
 
             /*******Cleanup. Whatever has been created here has to be destroyed here. Modules do not do that. ******/
-#ifdef SERVER
+#ifdef RS_SERVER
             //SAFE_DELETE(encodeInitialiseControlStruct.pstEncodeConfig);
             //SAFE_DELETE(encodeInitialiseControlStruct.pParams);
 #endif
-#ifdef CLIENT
+#ifdef RS_CLIENT
             SAFE_DELETE(decodeInitCtrl.inputParams);
 #endif
             cudaError err = cudaDeviceSynchronize();

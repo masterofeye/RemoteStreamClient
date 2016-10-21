@@ -3,7 +3,7 @@
 #include "opencv2\opencv.hpp"
 #include "opencv2\cudev\common.hpp"
 #include "opencv2\cudaimgproc.hpp"
-#if defined (SERVER)
+#if defined (RS_SERVER)
 #include "..\..\ENC\NVENC\ENC_CudaInterop.hpp"
 #include "..\..\ENC\Intel\ENC_Intel.hpp"
 #endif
@@ -40,7 +40,7 @@ namespace RW{
                     data->pPayload = this->pPayload;
                     break;
 				}
-#if defined (SERVER)
+#if defined (RS_SERVER)
                 case CORE::tenSubModule::nenEncode_NVIDIA:
 				{
 					RW::ENC::NVENC::tstMyControlStruct *data = static_cast<RW::ENC::NVENC::tstMyControlStruct*>(*Data);

@@ -10,13 +10,14 @@
 
 /*Modules*/
 #include "GraphBuilder.h"
-#ifdef CLIENT
-#include "..\CCL\Config.h"
-#else if defined (SERVER)
+#ifdef RS_SERVER
 #include "..\CSR\Config.h"
 #endif
+#ifdef RS_CLIENT
+#include "..\CCL\Config.h"
+#endif
 
-#ifdef SERVER
+#ifdef RS_SERVER
 #include "..\VGR\Simu\VideoGrabberSimu.hpp"
 #include "..\IMP\Crop\IMP_CropFrames.hpp"
 #include "..\IMP\Merge\IMP_MergeFrames.hpp"
@@ -27,7 +28,7 @@
 #include "..\SSR\live555\SSR_live555.hpp"
 #endif
 
-#ifdef CLIENT
+#ifdef RS_CLIENT
 #include "..\SCL\live555\SCL_live555.hpp"
 #include "..\DEC\INTEL\DEC_Intel.hpp"
 #include "..\DEC\INTEL\DEC_inputs.h"
@@ -44,20 +45,19 @@
 #define TRACE 1
 #define TRACE_PERFORMANCE
 
-typedef struct stPipelineParams
-{
-    std::shared_ptr<spdlog::logger> file_logger;
-#ifdef CLIENT
-    RW::VPL::QT_SIMPLE::VPL_Viewer *pViewer;
-#endif
-}tstPipelineParams;
-
-
 #ifdef REMOTE_EXPORT
 #define REMOTE_API __declspec(dllexport)
 #else
 #define REMOTE_API __declspec(dllimport)
 #endif
+
+typedef struct stPipelineParams
+{
+    std::shared_ptr<spdlog::logger> file_logger;
+#ifdef RS_CLIENT
+    RW::VPL::QT_SIMPLE::VPL_Viewer *pViewer;
+#endif
+}tstPipelineParams;
 
 class REMOTE_API CPipeline : public QObject
 {

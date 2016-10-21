@@ -2,7 +2,7 @@
 #include "opencv2/cudev/common.hpp"
 #include "..\Merge\IMP_MergeFrames.hpp"
 #include "..\ConvColor_BGRtoNV12\IMP_ConvColorFramesBGRToNV12.hpp"
-#if defined (SERVER)
+#if defined (RS_SERVER)
 #include "..\..\ENC\NVENC\ENC_CudaInterop.hpp"
 #include "..\..\ENC\Intel\ENC_Intel.hpp"
 #endif
@@ -42,7 +42,7 @@ namespace RW{
                     SAFE_DELETE(this->pvOutput);
                     break;
 				}
-#if defined (SERVER)
+#if defined (RS_SERVER)
                 case CORE::tenSubModule::nenEncode_NVIDIA:
                 {
                     CUdeviceptr arrYUV;

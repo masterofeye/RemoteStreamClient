@@ -3,7 +3,7 @@
 #include "opencv2/cudev/common.hpp"
 #include "..\ConvColor_BGRtoNV12\IMP_ConvColorFramesBGRToNV12.hpp"
 #include "..\Crop\IMP_CropFrames.hpp"
-#if defined (SERVER)
+#if defined (RS_SERVER)
 #include "..\..\ENC\NVENC\ENC_CudaInterop.hpp"
 #include "..\..\ENC\Intel\ENC_Intel.hpp"
 #endif
@@ -40,7 +40,7 @@ namespace RW{
                     data->pPayload = this->pPayload;
                     break;
 				}
-#if defined (SERVER)
+#if defined (RS_SERVER)
                 case CORE::tenSubModule::nenEncode_NVIDIA:
                 {
                     CUdeviceptr arrYUV;

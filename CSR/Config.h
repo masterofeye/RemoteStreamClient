@@ -2,8 +2,8 @@
 
 #include "..\RWPluginInterface\Config.h"
 
-#define SERVER
-#ifdef SERVER
+#define RS_SERVER
+#ifdef RS_SERVER
 #define ENC_INTEL
 //#define ENC_NVENC
 
