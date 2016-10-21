@@ -1,6 +1,7 @@
 #include "KernelManager.h"
 #include "Kernel.h"
 #include "Context.h"
+#include "Node.h"
 
 
 namespace RW
@@ -16,6 +17,16 @@ namespace RW
         KernelManager::~KernelManager()
         {
             m_Logger->debug("Destroy KernelManager");
+			//Delete every Kernel in the Kernellist
+			for (auto var : m_KernelList)
+			{
+				delete var;
+			}
+			//Delete every Node in the Nodelist
+			for(auto var : m_NodeList)
+			{
+				delete var;
+			}
         }
 
         tenStatus  KernelManager::AddParameterToKernel(Kernel* const KernelToAddParam, tenDir Direction, int Index )
@@ -24,10 +35,13 @@ namespace RW
             vx_status status = vxAddParameterToKernel((*KernelToAddParam)(), Index, (int)Direction, VX_TYPE_ARRAY, VX_PARAMETER_STATE_REQUIRED);
             if (status != VX_SUCCESS)
             {
-                m_Logger->error("Couldn't add parameter to kernel... ") << "Index: " << Index;
+                if (status == VX_ERROR_INVALID_PARAMETERS)
+                    m_Logger->error("Kernel doesn't support Parameter, maybe the amount of the parmeterlist is wrong. ") << "Index: " << Index;
+                else
+                    m_Logger->error("Couldn't add parameter to kernel... ") << "Index: " << Index;
                 return tenStatus::nenError;
             }
-            m_KernelList.push_back(KernelToAddParam);
+
             m_Logger->debug("Parameter added to Kernel (Index: ") << Index << ")";
             return tenStatus::nenSuccess;
         }
@@ -55,13 +69,21 @@ namespace RW
         */
         tenStatus KernelManager::FinalizeKernel(Kernel* const KernelToLoad)
         {
-            vx_status status = vxFinalizeKernel((*KernelToLoad)());
-            if (status != VX_SUCCESS)
-            {
-                m_Logger->error("Couldn't finilize kernel");
-                return tenStatus::nenError;
-            }
-            return tenStatus::nenSuccess;
+			if (KernelToLoad == nullptr)
+			{
+				return tenStatus::nenError;
+			}
+			else
+			{
+				m_KernelList.push_back(KernelToLoad);
+				vx_status status = vxFinalizeKernel((*KernelToLoad)());
+				if (status != VX_SUCCESS)
+				{
+					m_Logger->error("Couldn't finilize kernel");
+					return tenStatus::nenError;
+				}
+				return tenStatus::nenSuccess;
+			}
         }
         tenStatus KernelManager::SetKernelAttribute()
         {

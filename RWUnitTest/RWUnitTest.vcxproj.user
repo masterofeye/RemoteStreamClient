@@ -4,4 +4,12 @@
     <LocalDebuggerCommandArguments> C:\Projekte\RemoteRepros\RemoteStreamClient\build\x64\Debug\UnitTest</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Server|x64'">
+    <LocalDebuggerCommandArguments> C:\Projekte\RemoteRepros\RemoteStreamClient\build\x64\Debug\UnitTest</LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Client|x64'">
+    <LocalDebuggerCommandArguments> C:\Projekte\RemoteRepros\RemoteStreamClient\build\x64\Debug\UnitTest</LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
 </Project>

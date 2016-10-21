@@ -1,16 +1,21 @@
 #include "Kernel.h"
 #include "Context.h"
-#include "Plugin1.hpp"
+#include "Node.h"
+#include "AbstractModule.hpp"
+#include <iostream>
+
 namespace RW
 {
 	namespace CORE
 	{
-        Kernel::Kernel(Context *CurrentContext, std::string KernelName, uint64_t KernelEnum,uint8_t ParameterAmount, AbstractModule const* Module, std::shared_ptr<spdlog::logger> Logger)
-            : m_KernelName(KernelName),
-            m_KernelEnum(KernelEnum),
-            m_Initialize(false),
-            m_Context((*CurrentContext)()),
-            m_Logger(Logger)
+		Kernel::Kernel(Context *CurrentContext, RW::CORE::tstControlStruct *ControlStruct, std::string KernelName, uint64_t KernelEnum, uint8_t ParameterAmount, AbstractModule const* Module, std::shared_ptr<spdlog::logger> Logger)
+			: m_KernelName(KernelName),
+			m_KernelEnum(KernelEnum),
+			m_Initialize(false),
+			m_Context((*CurrentContext)()),
+			m_ControlStruct(ControlStruct),
+            m_CurrentNode(nullptr),
+			m_Logger(Logger)
 		{
 
             m_AbstractModule = const_cast<AbstractModule*> (Module);
@@ -20,8 +25,29 @@ namespace RW
 
 		Kernel::~Kernel()
 		{
+
 		}
 
+        void Kernel::SetParameter(int i, void* Value)
+        {
+            //TODO Sehr Unschön
+            switch (i)
+            {
+            case 0:
+                break;
+            case 1:
+                //m_InitialiseControlStruct = (tstInitialiseControlStruct*)Value;
+                break;
+            case 2:
+                m_ControlStruct = (tstControlStruct*)Value;
+                break;
+            case 3:
+                //m_DeinitialiseControlStruct = (tstDeinitialiseControlStruct*)Value;
+                break;
+            default:
+                break;
+            }
+        }
 
 
         vx_status VX_CALLBACK Kernel::KernelInitializeCB(vx_node Node, const vx_reference* Parameter, vx_uint32 NumberOfParameter)
@@ -40,10 +66,9 @@ namespace RW
             vxAccessArrayRange(kernenArray, 0, 1, &size, (void**)&kernel, VX_READ_AND_WRITE);
 
             status = vxQueryParameter((vx_parameter)param[1], VX_PARAMETER_ATTRIBUTE_REF, &controlStructArray, sizeof(controlStructArray));
-            RW::VG::tstMyInitialiseControlStruct *controlStruct = nullptr;
-            vxAccessArrayRange(controlStructArray, 0, 1, &size, (void**)&controlStruct, VX_READ_AND_WRITE);
-
-
+            RW::CORE::tstInitialiseControlStruct *controlStruct = nullptr;
+            status = vxAccessArrayRange(controlStructArray, 0, 1, &size, (void**)&controlStruct, VX_READ_AND_WRITE);
+            
             if (status != VX_SUCCESS)
             {
                 //TODO log error and specific return value
@@ -56,19 +81,37 @@ namespace RW
             {
                 if (kernel != nullptr)
                 {
-                    kernel->KernelInitialize((RW::CORE::tstInitialiseControlStruct*) controlStruct);
+                    tenStatus ret = kernel->KernelInitialize((RW::CORE::tstInitialiseControlStruct*) controlStruct);
+                    if (ret != tenStatus::nenSuccess)
+                        return VX_FAILURE;
                 }
                 else
                 {
                     return VX_FAILURE;
                 }
             }
-            catch (...)
-            {
-                //Todo Error log
+			catch (std::bad_alloc &e)
+			{
+				std::cerr << "Bad memory allocation during some_function: " << e.what() << std::endl;
+			}
+			catch (std::runtime_error &e)
+			{
+				std::cerr << "Runtime error during some_function: " << e.what() << std::endl;
+			}
+			catch (std::exception e)
+			{
+				std::cerr << "Exception error during some_function: " << e.what() << std::endl;
+			}
+			catch (...)
+			{
+				std::cerr << "Unknown Exception caught !!!" << std::endl;
+				status = VX_FAILURE;
             }
             vxCommitArrayRange(kernenArray, 0, 1, kernel);
             vxCommitArrayRange(controlStructArray, 0, 1, controlStruct);
+
+            vxReleaseParameter(&param[0]);
+            vxReleaseParameter(&param[1]);
 
             return status;
         }
@@ -104,7 +147,7 @@ namespace RW
             {
                 return VX_FAILURE;
             }
-            RW::VG::tstMyDeinitialiseControlStruct *controlStruct = nullptr;
+            RW::CORE::tstDeinitialiseControlStruct *controlStruct = nullptr;
             vxAccessArrayRange(controlStructArray, 0, 1, &size, (void**)&controlStruct, VX_READ_AND_WRITE);
 
             try
@@ -118,19 +161,34 @@ namespace RW
                     return VX_FAILURE;
                 }
             }
-            catch (...)
-            {
-                //Todo Error log
-            }
+			catch (std::bad_alloc &e)
+			{
+				std::cerr << "Bad memory allocation during some_function: " << e.what() << std::endl;
+			}
+			catch (std::runtime_error &e)
+			{
+				std::cerr << "Runtime error during some_function: " << e.what() << std::endl;
+			}
+			catch (std::exception e)
+			{
+				std::cerr << "Exception error during some_function: " << e.what() << std::endl;
+			}
+			catch (...)
+			{
+				std::cerr << "Unknown Exception caught !!!" << std::endl;
+			}
             vxCommitArrayRange(kernenArray, 0, 1, kernel);
             vxCommitArrayRange(controlStructArray, 0, 1, controlStruct);
+
+            //vxReleaseParameter(&param[0]);
+            //vxReleaseParameter(&param[1]);
             return status;
         }
         
         RW::tenStatus Kernel::KernelDeinitialize(void* DeinitializeControlStruct)
         {
             tenStatus status = tenStatus::nenError;
-            m_Logger->debug("Deinitialize kernel");
+            m_Logger->debug("Deinitialize kernel" ) <<(int) m_AbstractModule->SubModulType();
             if (m_AbstractModule!= nullptr && m_AbstractModule->Deinitialise((tstDeinitialiseControlStruct*)DeinitializeControlStruct) != tenStatus::nenSuccess)
             {
                 m_Logger->debug("Deinitialize kernel");
@@ -174,7 +232,7 @@ namespace RW
                 return VX_FAILURE;
             }
             
-            RW::VG::tstMyControlStruct *controlStruct = nullptr;
+            RW::CORE::tstControlStruct *controlStruct = nullptr;
             vxAccessArrayRange(controlStructArray, 0, 1, &size, (void**)&controlStruct, VX_READ_AND_WRITE);
 
 
@@ -183,20 +241,45 @@ namespace RW
             {
                 if (kernel != nullptr)
                 {
-                    kernel->KernelFnc((RW::CORE::tstControlStruct*)controlStruct);
+                    tenStatus err = kernel->KernelFnc((RW::CORE::tstControlStruct*)controlStruct);
+                    if (err != tenStatus::nenSuccess){
+                        kernel->Logger()->critical() << "Kernel::KernelFncCB: kernel->KernelFnc failed!";
+                        status = VX_FAILURE;
+                    }
                 }
                 else
                 {
-                    //TODO log error and specific return value
+                    kernel->Logger()->critical() << "Kernel::KernelFncCB: kernel is NULL!";
                     return VX_FAILURE;
                 }
             }
-            catch (...)
-            {
-                //Todo Error log
-            }
-            vxCommitArrayRange(kernenArray, 0, 1, kernel);
-            vxCommitArrayRange(controlStructArray, 0, 1, controlStruct);
+			catch (std::bad_alloc &e)
+			{
+				kernel->Logger()->critical("Bad memory allocation during some_function: ") << e.what();
+				status = VX_FAILURE;
+			}
+			catch (std::runtime_error &e)
+			{
+				kernel->Logger()->critical("Runtime error during some_function: ") << e.what();
+				status = VX_FAILURE;
+			}
+			catch (std::exception e)
+			{
+				kernel->Logger()->critical("Exception error during some_function: ") << e.what();
+				status = VX_FAILURE;
+			}
+			catch (...)
+			{
+				kernel->Logger()->critical("Unknown Exception caught!!! ");
+				status = VX_FAILURE;
+			}
+
+			//Commit the changed arrays to the memory manager of openvx
+			vxCommitArrayRange(kernenArray, 0, 1, kernel);
+			vxCommitArrayRange(controlStructArray, 0, 1, controlStruct);
+
+            vxReleaseParameter(&param[0]);
+            vxReleaseParameter(&param[1]);
 
 
             return status;
@@ -205,8 +288,8 @@ namespace RW
         tenStatus Kernel::KernelFnc(void* ControlStruct)
         {
             tenStatus status = tenStatus::nenError;
+            tstControlStruct *dummy = (tstControlStruct*)ControlStruct;
             status = m_AbstractModule->DoRender((tstControlStruct*)ControlStruct);
-            m_Logger->debug("DoRender kernel");
             return status;
         }
 
@@ -237,6 +320,8 @@ namespace RW
             }
         }
 
+        RW::CORE::tenSubModule Kernel::SubModuleType(){ return m_AbstractModule->SubModulType(); }
 
+		
 	}
 }

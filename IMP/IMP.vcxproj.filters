@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="IMP_Base.cpp" />
+    <ClCompile Include="ModuleFactory.cpp" />
+    <ClCompile Include="Merge\IMP_MergeFrames.cpp">
+      <Filter>Merge</Filter>
+    </ClCompile>
+    <ClCompile Include="Crop\IMP_CropFrames.cpp">
+      <Filter>Crop</Filter>
+    </ClCompile>
+    <ClCompile Include="ConvColor_NV12toRGB\IMP_ConvColorFramesNV12ToRGB.cpp">
+      <Filter>ConvColor_NV12toRGB</Filter>
+    </ClCompile>
+    <ClCompile Include="ConvColor_BGRtoNV12\IMP_ConvColorFramesBGRToNV12.cpp">
+      <Filter>ConvColor_BGRtoNV12</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="IMP.h" />
+    <ClInclude Include="IMP_Base.h" />
+    <ClInclude Include="ModuleFactory.hpp" />
+    <ClInclude Include="Merge\IMP_MergeFrames.hpp">
+      <Filter>Merge</Filter>
+    </ClInclude>
+    <ClInclude Include="Crop\IMP_CropFrames.hpp">
+      <Filter>Crop</Filter>
+    </ClInclude>
+    <ClInclude Include="ConvColor_NV12toRGB\IMP_ConvColorFramesNV12ToRGB.hpp">
+      <Filter>ConvColor_NV12toRGB</Filter>
+    </ClInclude>
+    <ClInclude Include="ConvColor_BGRtoNV12\IMP_ConvColorFramesBGRToNV12.hpp">
+      <Filter>ConvColor_BGRtoNV12</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Merge">
+      <UniqueIdentifier>{dedafd97-4b7b-4546-876f-b0571c29979f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Crop">
+      <UniqueIdentifier>{1e9599cc-691a-49d1-97c4-dfd6bd89855a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ConvColor_NV12toRGB">
+      <UniqueIdentifier>{191b1a4b-7349-4f64-abc5-06f4089f1b53}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ConvColor_BGRtoNV12">
+      <UniqueIdentifier>{3356903a-22fe-4e2f-a16b-68e7f6d65769}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="IMP.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="ConvColor_NV12toRGB\IMP_NV12To444.cu">
+      <Filter>ConvColor_NV12toRGB</Filter>
+    </CudaCompile>
+    <CudaCompile Include="ConvColor_BGRtoNV12\IMP_444ToNV12.cu">
+      <Filter>ConvColor_BGRtoNV12</Filter>
+    </CudaCompile>
+  </ItemGroup>
+</Project>

@@ -2,6 +2,14 @@
 #include "Context.h"
 #include "Kernel.h"
 #include "Graph.h"
+#include "AbstractModule.hpp"
+
+#include "HighResolution\HighResClock.h"
+
+#define TRACE_PERFORMANCE 1
+
+#define NODE_PARAM_KERNEL_INDEX 0
+#define NODE_PARAM_CONTROLSTRUCT_INDEX 2
 
 namespace RW
 {
@@ -11,9 +19,11 @@ namespace RW
             m_Graph((*CurrentGraph)()),
             m_Kernel((*Kernel2Connect)()),
             m_Initialize(false),
+            m_NextNode(nullptr),
             m_Logger(Logger)
 		{
             CreateNode();
+			AssignNodeCallback();
 		}
 
 		Node::~Node()
@@ -32,15 +42,21 @@ namespace RW
                     {
                         switch (type)
                         {
-                        case VX_TYPE_SCALAR:
+                            case VX_TYPE_SCALAR:
                             {
                                 vx_scalar s = (vx_scalar)(*it);
                                 vxReleaseScalar(&s);
                             }
                             break;
-                        default:
-                            //TODO Log
+                            case VX_TYPE_ARRAY:
+                            {
+                                vx_array s = (vx_array)(*it);
+                                vxReleaseArray(&s);
+                            }
                             break;
+                            default:
+                                //TODO Log
+                                break;
                         }
                     }
                 }
@@ -159,7 +175,12 @@ namespace RW
             }
             vx_enum en = vxRegisterUserStruct((*CurrentContext)(), StructSize);
             vx_array testArray = vxCreateArray((*CurrentContext)(), en, 1);
-            vxAddArrayItems(testArray, 1, Value, StructSize);
+            vx_status res = vxAddArrayItems(testArray, 1, Value, StructSize);
+            if (res != VX_SUCCESS)
+                return tenStatus::nenError;
+
+
+            m_ListOfReferences.push_back((vx_reference)testArray);
             if (vxSetParameterByIndex(m_Node, Index, (vx_reference)testArray) != VX_SUCCESS)
             {
                 m_Logger->error("Couldn't add parameter to Node. ") << "Index: " << Index;
@@ -195,6 +216,7 @@ namespace RW
 
         tenStatus Node::SetParameterByIndex(uint32_t Index, std::string Value, Context const* CurrentContext)
         {
+
             if (CurrentContext == nullptr)
             {
                 m_Logger->alert("No valid context");
@@ -216,6 +238,8 @@ namespace RW
             }
             return tenStatus::nenSuccess;
         }
+
+
 
         tenStatus Node::CreateNode()
         {
@@ -247,8 +271,133 @@ namespace RW
             return tenStatus::nenSuccess;
         }
 
+
         vx_action VX_CALLBACK Node::NodeCallback(vx_node Node)
         {
+#ifdef TRACE_PERFORMANCE
+            auto t1 = RW::CORE::HighResClock::now();
+#endif
+            vx_status status = VX_FAILURE;
+            vx_array kArrayCurrentNode = nullptr,
+                kArrayNextNode = nullptr,
+                csArrayCurrentNode = nullptr,
+                csArrayNextNode = nullptr;
+
+            //Get parameter from the current node (0 .. Kernel, 2 ... tstConstrolStruct)
+            vx_parameter param[] = { vxGetParameterByIndex(Node, NODE_PARAM_KERNEL_INDEX), vxGetParameterByIndex(Node, NODE_PARAM_CONTROLSTRUCT_INDEX) };
+            if (param[0] != nullptr && param[1] != nullptr)
+            {
+                //Get the "wrapper" array from the parameter
+                status = vxQueryParameter((vx_parameter)param[0], VX_PARAMETER_ATTRIBUTE_REF, &kArrayCurrentNode, sizeof(kArrayCurrentNode));
+                if (status != VX_SUCCESS)
+                {
+                    return VX_FAILURE;
+                }
+
+                //get the Kernel from the the wrapper array
+                vx_size size;
+                Kernel *kernelOfCurrentNode = nullptr;
+                vxAccessArrayRange(kArrayCurrentNode, 0, 1, &size, (void**)&kernelOfCurrentNode, VX_READ_AND_WRITE);
+
+                //Second parameter, same handling as the first
+                status = vxQueryParameter((vx_parameter)param[1], VX_PARAMETER_ATTRIBUTE_REF, &csArrayCurrentNode, sizeof(csArrayCurrentNode));
+                if (status != VX_SUCCESS)
+                {
+                    return VX_FAILURE;
+                }
+
+                RW::CORE::tstControlStruct *controlStruct = nullptr;
+                status = vxAccessArrayRange(csArrayCurrentNode, 0, 1, &size, (void**)&controlStruct, VX_READ_AND_WRITE);
+                if (status != VX_SUCCESS)
+                {
+                    return VX_FAILURE;
+                }
+
+                //Get the folling Node that will be processed
+                vx_node nextNode = kernelOfCurrentNode->Node()->NexttNode();
+                if (nextNode != nullptr)
+                {
+                    //Extract the parameter from this node now 
+                    vx_parameter paramNext[] = { vxGetParameterByIndex(nextNode, NODE_PARAM_KERNEL_INDEX), vxGetParameterByIndex(nextNode, NODE_PARAM_CONTROLSTRUCT_INDEX) };
+                    if (paramNext[0] != nullptr && paramNext[1] != nullptr)
+                    {
+                        status = vxQueryParameter((vx_parameter)paramNext[0], VX_PARAMETER_ATTRIBUTE_REF, &kArrayNextNode, sizeof(kArrayNextNode));
+                        if (status != VX_SUCCESS)
+                        {
+                            return VX_FAILURE;
+                        }
+                        Kernel *kernelNext = nullptr;
+                        status = vxAccessArrayRange(kArrayNextNode, 0, 1, &size, (void**)&kernelNext, VX_READ_AND_WRITE);
+                        if (status != VX_SUCCESS)
+                        {
+                            return VX_FAILURE;
+                        }
+
+                        //Second parameter, same handling as the first
+                        status = vxQueryParameter((vx_parameter)paramNext[1], VX_PARAMETER_ATTRIBUTE_REF, &csArrayNextNode, sizeof(csArrayNextNode));
+                        if (status != VX_SUCCESS)
+                        {
+                            return VX_FAILURE;
+                        }
+                        RW::CORE::tstControlStruct *controlStructNext = nullptr;
+                        status = vxAccessArrayRange(csArrayNextNode, 0, 1, &size, (void**)&controlStructNext, VX_READ_AND_WRITE);
+                        if (status != VX_SUCCESS)
+                        {
+                            return VX_FAILURE;
+                        }
+
+                        //Update the data of the current controlstruct with the outputs of the current controlstruct
+                        RW::CORE::tenSubModule type = kernelNext->SubModuleType();
+                        controlStruct->UpdateData(&controlStructNext, kernelNext->SubModuleType());
+
+                        //Commit the changes back to the array
+                        vxCommitArrayRange(csArrayNextNode, 0, 1, controlStructNext);
+                        vxCommitArrayRange(kArrayNextNode, 0, 1, kernelNext);
+                    }
+                    else
+                    {
+                        //TODo
+                        vxCommitArrayRange(csArrayCurrentNode, 0, 1, controlStruct);
+                        vxCommitArrayRange(kArrayCurrentNode, 0, 1, kernelOfCurrentNode);
+
+                        vxReleaseParameter(&paramNext[0]);
+                        vxReleaseParameter(&paramNext[1]);
+
+                        return VX_FAILURE;
+                    }
+                    vxCommitArrayRange(csArrayCurrentNode, 0, 1, controlStruct);
+                    vxCommitArrayRange(kArrayCurrentNode, 0, 1, kernelOfCurrentNode);
+
+                    vxReleaseParameter(&paramNext[0]);
+                    vxReleaseParameter(&paramNext[1]);
+
+
+                }
+                else
+                {
+                    //Todo
+                    vxCommitArrayRange(csArrayCurrentNode, 0, 1, controlStruct);
+                    vxCommitArrayRange(kArrayCurrentNode, 0, 1, kernelOfCurrentNode);
+
+                    vxReleaseParameter(&param[0]);
+                    vxReleaseParameter(&param[1]);
+
+                    return VX_SUCCESS;
+                }
+
+            }
+            else
+            {
+                return VX_FAILURE;
+            }
+
+            vxReleaseParameter(&param[0]);
+            vxReleaseParameter(&param[1]);
+
+#ifdef TRACE_PERFORMANCE
+			auto t2 = RW::CORE::HighResClock::now();
+			auto t3 = RW::CORE::HighResClock::diffNano(t1, t2).count();
+#endif
             return VX_ACTION_CONTINUE;
         }
 	}

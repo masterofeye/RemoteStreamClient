@@ -21,10 +21,13 @@
     <ClCompile Include="ModuleLoader.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="moc_ModuleLoader.cpp">
+    <ClCompile Include="GraphBuilder.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="GraphBuilder.cpp">
+    <ClCompile Include="NodeBuilder.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Pipeline.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
@@ -33,6 +36,12 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="GraphBuilder.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="NodeBuilder.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Pipeline.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
