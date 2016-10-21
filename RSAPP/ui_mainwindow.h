@@ -260,7 +260,7 @@ public:
         usersTab = new QTabWidget(centralWidget);
         usersTab->setObjectName(QStringLiteral("usersTab"));
         videoTab = new QWidget();
-        videoTab->setObjectName(QStringLiteral("tab_2"));
+        videoTab->setObjectName(QStringLiteral("videoTab"));
         verticalLayout_4 = new QVBoxLayout(videoTab);
         verticalLayout_4->setSpacing(6);
         verticalLayout_4->setContentsMargins(11, 11, 11, 11);

@@ -178,7 +178,7 @@ namespace RW
 					static int counter;
 					WriteBufferToFile(rawFrame.ptr(), rawFrame.total() * rawFrame.elemSize(), "VGR_output", counter);
 
-					pControl->Output = mat;
+                    pControl->Output = mat;
 
                     pControl->nCurrentFrameNumber = m_videoCapture.get(CAP_PROP_POS_FRAMES); // nFrameCounter++;
                     pControl->nCurrentPositionMSec = m_videoCapture.get(CAP_PROP_POS_MSEC);

@@ -6,10 +6,22 @@ void CPipethread::start()
     QThread::start();
 }
 
+void CPipethread::stop()
+{
+    emit stopped();
+    QThread::exit();// or quit()?
+}
+
 CPipeline::CPipeline(tstPipelineParams* params)
 {
     m_params = params;
+    m_bStopPipeline = false;
     return;
+}
+
+int CPipeline::StopPipeline(){
+    m_bStopPipeline = true;
+    return 0;
 }
 
 int CPipeline::RunPipeline()
@@ -168,6 +180,7 @@ int CPipeline::RunPipeline()
                 encodeInitialiseControlStruct.pParams->nWidth = lWidth;
                 encodeInitialiseControlStruct.pParams->nHeight = lHeight;
 				encodeInitialiseControlStruct.pParams->bUseHWLib = false;
+                //encodeInitialiseControlStruct.pParams->CodecId = MFX_CODEC_HEVC;
                 //encodeInitialiseControlStruct.pParams->memType = RW::ENC::INTEL::D3D9_MEMORY;
             }
             RW::ENC::INTEL::tstMyControlStruct encodeControlStruct;
@@ -192,6 +205,7 @@ int CPipeline::RunPipeline()
                 encodeInitialiseControlStruct.pParams->nHeight = lHeight;//(encodeInitialiseControlStruct.pParams->nHeight > videoGrabberInitialiseControlStruct.nFrameHeight) ? encodeInitialiseControlStruct.pParams->nHeight : videoGrabberInitialiseControlStruct.nFrameHeight;
                 encodeInitialiseControlStruct.pParams->fps = videoGrabberInitialiseControlStruct.nFPS;
                 encodeInitialiseControlStruct.pParams->uBitstreamBufferSize = 2 * 1024 * 1024;
+                //encodeInitialiseControlStruct.pParams->codec = NV_ENC_HEVC;
             }
             RW::ENC::NVENC::tstMyControlStruct encodeControlStruct;
             RW::ENC::NVENC::tstMyDeinitialiseControlStruct encodeDeinitialiseControlStruct;
@@ -257,6 +271,7 @@ int CPipeline::RunPipeline()
 				decodeInitCtrl.inputParams->bCalLat = false;
                 decodeInitCtrl.inputParams->bLowLat = false;
                 decodeInitCtrl.inputParams->bUseHWLib = false;
+                //decodeInitCtrl.inputParams->videoType = MFX_CODEC_HEVC;
                 //decodeInitCtrl.inputParams->memType = RW::DEC::INTEL::D3D9_MEMORY;
 
                 // ---- Do not use MFX_FOURCC_NV12 and IMP::COLOR_NV12TORGB. It does not work properly now. Use MFX_FOURCC_RGB4 instead ----
@@ -288,6 +303,7 @@ int CPipeline::RunPipeline()
                 //    videoGrabberInitialiseControlStruct.nFrameHeight;
                 decodeInitCtrl.inputParams->nWidth = 1920;
                 //    videoGrabberInitialiseControlStruct.nFrameWidth;
+                //decodeInitCtrl.inputParams->codec = cudaVideoCodec_enum::cudaVideoCodec_HEVC;
             }
             RW::DEC::NVENC::tstMyControlStruct decodeCtrl;
             RW::DEC::NVENC::tstMyDeinitialiseControlStruct decodeDeinitCtrl;
@@ -350,13 +366,15 @@ int CPipeline::RunPipeline()
 #ifdef TRACE_PERFORMANCE
                 RW::CORE::HighResClock::time_point  tAfterInit = RW::CORE::HighResClock::now();
 #endif
-                for (long lIndex = 0; lIndex < 50; lIndex++)
+                long lIndex = 0;
+                //for (lIndex = 0; lIndex < 50; lIndex++)
+                while (!m_bStopPipeline)
                 {
                     if (res == RW::tenStatus::nenSuccess)
                     {
 
                         file_logger->debug("*********************************");
-                        file_logger->debug("*Graph excecution for Frame #") << lIndex;
+                        file_logger->debug("*Graph excecution for Frame #") << lIndex++;
                         file_logger->debug("*********************************");
                     }
                     res = graph.ScheduleGraph();

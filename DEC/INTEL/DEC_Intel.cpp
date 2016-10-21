@@ -106,6 +106,12 @@ namespace RW{
                 RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
 #endif
                 stMyControlStruct* data = static_cast<stMyControlStruct*>(ControlStruct);
+#ifdef TEST
+                data->pstEncodedStream = new RW::tstBitStream;
+                static int count;
+                ReadFileToBuffer(&data->pstEncodedStream->pBuffer, &data->pstEncodedStream->u32Size, "Server_ENC", count);
+#endif
+
                 if (!data)
                 {
                     m_Logger->error("DEC_Intel::DoRender: Data of stMyControlStruct is empty!");

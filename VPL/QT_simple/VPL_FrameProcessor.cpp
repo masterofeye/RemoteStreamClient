@@ -93,6 +93,9 @@ namespace RW
                     SAFE_DELETE(data->pPayload);
                 }
 
+                static int count;
+                WriteBufferToFile(data->pstBitStream->pBuffer, data->pstBitStream->u32Size, "Client_VPL", count);
+
                 //// only used for Qt::QueuedConnection since this is enableing assynchronous threads using copies of the parameters
                 //SAFE_DELETE_ARRAY(data->pstBitStream->pBuffer);
                 //SAFE_DELETE(data->pstBitStream);

@@ -23,6 +23,12 @@
 
 namespace RW{
     namespace CSR{
+
+        struct stClientData{
+            char* pcIP;
+            SOCKET socketClient;
+        };
+
         class TCPServer 
         {
         public:
@@ -37,8 +43,9 @@ namespace RW{
             ~TCPServer();
 
         private:
-            SOCKET s;
-            sockaddr_in serv_addr;
+            SOCKET m_sock;
+            sockaddr_in m_stSockAddr;
+            std::list<stClientData> m_lstClients;
 
             std::string ReceiveMessage(SOCKET s1);
             void SendData(SOCKET s1, void* pData);

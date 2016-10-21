@@ -26,11 +26,6 @@ namespace RW{
                     VPL::QT_SIMPLE::tstMyControlStruct *data = static_cast<VPL::QT_SIMPLE::tstMyControlStruct*>(*Data);
                     data->pstBitStream = this->pOutput;
 
-                    //FILE *pFile;
-                    //fopen_s(&pFile, "c:\\dummy\\Update.raw", "wb");
-                    //fwrite(data->pstBitStream->pBuffer, 1, data->pstBitStream->u32Size, pFile);
-                    //fclose(pFile);
-
                     data->pPayload = this->pPayload;
 
                     break;
@@ -129,12 +124,12 @@ namespace RW{
                 else if (data->pInput->pBitstream){
                     // --------- not working correctly yet. For DEC\Intel use fourcc MFX_FOURCC_RGB4 instead. ------------
                     printf("IMP_420To444: ConvColorFramesNV12ToRGB not implemented yet for  data->pInput->pBitstream (e.g. Output from DEC_Intel. Use fourcc MFX_FOURCC_RGB4 instead.)");
-                    return tenStatus::nenError;
+                    //return tenStatus::nenError;
 
-                    //err = cudaMemcpy2D(arrayY, pitchY, (void*)data->pInput->pBitstream->pBuffer, m_u32Width, m_u32Width, m_u32Height * 3 / 2, cudaMemcpyHostToDevice);
-                    //if (err != cudaSuccess) return tenStatus::nenError;
+                    err = cudaMemcpy2D(arrayY, pitchY, (void*)data->pInput->pBitstream->pBuffer, m_u32Width, m_u32Width, m_u32Height * 3 / 2, cudaMemcpyHostToDevice);
+                    if (err != cudaSuccess) return tenStatus::nenError;
 
-                    //IMP_NV12To444(arrayY, gMat444.data, m_u32Width, m_u32Height, pitchY);
+                    IMP_NV12To444(arrayY, gMat444.data, m_u32Width, m_u32Height, pitchY);
                 }
                 else
                 {
@@ -176,6 +171,9 @@ namespace RW{
                 {
                     m_Logger->error("DoRender: impBase.tensProcessOutput did not succeed!");
                 }
+
+                static int count;
+                WriteBufferToFile(data->pOutput->pBuffer, data->pOutput->u32Size, "Client_IMP", count);
 
 #ifdef TRACE_PERFORMANCE
                 RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();

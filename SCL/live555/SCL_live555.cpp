@@ -12,15 +12,11 @@
 //#include <liveMedia.hh>
 //#include <BasicUsageEnvironment.hh>
 
-#include "C:\Projekte\RemoteStreamClient\SCL\DummySink.h"
+#include "..\DummySink.h"
 
 #pragma comment (lib, "Ws2_32.lib")
 #pragma comment (lib, "Mswsock.lib")
 #pragma comment (lib, "AdvApi32.lib")
-
-//#ifdef TRACE_PERFORMANCE
-//#include "HighResolution\HighResClock.h"
-//#endif
 
 namespace RW
 {
@@ -123,12 +119,12 @@ namespace RW
 				const unsigned short rtpPortNum = 8888;
 				const unsigned short rtcpPortNum = rtpPortNum + 1;
 				struct in_addr sessionAddress;
-				sessionAddress.s_addr = our_inet_addr(sessionAddressStr);
+				sessionAddress.s_addr = inet_addr(sessionAddressStr);
 				const Port rtpPort(rtpPortNum);
 				const Port rtcpPort(rtcpPortNum);
 				char* sourceAddressStr = "aaa.bbb.ccc.ddd";
 				struct in_addr sourceFilterAddress;
-				sourceFilterAddress.s_addr = our_inet_addr(sourceAddressStr);
+				sourceFilterAddress.s_addr = inet_addr(sourceAddressStr);
 				sessionState.m_pRtpGroupsock = new Groupsock(*m_pEnv, sessionAddress, sourceFilterAddress, rtpPort); //todo: fix memory leaks
 				sessionState.m_pRtcpGroupsock = new  Groupsock(*m_pEnv, sessionAddress, sourceFilterAddress, rtcpPort);
 				sessionState.m_pRtcpGroupsock->changeDestinationParameters(sourceFilterAddress, 0, ~0);

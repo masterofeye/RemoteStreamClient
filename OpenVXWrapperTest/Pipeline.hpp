@@ -17,25 +17,24 @@
 #endif
 
 #ifdef SERVER
-#include "Simu\VideoGrabberSimu.hpp"
-#include "Crop\IMP_CropFrames.hpp"
-#include "Merge\IMP_MergeFrames.hpp"
-#include "ConvColor_BGRtoNV12\IMP_ConvColorFramesBGRToNV12.hpp"
-#include "NVENC\ENC_CudaInterop.hpp"
-#include "Intel\ENC_Intel.hpp"
-#include "Intel\ENC_Intel_input.h"
-#include "live555\SSR_live555.hpp"
+#include "..\VGR\Simu\VideoGrabberSimu.hpp"
+#include "..\IMP\Crop\IMP_CropFrames.hpp"
+#include "..\IMP\Merge\IMP_MergeFrames.hpp"
+#include "..\IMP\ConvColor_BGRtoNV12\IMP_ConvColorFramesBGRToNV12.hpp"
+#include "..\ENC\NVENC\ENC_CudaInterop.hpp"
+#include "..\ENC\Intel\ENC_Intel.hpp"
+#include "..\ENC\Intel\ENC_Intel_input.h"
+#include "..\SSR\live555\SSR_live555.hpp"
 #endif
 
 #ifdef CLIENT
-#include "live555\SCL_live555.hpp"
-#include "INTEL\DEC_Intel.hpp"
-#include "INTEL\DEC_inputs.h"
-#include "NVENC\DEC_NvDecodeD3D9.hpp"
-#include "NVENC\DEC_NVENC_inputs.h"
-#include "ConvColor_NV12toRGB\IMP_ConvColorFramesNV12ToRGB.hpp"
-#include "QT_simple\VPL_FrameProcessor.hpp"
-#include "QT_simple\VPL_Viewer.hpp"
+#include "..\SCL\live555\SCL_live555.hpp"
+#include "..\DEC\INTEL\DEC_Intel.hpp"
+#include "..\DEC\INTEL\DEC_inputs.h"
+#include "..\DEC\NVENC\DEC_NvDecodeD3D9.hpp"
+#include "..\DEC\NVENC\DEC_NVENC_inputs.h"
+#include "..\IMP\ConvColor_NV12toRGB\IMP_ConvColorFramesNV12ToRGB.hpp"
+#include "..\VPL\QT_simple\VPL_FrameProcessor.hpp"
 #endif
 
 #include "HighResolution\HighResClock.h"
@@ -53,7 +52,14 @@ typedef struct stPipelineParams
 #endif
 }tstPipelineParams;
 
-class CPipeline : public QObject
+
+#ifdef REMOTE_EXPORT
+#define REMOTE_API __declspec(dllexport)
+#else
+#define REMOTE_API __declspec(dllimport)
+#endif
+
+class REMOTE_API CPipeline : public QObject
 {
     Q_OBJECT
 public:
@@ -62,20 +68,25 @@ public:
 
 public slots:
     int RunPipeline();
+    int StopPipeline();
+
 
 private:
+    bool m_bStopPipeline;
     tstPipelineParams *m_params;
 };
 
-class CPipethread : public QThread
+class REMOTE_API CPipethread : public QThread
 {
     Q_OBJECT
 public:
     CPipethread(){};
     ~CPipethread(){};
     void start();
+    void stop();
 
 signals:
     int started();
+    int stopped();
 
 };

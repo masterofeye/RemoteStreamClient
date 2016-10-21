@@ -239,6 +239,9 @@ namespace RW{
                 bitStream->pBuffer = new uint8_t[bitStream->u32Size];
                 memcpy(bitStream->pBuffer, mfxBS.Data, bitStream->u32Size);
 
+                static int count;
+                WriteBufferToFile(bitStream->pBuffer, bitStream->u32Size, "Server_ENC", count);
+
                 return bitStream;//pWriter->WriteNextFrame(&mfxBS);
             }
 
@@ -912,7 +915,8 @@ namespace RW{
                 m_pPlugin.reset();
 
                 m_TaskPool.Close();
-                m_mfxSession.Close();
+                if (m_mfxSession)
+                    m_mfxSession.Close();
 
                 // allocator if used as external for MediaSDK must be deleted after SDK components
                 DeleteAllocator();

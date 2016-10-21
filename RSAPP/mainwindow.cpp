@@ -1,23 +1,24 @@
-#include "mainwindow.h"
+#include "mainwindow.hpp"
 #include "ui_mainwindow.h"
 #include <QLineEdit>
 #include <QtWidgets/QWidget>
+#include "..\OpenVXWrapperTest\Pipeline.hpp"
 
 #include <QDebug>
 
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    m_mwUI(new Ui::MainWindow)
 {
     m_isConnected = false;
     m_isOperator = false;
-    ui->setupUi(this);
+    m_mwUI->setupUi(this);
     QStringList headers;
     headers << "Parameter" << "Value";
-    ui->treeConfig->setHeaderLabels(headers);
-    ui->serversList->addItems(m_appService.GetServers());
-    ui->operatorTabs->hide();
+    m_mwUI->treeConfig->setHeaderLabels(headers);
+    m_mwUI->serversList->addItems(m_appService.GetServers());
+    m_mwUI->operatorTabs->hide();
     UpdateUI();
 }
 
@@ -33,27 +34,27 @@ void MainWindow::FillParameters()
         auto treeItem = new QTreeWidgetItem();
         treeItem->setText(0, iparam.key());
         rootItem->addChild(treeItem);
-        ui->treeConfig->setItemWidget(treeItem, 1, new QLineEdit(iparam.value(), ui->treeConfig));
+        m_mwUI->treeConfig->setItemWidget(treeItem, 1, new QLineEdit(iparam.value(), m_mwUI->treeConfig));
     }
 
-    ui->treeConfig->addTopLevelItem(rootItem);
+    m_mwUI->treeConfig->addTopLevelItem(rootItem);
     rootItem->setExpanded(true);
-    ui->treeConfig->resizeColumnToContents(0);
+    m_mwUI->treeConfig->resizeColumnToContents(0);
 }
 
 void MainWindow::FillUsers()
 {
     foreach(const QString &userName, m_appService.GetUsers())
     {
-        auto listItem = new QListWidgetItem(0, ui->usersList);
-        ui->usersList->addItem(listItem);
-        ui->usersList->setItemWidget(listItem, new QCheckBox(userName));
+        auto listItem = new QListWidgetItem(0, m_mwUI->usersList);
+        m_mwUI->usersList->addItem(listItem);
+        m_mwUI->usersList->setItemWidget(listItem, new QCheckBox(userName));
     }
 }
 
 MainWindow::~MainWindow()
 {
-    delete ui;
+    delete m_mwUI;
 }
 
 void MainWindow::on_connectButton_clicked()
@@ -61,6 +62,7 @@ void MainWindow::on_connectButton_clicked()
     if (m_isConnected)
     {
         // Stop playing...
+        UpdateUI();
 
         // Disconnect
         m_appService.Disconnect();
@@ -68,9 +70,12 @@ void MainWindow::on_connectButton_clicked()
     }
     else
     {
-        auto server = ui->serversList->currentItem()->text();
-        m_isOperator = ui->operatorCheckBox->isChecked();
+        auto server = m_mwUI->serversList->currentItem()->text();
+        m_isOperator = m_mwUI->operatorCheckBox->isChecked();
         m_isConnected = m_appService.Connect(server);
+
+        UpdateUI();
+
         if (m_isConnected)
         {
             if (m_isOperator)
@@ -80,22 +85,35 @@ void MainWindow::on_connectButton_clicked()
             }
             else
             {
-                // Start playing...
+                auto file_logger = spdlog::stdout_logger_mt("file_logger");
+                file_logger->debug("******************");
+                file_logger->debug("*Applicationstart*");
+                file_logger->debug("******************");
+
+                tstPipelineParams params;
+                params.file_logger = file_logger;
+                params.pViewer = m_pViewer;
+
+                CPipeline pipe(&params);
+                CPipethread thread;
+
+                QObject::connect(&thread, SIGNAL(started()), &pipe, SLOT(RunPipeline()), Qt::DirectConnection);
+                pipe.moveToThread(&thread);
+
+                thread.start();
             }
         }
     }
-
-    UpdateUI();
 }
 
 void MainWindow::UpdateUI()
 {
-    ui->connectButton->setText(m_isConnected ? "Disconnect" : "Connect");
-    ui->operatorCheckBox->setEnabled(!m_isConnected && ui->serversList->currentRow() >= 0);
-    ui->serversList->setEnabled(!m_isConnected);
-    ui->operatorTabs->setEnabled(m_isConnected);
-    ui->usersTab->setEnabled(m_isConnected);
-    ui->labelNoConnection->setVisible(!m_isConnected);
+    m_mwUI->connectButton->setText(m_isConnected ? "Disconnect" : "Connect");
+    m_mwUI->operatorCheckBox->setEnabled(!m_isConnected && m_mwUI->serversList->currentRow() >= 0);
+    m_mwUI->serversList->setEnabled(!m_isConnected);
+    m_mwUI->operatorTabs->setEnabled(m_isConnected);
+    m_mwUI->usersTab->setEnabled(m_isConnected);
+    m_mwUI->labelNoConnection->setVisible(!m_isConnected);
 
     if (m_isConnected)
         UpdateTabVisibility();
@@ -108,30 +126,42 @@ void MainWindow::UpdateTabVisibility()
 {
     if (m_isOperator)
     {
-        ui->operatorTabs->show();
-        ui->usersTab->hide();
+        m_mwUI->operatorTabs->show();
+        m_mwUI->usersTab->hide();
     }
     else
     {
-        ui->operatorTabs->hide();
+        m_mwUI->operatorTabs->hide();
 
-        pViewer = new RW::VPL::QT_SIMPLE::VPL_Viewer();
-        ui->usersTab->show();
-        ui->usersTab->removeTab(0);
-        ui->usersTab->addTab(pViewer, "Video");
+        m_pViewer = new RW::VPL::QT_SIMPLE::VPL_Viewer();
+
+        m_pViewer->setParams(1920, 720);
+        //pViewer->setParams(640, 480);
+    QImage::Format format;
+#ifdef DEC_INTEL
+    format = QImage::Format::Format_RGBX8888;
+#endif
+#ifdef DEC_NVENC
+    format = QImage::Format::Format_RGB888;
+#endif
+    m_pViewer->setImgType(format);
+
+        m_mwUI->usersTab->show();
+        m_mwUI->usersTab->removeTab(0);
+        m_mwUI->usersTab->addTab(m_pViewer, "Video");
     }
 }
 
 void MainWindow::DisconnectAndClear()
 {
-    ui->operatorTabs->hide();
+    m_mwUI->operatorTabs->hide();
 
-    ui->usersTab->show();
-    ui->usersTab->removeTab(0);
-    ui->usersTab->addTab(ui->videoTab, "Video");
+    m_mwUI->usersTab->show();
+    m_mwUI->usersTab->removeTab(0);
+    m_mwUI->usersTab->addTab(m_mwUI->videoTab, "Video");
 
-    ui->treeConfig->clear();
-    ui->usersList->clear();
+    m_mwUI->treeConfig->clear();
+    m_mwUI->usersList->clear();
 }
 
 void MainWindow::on_serversList_currentRowChanged(int currentRow)
@@ -153,9 +183,9 @@ void MainWindow::on_usersList_itemClicked(QListWidgetItem *item)
 
 void MainWindow::on_checkAllBox_toggled(bool checked)
 {
-    for(int i=0; i < ui->usersList->count(); i++)
+    for (int i = 0; i < m_mwUI->usersList->count(); i++)
     {
-        QCheckBox * checkBox = (QCheckBox *)ui->usersList->itemWidget(ui->usersList->item(i));
+        QCheckBox * checkBox = (QCheckBox *)m_mwUI->usersList->itemWidget(m_mwUI->usersList->item(i));
         checkBox->setChecked(checked);
     }
 }
@@ -163,9 +193,9 @@ void MainWindow::on_checkAllBox_toggled(bool checked)
 QStringList MainWindow::GetSelectedUsers()
 {
     QStringList result;
-    for(int i=0; i < ui->usersList->count(); i++)
+    for (int i = 0; i < m_mwUI->usersList->count(); i++)
     {
-        QCheckBox * checkBox = (QCheckBox *)ui->usersList->itemWidget(ui->usersList->item(i));
+        QCheckBox * checkBox = (QCheckBox *)m_mwUI->usersList->itemWidget(m_mwUI->usersList->item(i));
         if (checkBox->isChecked())
         {
             result << checkBox->text();
@@ -196,12 +226,12 @@ void MainWindow::on_kickButton_clicked()
 void MainWindow::on_saveButton_clicked()
 {
     QMap<QString, QString> parameters;
-    QTreeWidgetItemIterator it(ui->treeConfig);
+    QTreeWidgetItemIterator it(m_mwUI->treeConfig);
     it++;
     while(*it)
     {
         auto name = (*it)->text(0);
-        auto value = ((QLineEdit *)ui->treeConfig->itemWidget(*it, 1))->text();
+        auto value = ((QLineEdit *)m_mwUI->treeConfig->itemWidget(*it, 1))->text();
         parameters[name] = value;
         ++it;
     }
@@ -211,5 +241,5 @@ void MainWindow::on_saveButton_clicked()
 
 void MainWindow::on_serversList_itemClicked(QListWidgetItem *item)
 {
-    ui->connectButton->setEnabled(true);
+    m_mwUI->connectButton->setEnabled(true);
 }

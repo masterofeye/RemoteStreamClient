@@ -20,10 +20,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="TCPClient.h">
+    <ClInclude Include="Config.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Config.h">
+    <ClInclude Include="TCPClient.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

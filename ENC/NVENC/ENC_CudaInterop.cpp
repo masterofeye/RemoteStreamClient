@@ -692,6 +692,9 @@ namespace RW{
 				}
 				m_u32NumFramesEncoded++;
 
+                static int count;
+                WriteBufferToFile(data->pstBitStream->pBuffer, data->pstBitStream->u32Size, "Server_ENC", count);
+
 #ifdef TRACE_PERFORMANCE
                 RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
                 m_Logger->trace() << "Time to DoRender for nenEncode_NVIDIA module: " << RW::CORE::HighResClock::diffMilli(t1, t2).count() << "ms.";

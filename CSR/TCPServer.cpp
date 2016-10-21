@@ -3,15 +3,18 @@ namespace RW{
     namespace CSR{
         DWORD TCPServer::GetCurentIP()
         {
-            WSADATA wsaData;
-            WSAStartup(MAKEWORD(1, 1), &wsaData);
+            DWORD dwHostIP = 0;
 
+            WSADATA wWsaData;
+            if (WSAStartup(MAKEWORD(1, 1), &wWsaData) != 0){
+                printf("TCPServer::GetCurentIP: WSACleanup failed");
+                return dwHostIP;
+            }
             char HostName[1024];
-            DWORD m_HostIP = 0;
 
-            if (!gethostname(HostName, 1024))
+            if (::gethostname(HostName, 1024) == 0)
             {
-                if (LPHOSTENT lphost = gethostbyname(HostName))
+                if (LPHOSTENT lphost = ::gethostbyname(HostName))
                 {
                     int i = 0;
                     struct in_addr addr;
@@ -22,8 +25,12 @@ namespace RW{
                     }
                 }
             }
-            WSACleanup();
-            return m_HostIP;
+            if (WSACleanup() != 0){
+                printf("TCPServer::GetCurentIP: WSACleanup failed");
+            }
+
+            // TODO: Where do you assign a value to m_HostIP?
+            return dwHostIP;
         }
 
         std::string TCPServer::GetAllIPAddresses()
@@ -42,40 +49,71 @@ namespace RW{
 
         void TCPServer::ProcessGETADDRCommand(SOCKET s1)
         {
-            int err;
-            char size_c[4];
-            std::string addresses = GetAllIPAddresses();
-            int addresses_length = addresses.length();
-            memcpy(size_c, &addresses_length, sizeof(addresses_length));
-            err = ::send(s1, size_c, sizeof(size_c), 0);
-            err = ::send(s1, addresses.c_str(), (size_t)((unsigned)(addresses.length())), 0);
+            int iErr;
+            char cSize[4];
+            std::string strAddresses = GetAllIPAddresses();
+            size_t sAdressesLength = strAddresses.length();
+            memcpy(cSize, &sAdressesLength, sizeof(sAdressesLength));
+            if (cSize == NULL){
+                printf("TCPServer::ProcessGETADDRCommand: memcpy failed");
+                return;
+            }
+
+            iErr = ::send(s1, cSize, sizeof(cSize), 0);
+            if (iErr != 0){
+                printf("TCPServer::ProcessGETADDRCommand: send cSize failed");
+                return;
+            }
+            iErr = ::send(s1, strAddresses.c_str(), (size_t)((unsigned)(strAddresses.length())), 0);
+            if (iErr != 0){
+                printf("TCPServer::ProcessGETADDRCommand: send strAddresses failed");
+                return;
+            }
         }
 
         void TCPServer::ProcessSTARTSTOPCommand(SOCKET s1, std::vector<SOCKET>* sockets)
         {
-            int size = (*sockets).size();
-            for (int n : (*sockets)) {
-                send(n, "lol", 4, 0);
+            size_t sSize = (*sockets).size();
+            for (int iIndex : (*sockets)) {
+                int iErr = ::send(iIndex, "lol", 4, 0);
+                if (iErr != 0){
+                    printf("TCPServer::ProcessSTARTSTOPCommand: send failed");
+                    return;
+                }
             }
+            return;
         }
 
         std::string TCPServer::ReceiveMessage(SOCKET s1)
         {
-            int err = 0;
-            char size_c[4] = { 0 };
-            int size = 0;
-            err = ::recv(s1, size_c, sizeof(size_c), 0);
-            size = *((int*)size_c);
-            char *string = new char[size];
-            err = ::recv(s1, string, size, 0);
-            char sep[1];
-            char *next_token = NULL;
-            sep[0] = '\0';
-            strtok_s(string, sep, &next_token);
-            std::cout << string << std::endl;
-            std::string message(string);
-            delete string;
-            return message;
+            int iErr = 0;
+            char cSize[4] = { 0 };
+            int iSize = 0;
+            iErr = ::recv(s1, cSize, sizeof(cSize), 0);
+            if (iErr != 0){
+                printf("TCPServer::ReceiveMessage: recv cSize failed");
+                return "";
+            }
+            iSize = *((int*)cSize);
+            char *pcMsg = new char[iSize];
+            iErr = ::recv(s1, pcMsg, iSize, 0);
+            if (iErr != 0){
+                printf("TCPServer::ReceiveMessage: recv pcMsg failed");
+                return "";
+            }
+            char cSep[1];
+            char *pcNextToken = NULL;
+            cSep[0] = '\0';
+            if (::strtok_s(pcMsg, cSep, &pcNextToken) != NULL){
+                std::cout << pcMsg << std::endl;
+                std::string strMessage(pcMsg);
+                delete pcMsg;
+                return strMessage;
+            }
+            else{
+                delete pcMsg;
+                return "";
+            }
         }
 
         void TCPServer::ThreadProcess(SOCKET s1, std::vector<SOCKET>* sockets)
@@ -83,15 +121,18 @@ namespace RW{
             //QThread thread1;
             for (;;)
             {
-                std::string message = ReceiveMessage(s1);
+                std::string strMessage = ReceiveMessage(s1);
 
-                if (message == "GETADDR")
+                if (strMessage == "GETADDR")
                     ProcessGETADDRCommand(s1);
-                if (message == "STOP")
+                if (strMessage == "STOP")
                     ProcessSTARTSTOPCommand(s1, sockets);
-                if (message == "DISCONNECT")
+                if (strMessage == "DISCONNECT")
                 {
-                    closesocket(s1);
+                    if (::closesocket(s1) != 0){
+                        printf("TCPServer::ThreadProcess: closesocket failed");
+                        return;
+                    }
                     break;
                 }
             }
@@ -102,32 +143,46 @@ namespace RW{
             WORD wVersionRequested;
             WSADATA wsaData;
             wVersionRequested = MAKEWORD(2, 2);
-            WSAStartup(wVersionRequested, &wsaData);
+            if (WSAStartup(wVersionRequested, &wsaData) != 0){
+                printf("TCPServer::TCPServer: WSAStartup failed");
+                return;
+            }
 
-            SOCKET s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+            SOCKET sock1 = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
             GetCurentIP();
 
-            struct sockaddr_in sin;
-            sin.sin_family = AF_INET;
-            sin.sin_port = htons(80);
-            sin.sin_addr.s_addr = INADDR_ANY;
+            struct sockaddr_in stSockAddrIn;
+            stSockAddrIn.sin_family = AF_INET;
+            stSockAddrIn.sin_port = htons(80);
+            stSockAddrIn.sin_addr.s_addr = INADDR_ANY;
 
-            int err = ::bind(s, (LPSOCKADDR)&sin, sizeof(sin));
-            err = ::listen(s, SOMAXCONN);
+            int iErr = ::bind(sock1, (LPSOCKADDR)&stSockAddrIn, sizeof(stSockAddrIn));
+            if (iErr != 0){
+                printf("TCPServer::TCPServer: bind failed");
+                return;
+            }
+            iErr = ::listen(sock1, SOMAXCONN);
+            if (iErr != 0){
+                printf("TCPServer::TCPServer: listen failed");
+                return;
+            }
 
             //vector<thread*> threads;
-            std::vector<SOCKET> sockets;
+            std::vector<SOCKET> vecSockets;
 
             for (;;)
             {
-                sockaddr_in from;
-                int fromlen = sizeof(from);
-                SOCKET s1 = accept(s, (struct sockaddr*)&from, &fromlen);
-                sockets.push_back(s1);
+                sockaddr_in stSockAddrFrom;
+                int iLengthFrom = sizeof(stSockAddrFrom);
+                SOCKET s1 = ::accept(sock1, (struct sockaddr*)&stSockAddrFrom, &iLengthFrom);
+                vecSockets.push_back(s1);
                 //threads.push_back(new thread(TCPServer::ThreadProcess, s1, &sockets));
             }
-            WSACleanup();
+            if (WSACleanup() != 0){
+                printf("TCPServer::TCPServer: WSACleanup failed");
+                return;
+            }
         }
 
         TCPServer::~TCPServer()

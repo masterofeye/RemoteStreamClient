@@ -2,12 +2,7 @@
 #include "liveMedia.hh"
 #include "BasicUsageEnvironment.hh"
 #include <stdint.h>
-#include "AbstractModule.hpp"
 
-//#ifdef TRACE_PERFORMANCE
-//#include "HighResolution\HighResClock.h"
-//#endif
-//
 class DummySink : public MediaSink {
 public:
 	typedef void (getDataFunc)(void* clientData, uint8_t* buffer, unsigned size);
@@ -34,11 +29,11 @@ private:
 	static void onSourceClosure(void* clientData);
 	void onSourceClosure();
 	void* m_pClientData;
-	FILE* file;
+	//FILE* file;
 
 private:
-	std::chrono::high_resolution_clock::time_point t1;
-	std::shared_ptr<spdlog::logger> Logger;
+	//std::chrono::high_resolution_clock::time_point t1;
+	//std::shared_ptr<spdlog::logger> Logger;
 	uint32_t m_u32SizeComplete;
 
 	bool bFirstEntered;

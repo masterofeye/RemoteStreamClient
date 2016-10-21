@@ -196,7 +196,7 @@ namespace RW
                     return tenStatus::nenError;
                 }
 
-                m_pPipeline->PrintInfo();
+                //m_pPipeline->PrintInfo();
 
 
 

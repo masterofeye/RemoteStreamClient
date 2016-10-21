@@ -15,7 +15,6 @@ namespace RW
         namespace QT_SIMPLE
         {
             class VPL_FrameProcessor;
-            class VPL_VideoItem;
 
 #ifdef REMOTE_EXPORT
 #define REMOTE_API __declspec(dllexport)

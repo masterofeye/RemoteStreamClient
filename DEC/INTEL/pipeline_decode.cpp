@@ -296,7 +296,8 @@ namespace RW{
                 MSDK_SAFE_DELETE_ARRAY(m_VppDoNotUse.AlgList);
 
                 m_pPlugin.reset();
-                m_mfxSession.Close();
+                if (m_mfxSession)
+                    m_mfxSession.Close();
 
                 // delete frames
                 if (m_pGeneralAllocator)
@@ -1364,17 +1365,6 @@ namespace RW{
                                     MSDK_SLEEP(1); // just wait and then repeat the same call to RunFrameVPPAsync
                                 }
                             } while (MFX_WRN_DEVICE_BUSY == sts);
-
-#ifdef TEST
-							Sleep(100); // XXX Das Bild ist trotz Lock() noch nicht fertig?!
-							mfxStatus res = m_pGeneralAllocator->Lock(m_pGeneralAllocator->pthis, pOutSurface->Data.MemId, &pOutSurface->Data);
-							if (MFX_ERR_NONE == res) {
-								const void* ptr = MSDK_MIN(MSDK_MIN(pOutSurface->Data.Y, pOutSurface->Data.U), pOutSurface->Data.V);
-								static int counter;
-								WriteBufferToFile(ptr, pOutSurface->Info.Height * pOutSurface->Data.Pitch * 3 / 2, "DEC_Intel", counter);
-								sts = m_pGeneralAllocator->Unlock(m_pGeneralAllocator->pthis, pOutSurface->Data.MemId, &pOutSurface->Data);
-							}
-#endif
 
 							// process errors
                             if (MFX_ERR_MORE_DATA == sts) { // will never happen actually

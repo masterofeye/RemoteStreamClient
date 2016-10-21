@@ -6,6 +6,15 @@
 #define TEST
 
 namespace RW{
+
+    struct sSimpleConfig{
+        long lWidth;
+        long lHeight;
+        long lDisplayWidth;
+        long lDisplayHeight;
+        int iVideoType;
+    };
+
     class cConfig{
     private:
         long m_lWidth;

@@ -162,6 +162,11 @@ namespace RW
                 RW::CORE::HighResClock::time_point t1 = RW::CORE::HighResClock::now();
 #endif
                 stMyControlStruct* data = static_cast<stMyControlStruct*>(ControlStruct);
+#ifdef TEST
+                data->pstEncodedStream = new RW::tstBitStream;
+                static int count;
+                ReadFileToBuffer(&data->pstEncodedStream->pBuffer, &data->pstEncodedStream->u32Size, "Server_ENC", count);
+#endif
                 if (!data)
                 {
                     m_Logger->error("DEC_CudaInterop::DoRender: Data of stMyControlStruct is empty!");
@@ -202,12 +207,6 @@ namespace RW
                     renderVideoFrame();
 					data->pOutput = g_pFrameYUV;
 				}
-
-
-                //FILE *pFile;
-                //pFile = fopen("c:\\dummy\\decoded.raw", "wb");
-                //fwrite(data->pOutput->pBuffer, 1, data->pOutput->u32Size, pFile);
-                //fclose(pFile);
 
 #ifdef TRACE_PERFORMANCE
                 RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();

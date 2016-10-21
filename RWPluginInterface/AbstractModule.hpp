@@ -14,6 +14,9 @@
 #define SAFE_DELETE_ARRAY(P){if (P) delete[] P; P = nullptr;}
 #endif // SAFE_DELETE_ARRAY
 
+//#ifdef TRACE_PERFORMANCE
+//#include "HighResolution\HighResClock.h"
+//#endif
 
 namespace RW{
 
@@ -50,6 +53,34 @@ namespace RW{
 		counter++;
 #endif
 	}
+
+    inline void ReadFileToBuffer(void** pBuf, uint32_t *pSize, const char* prefix, int& counter)
+    {
+#ifdef TEST
+        FILE *pFile;
+        QString filename;
+        filename.sprintf("c:\\dummy\\%s_%04d.raw", prefix, counter);
+        if (fopen_s(&pFile, filename.toLocal8Bit(), "rb") == 0)
+        {
+            fseek(pFile, 0, SEEK_END);
+            uint32_t u32Size = ftell(pFile);
+            rewind(pFile);
+
+            *pBuf = new uint8_t[u32Size];//(char*)malloc(sizeof(char)**size);
+            if (!*pBuf){
+                printf("ReadFileToBuffer: Buffer could not be allocated");
+            }
+            
+            size_t result = fread(*pBuf, sizeof(uint8_t), u32Size, pFile);
+            if (result != u32Size || !*pBuf){
+                printf("ReadFileToBuffer: Reading error");
+            }
+            *pSize = u32Size;
+            fclose(pFile);
+        }
+        counter++;
+#endif
+    }
 
     namespace CORE{
 		

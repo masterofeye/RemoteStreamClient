@@ -19,7 +19,7 @@ DummySink::DummySink(UsageEnvironment& env, getDataFunc* func, void* clientData)
 }
 
 DummySink::~DummySink() {
-	fclose(file);
+	//fclose(file);
 	delete[] fReceiveBuffer;
 }
 
@@ -27,7 +27,7 @@ void DummySink::Initialise(getDataFunc* func, void* clientData)
 {
 	m_pClientData = clientData;
 	getDataFunction = func;
-	file = fopen(OUTPUT_FILE, "wb");
+	//file = fopen(OUTPUT_FILE, "wb");
 	fReceiveBuffer = new u_int8_t[DUMMY_SINK_RECEIVE_BUFFER_SIZE];
 	bFirstEntered = true;
 }
@@ -44,7 +44,7 @@ struct timeval presentationTime, unsigned durationInMicroseconds) {
 void DummySink::afterGettingFrame(unsigned frameSize, unsigned numTruncatedBytes,
 struct timeval presentationTime, unsigned /*durationInMicroseconds*/) 
 {
-	fwrite(fReceiveBuffer, 1, frameSize, file);
+	//fwrite(fReceiveBuffer, 1, frameSize, file);
 	getDataFunction(m_pClientData, fReceiveBuffer, frameSize);
 	continuePlaying();
 }
