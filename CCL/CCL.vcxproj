@@ -58,11 +58,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="moc_TCPClient.cpp" />
     <ClCompile Include="TCPClient.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Config.h" />
-    <ClInclude Include="TCPClient.hpp" />
+    <CustomBuild Include="TCPClient.hpp">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug_Client|x64'">$(QTDIR)\bin\moc.exe "%(FullPath)" -o "%(RootDir)%(Directory)moc_%(Filename).cpp"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug_Client|x64'">Compiling %(Filename).%(Extension) using MOC</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug_Client|x64'">%(RootDir)%(Directory)moc_%(Filename).cpp</Outputs>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

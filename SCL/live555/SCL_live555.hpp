@@ -39,27 +39,27 @@ namespace RW
 
 			private:
 				UsageEnvironment* m_pEnv;
-				static SCL_live555 *m_instance;
+				static SCL_live555 *m_pInstance;
 				bool m_bIsInitialised = false;
 				char m_cEventLoopBreaker;
-				RTSPClient* ourRTSPClient;
-				stMyControlStruct* dataControlStruct;
-				void InitialiseSession();
-				void InitialiseGroupsocks();
-				bool StartReceiving();
+				RTSPClient* m_pOurRTSPClient;
+				stMyControlStruct* m_pDataControlStruct;
+				void vInitialiseSession();
+				void vInitialiseGroupsocks();
+				bool boStartReceiving();
 
 				static void afterPlaying(void* clientData);
 
             public:
 				struct sessionState_t {
-					RTPSource* source;
-					MediaSink* sink;
-					RTCPInstance* rtcpInstance;
+					RTPSource* m_pSource;
+					MediaSink* m_pSink;
+					RTCPInstance* m_pRtcpInstance;
 					Groupsock *m_pRtpGroupsock;
 					Groupsock *m_pRtcpGroupsock;
 				} sessionState;
-				static void GetDataFromSink(void* clientData, uint8_t* buffer, unsigned size);
-				void GetDataFromSink(uint8_t* buffer, unsigned size);
+				static void vGetDataFromSink(void* clientData, uint8_t* buffer, unsigned size);
+				void vGetDataFromSink(uint8_t* buffer, unsigned size);
                 explicit SCL_live555(std::shared_ptr<spdlog::logger> Logger);
                 ~SCL_live555();
                 virtual CORE::tenSubModule SubModulType() Q_DECL_OVERRIDE;

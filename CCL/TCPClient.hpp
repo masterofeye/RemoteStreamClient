@@ -24,65 +24,67 @@ namespace RW{
 
     namespace CCL{
 
+		struct ClientInfo
+		{
+			std::string m_strIP;
+			bool m_boIsApproved;
+		};
+
         class TCPClient : public QObject
         {
             Q_OBJECT
 
+		public:
+			SOCKET oConnectToServer(char *pcHost, char IP[]);
+			void vProcessGETADDRCommand(SOCKET s1);
+			void vProcessDISCONNECTCommand(SOCKET s1);
+
+			TCPClient();
+			~TCPClient();
+
         private:
             in_addr *GetIPbyHostname(char* pcHost);
-            std::string GetCurentIP();//OK
+            std::string GetCurentIP();
 
-            void SendCommand(SOCKET s1, std::string command);//OK
-            void ProcessCONNECTCommand(SOCKET s1, bool isOperator);//OK
-            void ProcessREMOVECommand(SOCKET s1, char idToRemove[]);//OK
-            std::list<char*> ProcessGETCLIENTSCommand(SOCKET s1);//OK
-            std::string ReceiveMessage(SOCKET s1);//OK
+            void vSendCommand(SOCKET s1, std::string command);
+            void vProcessCONNECTCommand(SOCKET s1, bool isOperator);
+            void vProcessREMOVECommand(SOCKET s1, char idToRemove[]);
+            std::list<ClientInfo*> oProcessGETCLIENTSCommand(SOCKET s1);
+			void vProcessSTARTCommand(SOCKET s1);
+            std::string strReceiveMessage(SOCKET s1);
 
-            sSimpleConfig GetConfig();	// After Connect Requesting Server 
-            char* GetUDPAddresses();
-            int ViewMsg();
+            sSimpleConfig oGetConfig();	// After Connect Requesting Server 
+            char* cpGetUDPAddresses();
+            int iViewMsg();
 
-        private:
-            sSimpleConfig m_stDummy;
             SOCKET m_sockClient;
             SOCKET m_sockAlert;
             char m_cBuf[1024];
 
-            bool     m_bIsOperator;
+            bool m_bIsOperator;
             sSimpleConfig *m_pConfiguration;
             std::list<char*> m_lstAddresses;
-
-        private:
-            //**********************************************************//
-            //****************** Connection to Pipeline ****************//
-            //**********************************************************//
-            //void SetConfigForPipeline(sSimpleConfig stConfiguration);
-            void SetUDPAdresses(std::list<char*> lstAddresses);
-            int RunPipeline();
-            int StopPipeline();
-
-        public:
-            SOCKET ConnectToServer(char *pcHost, char IP[]);//, bool bIsOperator = false);
-            void ProcessGETADDRCommand(SOCKET s1);//OK
-            void ProcessDISCONNECTCommand(SOCKET s1);//OK
-
-            TCPClient();
-            ~TCPClient();
 
         public slots:
             //**********************************************************//
             //***************** Connection to Server *******************//
             //**********************************************************//
-            int ConnectToSession(char IP[], bool bIsOperator = false);//OK
-            int Disconnect();//OK
-            int RemoveClient(char ClientID[]); // Operator only //OK
-            std::list<char*> GetClientList(); // Operator only
-            void SetConfig(sSimpleConfig stConfiguration); // Operator only, Called by GUI, Sending to Server
+            int iConnectToSession(char IP[], bool bIsOperator = false);
+            int iDisconnect();
+            int iRemoveClient(char ClientID[]); // Operator only
+            std::list<ClientInfo*> oGetClientList(); // Operator only
+            void vSetConfig(sSimpleConfig stConfiguration); // Operator only
+			void vApprove(char ipToApprove[]); // Operator only
+			int iStop();
+			void vStart();
 
-            void Process();
+			void vStopReceived();
 
         signals:
             void SetConfigForPipeline(sSimpleConfig stConfiguration);
+			void SetUDPAdresses(std::list<char*> lstAddresses);
+			int RunPipeline();
+			int StopPipeline();
             void started();
         };
 
@@ -91,19 +93,25 @@ namespace RW{
             Q_OBJECT
 
         public:
-            void ProcessSENDCONFIGCommand(SOCKET s1);
-            void ProcessSTOPCommand(SOCKET s1);
-            std::string ReceiveMessage(SOCKET s1);
+            void vProcessSENDCONFIGCommand(SOCKET s1);
+            void vProcessSTOPCommand(SOCKET s1);
+            std::string strReceiveMessage(SOCKET s1);
 
-            SOCKET m_sS1;
+            SOCKET m_oS1;
 
             TCPClientWrapper(SOCKET s1);
             ~TCPClientWrapper();
+
+		private:
+			std::list<char*> oParseMessageToList(std::string message);
 
         public slots:
             void Process();
         signals:
             void Stop();
+			void SetConfigForPipeline(sSimpleConfig stConfiguration);
         };
+
+		
     }
 }

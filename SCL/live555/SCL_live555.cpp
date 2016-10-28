@@ -7,10 +7,6 @@
 #include <Windows.h>
 #include <WinSock2.h>
 #include <Ws2tcpip.h>
-//
-//#include "GroupsockHelper.hh"
-//#include <liveMedia.hh>
-//#include <BasicUsageEnvironment.hh>
 
 #include "..\DummySink.h"
 
@@ -26,7 +22,7 @@ namespace RW
         {
 			RW::CORE::HighResClock::time_point t1;
 
-			SCL_live555* SCL_live555::m_instance;
+			SCL_live555* SCL_live555::m_pInstance;
 
             void stMyControlStruct::UpdateData(CORE::tstControlStruct** Data, CORE::tenSubModule SubModuleType)
             {
@@ -52,7 +48,7 @@ namespace RW
             SCL_live555::SCL_live555(std::shared_ptr<spdlog::logger> Logger)
                 : RW::CORE::AbstractModule(Logger)
             {
-				SCL_live555::m_instance = this;
+				SCL_live555::m_pInstance = this;
             }
 
             SCL_live555::~SCL_live555()
@@ -85,7 +81,7 @@ namespace RW
                     return enStatus;
                 }
 				if (!m_bIsInitialised)
-					InitialiseSession();
+					vInitialiseSession();
 
 #ifdef TRACE_PERFORMANCE
                 RW::CORE::HighResClock::time_point t2 = RW::CORE::HighResClock::now();
@@ -94,27 +90,27 @@ namespace RW
                 return enStatus;
             }
 
-			void SCL_live555::InitialiseSession()
+			void SCL_live555::vInitialiseSession()
 			{
-				InitialiseGroupsocks();
-				sessionState.source = H264VideoRTPSource::createNew(*m_pEnv, sessionState.m_pRtpGroupsock, 96);
+				vInitialiseGroupsocks();
+				sessionState.m_pSource = H264VideoRTPSource::createNew(*m_pEnv, sessionState.m_pRtpGroupsock, 96); //todo: check for memory leaks
 				const unsigned estimatedSessionBandwidth = 500;
 				const unsigned maxCNAMElen = 100;
-				unsigned char CNAME[maxCNAMElen + 1];
+				unsigned char CNAME[maxCNAMElen + 1];  //todo: fix the name
 				gethostname((char*)CNAME, maxCNAMElen);
-				CNAME[maxCNAMElen] = '\0';
-				sessionState.rtcpInstance
+				CNAME[maxCNAMElen] = '\0';  //todo: fix forming of the zero-terminated string
+				sessionState.m_pRtcpInstance
 					= RTCPInstance::createNew(*m_pEnv, sessionState.m_pRtcpGroupsock,
 					estimatedSessionBandwidth, CNAME,
-					NULL /* we're a client */, sessionState.source);
-				sessionState.sink = DummySink::createNew(*m_pEnv, &SCL_live555::GetDataFromSink, this);
+					NULL /* we're a client */, sessionState.m_pSource);
+				//sessionState.sink = DummySink::createNew(*m_pEnv, &SCL_live555::GetDataFromSink, this);
 				m_bIsInitialised = true;
 			}
 
-			void SCL_live555::InitialiseGroupsocks()
+			void SCL_live555::vInitialiseGroupsocks()
 			{
 				TaskScheduler* scheduler = BasicTaskScheduler::createNew();
-				m_pEnv = BasicUsageEnvironment::createNew(*scheduler);
+				m_pEnv = BasicUsageEnvironment::createNew(*scheduler);  //todo: check it, memory leaks are possible
 				char const* sessionAddressStr = "232.255.42.42";
 				const unsigned short rtpPortNum = 8888;
 				const unsigned short rtcpPortNum = rtpPortNum + 1;
@@ -125,7 +121,7 @@ namespace RW
 				char* sourceAddressStr = "aaa.bbb.ccc.ddd";
 				struct in_addr sourceFilterAddress;
 				sourceFilterAddress.s_addr = inet_addr(sourceAddressStr);
-				sessionState.m_pRtpGroupsock = new Groupsock(*m_pEnv, sessionAddress, sourceFilterAddress, rtpPort); //todo: fix memory leaks
+				sessionState.m_pRtpGroupsock = new Groupsock(*m_pEnv, sessionAddress, sourceFilterAddress, rtpPort);
 				sessionState.m_pRtcpGroupsock = new  Groupsock(*m_pEnv, sessionAddress, sourceFilterAddress, rtcpPort);
 				sessionState.m_pRtcpGroupsock->changeDestinationParameters(sourceFilterAddress, 0, ~0);
 			}
@@ -138,17 +134,17 @@ namespace RW
                 t1 = RW::CORE::HighResClock::now();
 #endif
 
-				dataControlStruct = static_cast<stMyControlStruct*>(ControlStruct);
-				if (dataControlStruct == nullptr)
+				m_pDataControlStruct = static_cast<stMyControlStruct*>(ControlStruct);
+				if (m_pDataControlStruct == nullptr)
                 {
                     m_Logger->error("DoRender: Data of stMyControlStruct is empty!");
                     enStatus = tenStatus::nenError;
                     return enStatus;
                 }
-				if (!dataControlStruct->pstBitStream)
-					dataControlStruct->pstBitStream = new RW::tstBitStream;  //todo: fix a memory leak
+				//if (!m_pDataControlStruct->pstBitStream) //may cause troubles
+					m_pDataControlStruct->pstBitStream = new RW::tstBitStream;  //todo: fix a memory leak
 				
-				bool res = StartReceiving();
+				bool res = boStartReceiving();
 				if (res == false)
 				{
 					m_Logger->error("DoRender: startPlaying failed!");
@@ -158,7 +154,7 @@ namespace RW
 				m_cEventLoopBreaker = 0;
 				m_pEnv->taskScheduler().doEventLoop(&m_cEventLoopBreaker);
 
-				if (dataControlStruct->pstBitStream->pBuffer == NULL)
+				if (m_pDataControlStruct->pstBitStream->pBuffer == NULL)
 				{
 					m_Logger->error("DoRender: buffer is empty!");
 					return tenStatus::nenError;
@@ -172,33 +168,33 @@ namespace RW
                 return enStatus;
             }
 
-			bool SCL_live555::StartReceiving()
+			bool SCL_live555::boStartReceiving()
 			{
-				unsigned *size = &(dataControlStruct->pstBitStream->u32Size);
-				//sessionState.sink = DummySink::createNew(*m_pEnv, &SCL_live555::GetDataFromSink, this);
-				bool res = sessionState.sink->startPlaying(*sessionState.source, afterPlaying, dataControlStruct->pstBitStream->pBuffer);
+				unsigned *size = &(m_pDataControlStruct->pstBitStream->u32Size);
+				sessionState.m_pSink = DummySink::createNew(*m_pEnv, &SCL_live555::vGetDataFromSink, this);
+				bool res = sessionState.m_pSink->startPlaying(*sessionState.m_pSource, afterPlaying, m_pDataControlStruct->pstBitStream->pBuffer);
 				return res;
 			}
 
-			void SCL_live555::GetDataFromSink(void* clientData, u_int8_t* buffer, unsigned size)
+			void SCL_live555::vGetDataFromSink(void* clientData, u_int8_t* buffer, unsigned size)
 			{
-				((SCL_live555*)clientData)->GetDataFromSink(buffer, size);
+				((SCL_live555*)clientData)->vGetDataFromSink(buffer, size);
 			}
 
-			void SCL_live555::GetDataFromSink(u_int8_t* buffer, unsigned size)
+			void SCL_live555::vGetDataFromSink(u_int8_t* buffer, unsigned size)
 			{
-				dataControlStruct->pstBitStream->pBuffer = (uint8_t*)buffer;
-				dataControlStruct->pstBitStream->u32Size = size;
+				m_pDataControlStruct->pstBitStream->pBuffer = (uint8_t*)buffer;
+				m_pDataControlStruct->pstBitStream->u32Size = size;
 				m_cEventLoopBreaker = ~0;
-				sessionState.sink->stopPlaying();
+				sessionState.m_pSink->stopPlaying();
 			}
 
 			void SCL_live555::afterPlaying(void *clientData)
 			{
 				
 				int clientIndex = (int)clientData;
-				auto instance = m_instance;
-				Medium::close(instance->sessionState.sink);
+				auto instance = m_pInstance;
+				Medium::close(instance->sessionState.m_pSink);
 				instance->m_cEventLoopBreaker = ~0;
 				
 			}
@@ -211,9 +207,9 @@ namespace RW
 #endif
 
 
-				Medium::close(sessionState.rtcpInstance);
-				//Medium::close(sessionState.source);
-
+				Medium::close(sessionState.m_pRtcpInstance);
+				Medium::close(sessionState.m_pSink);
+				//Medium::close(sessionState.m_pSource);
 
 				sessionState.m_pRtpGroupsock->removeAllDestinations();
 				delete sessionState.m_pRtpGroupsock;

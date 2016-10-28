@@ -18,13 +18,18 @@
     <ClCompile Include="TCPClient.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="moc_TCPClient.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Config.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="TCPClient.hpp">
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="TCPClient.hpp">
       <Filter>Headerdateien</Filter>
-    </ClInclude>
+    </CustomBuild>
   </ItemGroup>
 </Project>
