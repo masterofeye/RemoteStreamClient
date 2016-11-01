@@ -1,7 +1,16 @@
-#pragma once
+#ifndef OPENVXWRAPPER_H
+#define OPENVXWRAPPER_H
 
-#include <Context.h>
-#include <Graph.h>
-#include <Node.h>
-#include <Kernel.h>
-#include <KernelManager.h>
+#include "openvxwrapper_global.h"
+
+class OPENVXWRAPPER_EXPORT OpenVXWrapper
+{
+public:
+    OpenVXWrapper();
+    ~OpenVXWrapper();
+
+private:
+
+};
+
+#endif // OPENVXWRAPPER_H
