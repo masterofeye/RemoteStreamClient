@@ -1,9 +1,0 @@
-CCL - Connector Client
-CSR - Connector Server
-DEC - Decoder
-ENC - Encoder
-IMP - Image Processing
-SCL - Streaming Client
-SSR - Streaming Server
-VGR - Video Grabber
-VPL - Video Player
