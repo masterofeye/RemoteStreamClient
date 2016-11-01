@@ -91,7 +91,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PreprocessorDefinitions>UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;OPENVXWRAPPER_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(OPENVX_INCLUDE);$(SPDLOG);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -138,9 +138,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Context.cpp" />
+    <ClCompile Include="Graph.cpp" />
+    <ClCompile Include="Kernel.cpp" />
+    <ClCompile Include="Node.cpp" />
     <ClCompile Include="Openvxwrapper.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Utils.h" />
+    <ClInclude Include="Context.h" />
+    <ClInclude Include="Graph.h" />
+    <ClInclude Include="Kernel.h" />
+    <ClInclude Include="Node.h" />
     <ClInclude Include="Openvxwrapper.h" />
     <ClInclude Include="openvxwrapper_global.h" />
   </ItemGroup>
