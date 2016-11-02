@@ -6,10 +6,10 @@
 	<OPENVX_INCLUDE>$(OPENVX)\include</OPENVX_INCLUDE>
 	<OPENVX_LIB>$(OPENVX)\lib</OPENVX_LIB>
 	<OPENVX_BIN>$(OPENVX)\bin</OPENVX_BIN>
-    <QTVERSIONSIMPLE>5.7</QTVERSIONSIMPLE>
+    <QTVERSIONSIMPLE>5.6</QTVERSIONSIMPLE>
     <QTVERSION>${QTVERSION_SIMPLE}.0</QTVERSION>
 	<QTDIR>C:\tool\RemotePkg\Qt\Qt${QTVERSION}\${QTVERSION_SIMPLE}\msvc2013_64\bin</QTDIR>
-	<SPDLOG>C:\Projekte\RemoteUtil\thirdparty\spdlog</SPDLOG>
+	<SPDLOG>C:\Projekte\RemoteRepros\RemoteUtil\thirdparty\</SPDLOG>
   </PropertyGroup>
   <ItemDefinitionGroup />
   <ItemGroup />

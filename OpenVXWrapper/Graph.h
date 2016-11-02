@@ -1,7 +1,7 @@
 #pragma once
 #include <QObject>
 
-#include <spdlog.h>
+#include <spdlog\spdlog.h>
 
 extern "C" {
 #include <VX\vx.h>
